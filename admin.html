@@ -40,6 +40,12 @@
       border: 1px solid #ece2d9;
     }
     
+    .login-card .lock-icon {
+      font-size: 3rem;
+      color: #9c6e4b;
+      margin-bottom: 16px;
+    }
+    
     .login-card h1 {
       font-family: 'Playfair Display', serif;
       color: #9c6e4b;
@@ -47,7 +53,7 @@
       margin-bottom: 8px;
     }
     
-    .login-card p {
+    .login-card .subtitle {
       color: #8b7b6e;
       font-size: 0.85rem;
       margin-bottom: 32px;
@@ -59,59 +65,63 @@
       margin-bottom: 20px;
     }
     
-    .login-card input {
+    .password-wrapper input {
       width: 100%;
-      padding: 14px 44px 14px 18px;
-      border: 1px solid #ece2d9;
-      border-radius: 60px;
-      font-size: 1rem;
+      padding: 14px 48px 14px 18px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
       font-family: inherit;
       background: #fff;
       transition: border-color 0.2s;
+      outline: none;
     }
     
-    .login-card input:focus {
-      outline: none;
+    .password-wrapper input:focus {
       border-color: #9c6e4b;
     }
     
     .toggle-password {
       position: absolute;
-      right: 12px;
+      right: 8px;
       top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
-      color: #999;
       cursor: pointer;
       padding: 8px;
-      font-size: 1.1rem;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2;
-      line-height: 1;
+      color: #888;
       transition: color 0.2s;
     }
     
     .toggle-password:hover {
-      color: #555;
+      color: #333;
     }
     
-    .login-card button {
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .login-btn {
       width: 100%;
       padding: 14px;
       background: #2a4235;
       color: white;
       border: none;
-      border-radius: 60px;
+      border-radius: 8px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
+      font-family: inherit;
     }
     
-    .login-card button:hover {
+    .login-btn:hover {
       background: #9c6e4b;
     }
     
@@ -183,6 +193,8 @@
       font-weight: 500;
       color: #8b7b6e;
       transition: all 0.2s;
+      font-family: inherit;
+      font-size: 0.9rem;
     }
     
     .nav-tab.active {
@@ -198,6 +210,7 @@
       cursor: pointer;
       color: #8b7b6e;
       transition: all 0.2s;
+      font-family: inherit;
     }
     
     .logout-btn:hover {
@@ -216,6 +229,7 @@
     @media (max-width: 576px) {
       .stats-grid {
         gap: 12px;
+        grid-template-columns: 1fr 1fr;
       }
     }
     
@@ -386,6 +400,7 @@
       cursor: pointer;
       font-weight: 500;
       transition: background 0.2s;
+      font-family: inherit;
     }
     
     .btn-primary:hover {
@@ -454,16 +469,27 @@
   <!-- LOGIN PAGE -->
   <div id="loginPage" class="login-container">
     <div class="login-card">
-      <i class="fas fa-lock" style="font-size: 3rem; color: #9c6e4b; margin-bottom: 16px;"></i>
+      <div class="lock-icon">🔒</div>
       <h1>DERMAKRAFT</h1>
-      <p>Admin Access</p>
+      <p class="subtitle">Admin Access</p>
       <div class="password-wrapper">
         <input type="password" id="passwordInput" placeholder="Enter Admin Passkey" autocomplete="off">
-        <button type="button" class="toggle-password" id="togglePasswordBtn">
-          <i class="far fa-eye" id="eyeIcon"></i>
+        <button type="button" class="toggle-password" id="togglePasswordBtn" aria-label="Show password">
+          <!-- Eye icon (visible) -->
+          <svg id="eyeOpenIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <!-- Eye off icon (hidden, shown when password is visible) -->
+          <svg id="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
         </button>
       </div>
-      <button id="loginBtn">Login to Dashboard</button>
+      <button class="login-btn" id="loginBtn">Login to Dashboard</button>
       <div id="loginError" class="error-msg">❌ Invalid password. Access denied.</div>
     </div>
   </div>
@@ -815,6 +841,10 @@
       document.getElementById('loginPage').style.display = 'flex';
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('passwordInput').value = '';
+      // Reset eye icon state
+      document.getElementById('passwordInput').type = 'password';
+      document.getElementById('eyeOpenIcon').style.display = 'block';
+      document.getElementById('eyeOffIcon').style.display = 'none';
     }
 
     // Check if already logged in
@@ -829,6 +859,8 @@
         document.getElementById('statProducts').innerText = products.length;
       } else {
         clearSession();
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('dashboard').style.display = 'none';
       }
     }
 
@@ -839,19 +871,20 @@
     });
     document.getElementById('addProductBtn').addEventListener('click', addNewProduct);
 
-    // Toggle password visibility
+    // Toggle password visibility with inline SVG icons
     document.getElementById('togglePasswordBtn').addEventListener('click', function() {
       const passwordInput = document.getElementById('passwordInput');
-      const eyeIcon = document.getElementById('eyeIcon');
+      const eyeOpen = document.getElementById('eyeOpenIcon');
+      const eyeOff = document.getElementById('eyeOffIcon');
       
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        eyeIcon.classList.remove('fa-eye');
-        eyeIcon.classList.add('fa-eye-slash');
+        eyeOpen.style.display = 'none';
+        eyeOff.style.display = 'block';
       } else {
         passwordInput.type = 'password';
-        eyeIcon.classList.remove('fa-eye-slash');
-        eyeIcon.classList.add('fa-eye');
+        eyeOpen.style.display = 'block';
+        eyeOff.style.display = 'none';
       }
     });
 
