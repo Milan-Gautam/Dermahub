@@ -1,774 +1,815 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>DERMAKRAFT | Admin Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f5f0eb;
-            min-height: 100vh;
-        }
-        
-        /* ===== LOGIN PAGE STYLES ===== */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #fefaf5 0%, #f3ede7 100%);
-            padding: 20px;
-        }
-        
-        .login-card {
-            background: white;
-            border-radius: 32px;
-            padding: 40px 32px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            border: 1px solid #ece2d9;
-        }
-        
-        .login-card h1 {
-            font-family: 'Playfair Display', serif;
-            color: #9c6e4b;
-            font-size: 2rem;
-            margin-bottom: 8px;
-        }
-        
-        .login-card p {
-            color: #8b7b6e;
-            font-size: 0.85rem;
-            margin-bottom: 32px;
-        }
-        
-        .login-card input {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1px solid #ece2d9;
-            border-radius: 60px;
-            font-size: 1rem;
-            margin-bottom: 20px;
-            font-family: inherit;
-        }
-        
-        .login-card button {
-            width: 100%;
-            padding: 14px;
-            background: #2a4235;
-            color: white;
-            border: none;
-            border-radius: 60px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .login-card button:hover {
-            background: #9c6e4b;
-        }
-        
-        .error-msg {
-            color: #c27c6e;
-            font-size: 0.8rem;
-            margin-top: 12px;
-            display: none;
-        }
-        
-        /* ===== DASHBOARD STYLES (shown after login) ===== */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-container {
-                padding: 16px;
-            }
-        }
-        
-        .admin-header {
-            background: white;
-            border-radius: 24px;
-            padding: 20px 28px;
-            margin-bottom: 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        @media (max-width: 576px) {
-            .admin-header {
-                padding: 16px 20px;
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-        
-        .logo h1 {
-            font-family: 'Playfair Display', serif;
-            color: #9c6e4b;
-            font-size: 1.6rem;
-        }
-        
-        .logo p {
-            font-size: 0.7rem;
-            color: #8b7b6e;
-        }
-        
-        .nav-tabs {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-tab {
-            background: none;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 500;
-            color: #8b7b6e;
-            transition: all 0.2s;
-        }
-        
-        .nav-tab.active {
-            background: #3a5a45;
-            color: white;
-        }
-        
-        .logout-btn {
-            background: none;
-            border: 1px solid #ece2d9;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            color: #8b7b6e;
-            transition: all 0.2s;
-        }
-        
-        .logout-btn:hover {
-            background: #fee2dd;
-            border-color: #c27c6e;
-            color: #c27c6e;
-        }
-        
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-        
-        @media (max-width: 576px) {
-            .stats-grid {
-                gap: 12px;
-            }
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        .stat-card i {
-            font-size: 2rem;
-            color: #3a5a45;
-            margin-bottom: 8px;
-        }
-        
-        .stat-card h3 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: #8b7b6e;
-            letter-spacing: 1px;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2a4235;
-        }
-        
-        @media (max-width: 576px) {
-            .stat-number {
-                font-size: 1.6rem;
-            }
-        }
-        
-        /* Section Titles */
-        .section-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.4rem;
-            color: #2a4235;
-            margin: 28px 0 20px;
-            padding-left: 16px;
-            border-left: 4px solid #9c6e4b;
-        }
-        
-        @media (max-width: 576px) {
-            .section-title {
-                font-size: 1.2rem;
-                margin: 20px 0 16px;
-            }
-        }
-        
-        /* Orders Table */
-        .orders-wrapper {
-            background: white;
-            border-radius: 20px;
-            overflow-x: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 800px;
-        }
-        
-        th {
-            text-align: left;
-            padding: 16px;
-            background: #f3ede7;
-            font-weight: 600;
-            color: #2a4235;
-        }
-        
-        td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #ece2d9;
-            vertical-align: top;
-        }
-        
-        @media (max-width: 768px) {
-            th, td {
-                padding: 10px 12px;
-            }
-        }
-        
-        .order-items-list {
-            list-style: none;
-            font-size: 0.7rem;
-        }
-        
-        .order-items-list li {
-            margin-bottom: 4px;
-        }
-        
-        .badge-order {
-            background: #3a5a45;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            display: inline-block;
-        }
-        
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #c27c6e;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 6px;
-            border-radius: 8px;
-        }
-        
-        .delete-btn:hover {
-            background: #fee2dd;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 48px;
-            color: #8b7b6e;
-        }
-        
-        /* Product Management */
-        .product-manager {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        .add-product-form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 28px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid #ece2d9;
-        }
-        
-        .form-field {
-            flex: 1;
-            min-width: 140px;
-        }
-        
-        .form-field label {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #8b7b6e;
-        }
-        
-        .form-field input, .form-field select {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #ece2d9;
-            border-radius: 40px;
-            font-family: inherit;
-        }
-        
-        .btn-primary {
-            background: #2a4235;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        
-        .btn-primary:hover {
-            background: #9c6e4b;
-        }
-        
-        .product-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .product-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: #fefaf5;
-            border-radius: 60px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .product-info {
-            display: flex;
-            gap: 16px;
-            align-items: baseline;
-            flex-wrap: wrap;
-        }
-        
-        .product-name {
-            font-weight: 700;
-        }
-        
-        .delete-prod {
-            background: none;
-            border: none;
-            color: #c27c6e;
-            cursor: pointer;
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2a4235;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 40px;
-            z-index: 1000;
-            display: none;
-            font-size: 0.85rem;
-        }
-        
-        @media (max-width: 576px) {
-            .toast {
-                bottom: 10px;
-                right: 10px;
-                left: 10px;
-                text-align: center;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>DERMAKRAFT | Professional Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f0eb;
+      min-height: 100vh;
+    }
+    /* LOGIN PAGE */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fefaf5 0%, #f3ede7 100%);
+      padding: 20px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 32px;
+      padding: 40px 32px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      border: 1px solid #ece2d9;
+      position: relative;
+    }
+    .login-card h1 {
+      font-family: 'Playfair Display', serif;
+      color: #9c6e4b;
+      font-size: 2rem;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .login-card p {
+      color: #8b7b6e;
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .login-card input {
+      width: 100%;
+      padding: 14px 48px 14px 18px;
+      border: 1px solid #ece2d9;
+      border-radius: 60px;
+      font-size: 1rem;
+      font-family: inherit;
+      background: #fefaf5;
+      transition: all 0.2s;
+    }
+    .login-card input:focus {
+      outline: none;
+      border-color: #9c6e4b;
+      box-shadow: 0 0 0 3px rgba(156,110,75,0.1);
+    }
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #8b7b6e;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 6px;
+      border-radius: 50%;
+      transition: color 0.2s;
+    }
+    .toggle-password:hover {
+      color: #2a4235;
+    }
+    .login-card button {
+      width: 100%;
+      padding: 14px;
+      background: #2a4235;
+      color: white;
+      border: none;
+      border-radius: 60px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.5px;
+    }
+    .login-card button:hover {
+      background: #9c6e4b;
+    }
+    .login-card button:active {
+      transform: scale(0.98);
+    }
+    .error-msg {
+      color: #c27c6e;
+      font-size: 0.8rem;
+      margin-top: 12px;
+      display: none;
+      font-weight: 500;
+    }
+    .session-note {
+      font-size: 0.7rem;
+      color: #8b7b6e;
+      margin-top: 20px;
+      opacity: 0.8;
+    }
+    /* DASHBOARD */
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 16px;
+      }
+    }
+    .admin-header {
+      background: white;
+      border-radius: 24px;
+      padding: 20px 28px;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    @media (max-width: 576px) {
+      .admin-header {
+        padding: 16px 20px;
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+    .logo h1 {
+      font-family: 'Playfair Display', serif;
+      color: #9c6e4b;
+      font-size: 1.6rem;
+    }
+    .logo p {
+      font-size: 0.7rem;
+      color: #8b7b6e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      background: none;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 500;
+      color: #8b7b6e;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .nav-tab.active {
+      background: #3a5a45;
+      color: white;
+      box-shadow: 0 4px 8px rgba(58,90,69,0.2);
+    }
+    .logout-btn {
+      background: none;
+      border: 1px solid #ece2d9;
+      padding: 8px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      color: #8b7b6e;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .logout-btn:hover {
+      background: #fee2dd;
+      border-color: #c27c6e;
+      color: #c27c6e;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      padding: 22px 18px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      transition: transform 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+    }
+    .stat-card i {
+      font-size: 2rem;
+      color: #3a5a45;
+      margin-bottom: 8px;
+    }
+    .stat-card h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #8b7b6e;
+      letter-spacing: 1px;
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2a4235;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: #2a4235;
+      margin: 28px 0 20px;
+      padding-left: 16px;
+      border-left: 4px solid #9c6e4b;
+    }
+    .orders-wrapper {
+      background: white;
+      border-radius: 20px;
+      overflow-x: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 800px;
+    }
+    th {
+      text-align: left;
+      padding: 16px;
+      background: #f3ede7;
+      font-weight: 600;
+      color: #2a4235;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #ece2d9;
+      vertical-align: top;
+    }
+    .order-items-list {
+      list-style: none;
+      font-size: 0.7rem;
+    }
+    .badge-order {
+      background: #3a5a45;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      display: inline-block;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #c27c6e;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 6px;
+      border-radius: 8px;
+    }
+    .delete-btn:hover {
+      background: #fee2dd;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: #8b7b6e;
+    }
+    .product-manager {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .add-product-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #ece2d9;
+    }
+    .form-field {
+      flex: 1;
+      min-width: 140px;
+    }
+    .form-field label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #8b7b6e;
+    }
+    .form-field input, .form-field select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ece2d9;
+      border-radius: 40px;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: #2a4235;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: #9c6e4b;
+    }
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #fefaf5;
+      border-radius: 60px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .product-info {
+      display: flex;
+      gap: 16px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .delete-prod {
+      background: none;
+      border: none;
+      color: #c27c6e;
+      cursor: pointer;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #2a4235;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 40px;
+      z-index: 1000;
+      display: none;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .auto-logout-warning {
+      color: #c27c6e;
+      font-size: 0.75rem;
+      margin-top: 8px;
+    }
+  </style>
 </head>
 <body>
-    <!-- LOGIN PAGE -->
-    <div id="loginPage" class="login-container">
-        <div class="login-card">
-            <i class="fas fa-lock" style="font-size: 3rem; color: #9c6e4b; margin-bottom: 16px;"></i>
-            <h1>DERMAKRAFT</h1>
-            <p>Admin Access</p>
-            <input type="password" id="passwordInput" placeholder="Enter Admin Passkey" autocomplete="off">
-            <button id="loginBtn">Login to Dashboard</button>
-            <div id="loginError" class="error-msg">❌ Invalid password. Access denied.</div>
-        </div>
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="login-container">
+    <div class="login-card">
+      <i class="fas fa-lock" style="font-size: 3rem; color: #9c6e4b; margin-bottom: 16px;"></i>
+      <h1>DERMAKRAFT</h1>
+      <p>Professional Admin Access</p>
+      <div class="input-wrapper">
+        <input type="password" id="passwordInput" placeholder="Enter Admin Passkey" autocomplete="off">
+        <button class="toggle-password" id="togglePasswordBtn" type="button">
+          <i class="far fa-eye"></i>
+        </button>
+      </div>
+      <button id="loginBtn">Login to Dashboard</button>
+      <div id="loginError" class="error-msg">❌ Invalid password. Access denied.</div>
+      <div class="session-note">
+        <i class="far fa-clock"></i> Session expires after 30 minutes of inactivity
+      </div>
     </div>
-    
-    <!-- DASHBOARD (hidden until login) -->
-    <div id="dashboard" class="dashboard-container">
-        <div class="admin-header">
-            <div class="logo">
-                <h1>DERMAKRAFT</h1>
-                <p>admin control panel</p>
-            </div>
-            <div class="nav-tabs">
-                <button class="nav-tab active" onclick="showSection('orders')"><i class="fas fa-shopping-bag"></i> Orders</button>
-                <button class="nav-tab" onclick="showSection('products')"><i class="fas fa-box"></i> Products</button>
-                <a href="index.html" class="nav-tab" style="text-decoration: none;" target="_blank"><i class="fas fa-store"></i> View Store</a>
-            </div>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-        
-        <!-- Stats -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3>Total Orders</h3><div class="stat-number" id="statOrders">0</div></div>
-            <div class="stat-card"><i class="fas fa-euro-sign"></i><h3>Revenue</h3><div class="stat-number" id="statRevenue">€0</div></div>
-            <div class="stat-card"><i class="fas fa-boxes"></i><h3>Products</h3><div class="stat-number" id="statProducts">0</div></div>
-            <div class="stat-card"><i class="fas fa-users"></i><h3>Customers</h3><div class="stat-number" id="statCustomers">0</div></div>
-        </div>
-        
-        <!-- Orders Section -->
-        <div id="ordersSection">
-            <div class="section-title"><i class="fas fa-clipboard-list"></i> All Customer Orders</div>
-            <div class="orders-wrapper">
-                <table>
-                    <thead>
-                        <tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Address</th><th>Items</th><th>Total</th><th>Date</th><th></th></tr>
-                    </thead>
-                    <tbody id="ordersTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Products Section (hidden by default) -->
-        <div id="productsSection" style="display: none;">
-            <div class="section-title"><i class="fas fa-plus-circle"></i> Add New Product</div>
-            <div class="product-manager">
-                <div class="add-product-form">
-                    <div class="form-field"><label>Product Name</label><input type="text" id="prodName" placeholder="e.g. Rose Clay Soap"></div>
-                    <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bars</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option></select></div>
-                    <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
-                    <div class="form-field"><label>Image URL</label><input type="text" id="prodImg" placeholder="https://..."></div>
-                    <div class="form-field"><label>Variant (size)</label><input type="text" id="variantSize" placeholder="100g"></div>
-                    <div class="form-field"><label>Price (€)</label><input type="number" step="0.01" id="variantPrice" placeholder="5.99"></div>
-                    <div class="form-field"><button class="btn-primary" id="addProductBtn"><i class="fas fa-plus"></i> Add</button></div>
-                </div>
-                <div style="font-family: 'Playfair Display', serif; font-size: 1.2rem; margin: 20px 0 12px;">Current Products</div>
-                <div id="productListContainer" class="product-list"></div>
-            </div>
-        </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="dashboard-container">
+    <div class="admin-header">
+      <div class="logo">
+        <h1>DERMAKRAFT</h1>
+        <p>admin control panel</p>
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showSection('orders')"><i class="fas fa-shopping-bag"></i> Orders</button>
+        <button class="nav-tab" onclick="showSection('products')"><i class="fas fa-box"></i> Products</button>
+        <a href="index.html" class="nav-tab" style="text-decoration: none;" target="_blank"><i class="fas fa-store"></i> View Store</a>
+      </div>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
-    
-    <div id="toastMsg" class="toast"></div>
-    
-    <script>
-        // ==================== CONFIGURATION ====================
-        // 🔐 CHANGE PASSWORD HERE - Default is "admin123"
-        const ADMIN_PASSWORD = "admin123";
-        
-        const STORAGE_ORDERS = "dermakraft_orders";
-        const STORAGE_PRODUCTS = "dermakraft_products";
-        
-        // Default products
-        const DEFAULT_PRODUCTS = [
-            { id: 1, name: "Gentle Daily Cleansing Bar", category: "soap", desc: "pH 5.5, glycerin-rich", img: "https://unsplash.com/photos/a-piece-of-soap-sitting-on-top-of-a-black-plate-nEyRQYS2Jp8", variants: [{ size: "100g", price: 4.9 }, { size: "150g", price: 6.9 }] },
-            { id: 2, name: "Calendula Soothing Bar", category: "soap", desc: "with chamomile, sensitive skin", img: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400", variants: [{ size: "100g", price: 5.9 }, { size: "150g", price: 8.5 }] },
-            { id: 3, name: "Aloe Vera Hand Wash", category: "handwash", desc: "sulfate-free, moisturizing foam", img: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400", variants: [{ size: "300ml", price: 7.9 }, { size: "500ml", price: 11.9 }] },
-            { id: 4, name: "Rosemary Mint Shampoo Bar", category: "shampoo", desc: "solid shampoo, zero waste", img: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400", variants: [{ size: "85g", price: 8.9 }, { size: "120g", price: 13.5 }] }
-        ];
-        
-        // ==================== DATA FUNCTIONS ====================
-        function loadOrders() {
-            const stored = localStorage.getItem(STORAGE_ORDERS);
-            if (stored) {
-                try { return JSON.parse(stored); } catch(e) { return []; }
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3>Total Orders</h3><div class="stat-number" id="statOrders">0</div></div>
+      <div class="stat-card"><i class="fas fa-euro-sign"></i><h3>Revenue</h3><div class="stat-number" id="statRevenue">€0</div></div>
+      <div class="stat-card"><i class="fas fa-boxes"></i><h3>Products</h3><div class="stat-number" id="statProducts">0</div></div>
+      <div class="stat-card"><i class="fas fa-users"></i><h3>Customers</h3><div class="stat-number" id="statCustomers">0</div></div>
+    </div>
+
+    <div id="ordersSection">
+      <div class="section-title"><i class="fas fa-clipboard-list"></i> All Customer Orders (Global)</div>
+      <div class="orders-wrapper">
+        <table>
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Address</th><th>Items</th><th>Total</th><th>Date</th><th></th></tr></thead>
+          <tbody id="ordersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="productsSection" style="display: none;">
+      <div class="section-title"><i class="fas fa-plus-circle"></i> Add New Product</div>
+      <div class="product-manager">
+        <div class="add-product-form">
+          <div class="form-field"><label>Product Name</label><input type="text" id="prodName" placeholder="e.g. Rose Clay Soap"></div>
+          <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bars</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option></select></div>
+          <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
+          <div class="form-field"><label>Image URL</label><input type="text" id="prodImg" placeholder="https://..."></div>
+          <div class="form-field"><label>Variant (size)</label><input type="text" id="variantSize" placeholder="100g"></div>
+          <div class="form-field"><label>Price (€)</label><input type="number" step="0.01" id="variantPrice" placeholder="5.99"></div>
+          <div class="form-field"><button class="btn-primary" id="addProductBtn"><i class="fas fa-plus"></i> Add</button></div>
+        </div>
+        <div style="font-family: 'Playfair Display', serif; font-size: 1.2rem; margin: 20px 0 12px;">Current Products</div>
+        <div id="productListContainer" class="product-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastMsg" class="toast"></div>
+
+  <script>
+    (function() {
+      // ==================== CONFIGURATION ====================
+      const ADMIN_PASSWORD = "admin123";
+      const STORAGE_ORDERS = "dermakraft_orders_global";      // GLOBAL key for all devices
+      const STORAGE_PRODUCTS = "dermakraft_products_global"; // GLOBAL key for products
+      const SESSION_KEY = "admin_session_active";
+      const SESSION_TIMESTAMP = "admin_session_timestamp";
+      const SESSION_DURATION_MINUTES = 30; // auto logout after 30 min inactivity
+
+      const DEFAULT_PRODUCTS = [
+        { id: 1, name: "Gentle Daily Cleansing Bar", category: "soap", desc: "pH 5.5, glycerin-rich", img: "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400", variants: [{ size: "100g", price: 4.9 }, { size: "150g", price: 6.9 }] },
+        { id: 2, name: "Calendula Soothing Bar", category: "soap", desc: "with chamomile, sensitive skin", img: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400", variants: [{ size: "100g", price: 5.9 }, { size: "150g", price: 8.5 }] },
+        { id: 3, name: "Aloe Vera Hand Wash", category: "handwash", desc: "sulfate-free, moisturizing foam", img: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400", variants: [{ size: "300ml", price: 7.9 }, { size: "500ml", price: 11.9 }] },
+        { id: 4, name: "Rosemary Mint Shampoo Bar", category: "shampoo", desc: "solid shampoo, zero waste", img: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400", variants: [{ size: "85g", price: 8.9 }, { size: "120g", price: 13.5 }] }
+      ];
+
+      // ==================== GLOBAL DATA (localStorage driven) ====================
+      function loadOrders() {
+        const stored = localStorage.getItem(STORAGE_ORDERS);
+        if (stored) {
+          try { return JSON.parse(stored); } catch(e) { return []; }
+        }
+        return [];
+      }
+
+      function saveOrders(orders) {
+        localStorage.setItem(STORAGE_ORDERS, JSON.stringify(orders));
+      }
+
+      function loadProducts() {
+        const stored = localStorage.getItem(STORAGE_PRODUCTS);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.length) return parsed;
+          } catch(e) {}
+        }
+        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+        return [...DEFAULT_PRODUCTS];
+      }
+
+      function saveProducts(products) {
+        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+      }
+
+      let orders = [];
+      let products = [];
+
+      // ==================== SESSION MANAGEMENT ====================
+      function startSession() {
+        const now = Date.now();
+        localStorage.setItem(SESSION_KEY, 'true');
+        localStorage.setItem(SESSION_TIMESTAMP, now.toString());
+      }
+
+      function clearSession() {
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(SESSION_TIMESTAMP);
+      }
+
+      function isSessionValid() {
+        const sessionActive = localStorage.getItem(SESSION_KEY);
+        if (sessionActive !== 'true') return false;
+        const timestamp = localStorage.getItem(SESSION_TIMESTAMP);
+        if (!timestamp) return false;
+        const now = Date.now();
+        const lastActivity = parseInt(timestamp, 10);
+        const diffMinutes = (now - lastActivity) / (1000 * 60);
+        return diffMinutes < SESSION_DURATION_MINUTES;
+      }
+
+      function refreshSessionTimestamp() {
+        if (localStorage.getItem(SESSION_KEY) === 'true') {
+          localStorage.setItem(SESSION_TIMESTAMP, Date.now().toString());
+        }
+      }
+
+      // Activity listeners to keep session alive
+      ['click', 'keypress', 'scroll', 'mousemove'].forEach(evt => {
+        document.addEventListener(evt, function() {
+          if (localStorage.getItem(SESSION_KEY) === 'true') {
+            refreshSessionTimestamp();
+          }
+        });
+      });
+
+      // Periodic session check (every 15 seconds)
+      setInterval(() => {
+        if (localStorage.getItem(SESSION_KEY) === 'true') {
+          if (!isSessionValid()) {
+            // Session expired
+            clearSession();
+            if (document.getElementById('dashboard').style.display === 'block') {
+              alert('⏳ Session expired due to inactivity. Please login again.');
+              logout();
             }
-            return [];
+          }
         }
-        
-        function saveOrders(orders) {
-            localStorage.setItem(STORAGE_ORDERS, JSON.stringify(orders));
+      }, 15000);
+
+      // ==================== RENDER FUNCTIONS ====================
+      function renderOrders() {
+        const tbody = document.getElementById('ordersTableBody');
+        orders = loadOrders(); // always fetch fresh from global storage
+
+        if (orders.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-state">📦 No orders yet. Orders from any device will appear here.</td></tr>';
+          document.getElementById('statOrders').innerText = '0';
+          document.getElementById('statRevenue').innerText = '€0';
+          document.getElementById('statCustomers').innerText = '0';
+          return;
         }
-        
-        function loadProducts() {
-            const stored = localStorage.getItem(STORAGE_PRODUCTS);
-            if (stored) {
-                try {
-                    const parsed = JSON.parse(stored);
-                    if (parsed && parsed.length) return parsed;
-                } catch(e) {}
-            }
-            localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-            return [...DEFAULT_PRODUCTS];
+
+        let totalRevenue = 0;
+        const uniqueCustomers = new Set();
+        let html = '';
+
+        orders.forEach(order => {
+          totalRevenue += order.total;
+          uniqueCustomers.add(order.email.toLowerCase());
+
+          let itemsHtml = '<ul class="order-items-list">';
+          order.items.forEach(item => {
+            itemsHtml += `<li>${item.quantity} × ${escapeHtml(item.name)} — €${(item.price * item.quantity).toFixed(2)}</li>`;
+          });
+          itemsHtml += '</ul>';
+
+          html += `<tr>
+            <td><span class="badge-order">#${escapeHtml(order.id.slice(-8))}</span></td>
+            <td><strong>${escapeHtml(order.customerName)}</strong></td>
+            <td>${escapeHtml(order.email)}<br><small>${escapeHtml(order.phone || '')}</small></td>
+            <td>${escapeHtml(order.address)}</td>
+            <td>${itemsHtml}</td>
+            <td><strong>€${order.total.toFixed(2)}</strong></td>
+            <td><small>${new Date(order.date).toLocaleString()}</small></td>
+            <td><button class="delete-btn" onclick="window.adminDeleteOrder('${order.id}')"><i class="fas fa-trash-alt"></i></button></td>
+          </tr>`;
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('statOrders').innerText = orders.length;
+        document.getElementById('statRevenue').innerText = `€${totalRevenue.toFixed(2)}`;
+        document.getElementById('statCustomers').innerText = uniqueCustomers.size;
+      }
+
+      window.adminDeleteOrder = function(orderId) {
+        if (confirm('⚠️ Delete this order permanently? This cannot be undone.')) {
+          let currentOrders = loadOrders();
+          currentOrders = currentOrders.filter(o => o.id !== orderId);
+          saveOrders(currentOrders);
+          renderOrders();
+          showToast('Order deleted');
         }
-        
-        function saveProducts(products) {
-            localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+      };
+
+      function renderProductsAdmin() {
+        products = loadProducts();
+        const container = document.getElementById('productListContainer');
+        if (products.length === 0) {
+          container.innerHTML = '<div class="empty-state">No products. Add some above.</div>';
+          document.getElementById('statProducts').innerText = '0';
+          return;
         }
-        
-        let orders = [];
-        let products = [];
-        
-        // ==================== RENDER ORDERS ====================
-        function renderOrders() {
-            const tbody = document.getElementById('ordersTableBody');
-            orders = loadOrders();
-            
-            if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">📦 No orders yet. Orders from the store will appear here.</td></tr>';
-                document.getElementById('statOrders').innerText = '0';
-                document.getElementById('statRevenue').innerText = '€0';
-                document.getElementById('statCustomers').innerText = '0';
-                return;
-            }
-            
-            let totalRevenue = 0;
-            const uniqueCustomers = new Set();
-            let html = '';
-            
-            orders.forEach(order => {
-                totalRevenue += order.total;
-                uniqueCustomers.add(order.email.toLowerCase());
-                
-                let itemsHtml = '<ul class="order-items-list">';
-                order.items.forEach(item => {
-                    itemsHtml += `<li>${item.quantity} × ${item.name} — €${(item.price * item.quantity).toFixed(2)}</li>`;
-                });
-                itemsHtml += '</ul>';
-                
-                html += `<tr>
-                    <td><span class="badge-order">#${order.id.slice(-8)}</span></td>
-                    <td><strong>${escapeHtml(order.customerName)}</strong></td>
-                    <td>${escapeHtml(order.email)}<br><small>${escapeHtml(order.phone || '')}</small></td>
-                    <td>${escapeHtml(order.address)}</td>
-                    <td>${itemsHtml}</td>
-                    <td><strong>€${order.total.toFixed(2)}</strong></td>
-                    <td><small>${new Date(order.date).toLocaleString()}</small></td>
-                    <td><button class="delete-btn" onclick="deleteOrder('${order.id}')"><i class="fas fa-trash-alt"></i></button></td>
-                </tr>`;
-            });
-            
-            tbody.innerHTML = html;
-            document.getElementById('statOrders').innerText = orders.length;
-            document.getElementById('statRevenue').innerText = `€${totalRevenue.toFixed(2)}`;
-            document.getElementById('statCustomers').innerText = uniqueCustomers.size;
+        let html = '';
+        products.forEach(prod => {
+          const variantsStr = prod.variants.map(v => `${v.size} €${v.price}`).join(' • ');
+          html += `<div class="product-item">
+            <div class="product-info">
+              <span class="product-name">${escapeHtml(prod.name)}</span>
+              <span style="color:#8b7b6e; font-size:0.75rem;">[${prod.category}]</span>
+              <span style="font-size:0.7rem; color:#9c6e4b;">${variantsStr}</span>
+            </div>
+            <button class="delete-prod" onclick="window.adminDeleteProduct(${prod.id})"><i class="fas fa-trash"></i> Delete</button>
+          </div>`;
+        });
+        container.innerHTML = html;
+        document.getElementById('statProducts').innerText = products.length;
+      }
+
+      window.adminDeleteProduct = function(productId) {
+        if (confirm('⚠️ Remove this product permanently? It will be removed from the store.')) {
+          let currentProducts = loadProducts();
+          currentProducts = currentProducts.filter(p => p.id !== productId);
+          saveProducts(currentProducts);
+          renderProductsAdmin();
+          showToast('Product deleted');
         }
-        
-        window.deleteOrder = function(orderId) {
-            if (confirm('⚠️ Delete this order permanently? This cannot be undone.')) {
-                orders = orders.filter(o => o.id !== orderId);
-                saveOrders(orders);
-                renderOrders();
-                showToast('Order deleted');
-            }
+      };
+
+      function addNewProduct() {
+        const name = document.getElementById('prodName').value.trim();
+        const category = document.getElementById('prodCat').value;
+        const desc = document.getElementById('prodDesc').value.trim();
+        const img = document.getElementById('prodImg').value.trim();
+        const variantSize = document.getElementById('variantSize').value.trim();
+        const variantPrice = parseFloat(document.getElementById('variantPrice').value);
+
+        if (!name || !variantSize || isNaN(variantPrice) || variantPrice <= 0) {
+          showToast('Please fill name, size and valid price');
+          return;
+        }
+
+        const currentProducts = loadProducts();
+        const newId = Date.now();
+        const newProduct = {
+          id: newId,
+          name: name,
+          category: category,
+          desc: desc || 'Chemist-formulated formula',
+          img: img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400',
+          variants: [{ size: variantSize, price: variantPrice }]
         };
-        
-        // ==================== RENDER PRODUCTS ====================
-        function renderProductsAdmin() {
-            products = loadProducts();
-            const container = document.getElementById('productListContainer');
-            
-            if (products.length === 0) {
-                container.innerHTML = '<div class="empty-state">No products. Add some above.</div>';
-                document.getElementById('statProducts').innerText = '0';
-                return;
-            }
-            
-            let html = '';
-            products.forEach(prod => {
-                const variantsStr = prod.variants.map(v => `${v.size} €${v.price}`).join(' • ');
-                html += `<div class="product-item">
-                    <div class="product-info">
-                        <span class="product-name">${escapeHtml(prod.name)}</span>
-                        <span style="color:#8b7b6e; font-size:0.75rem;">[${prod.category}]</span>
-                        <span style="font-size:0.7rem; color:#9c6e4b;">${variantsStr}</span>
-                    </div>
-                    <button class="delete-prod" onclick="deleteProduct(${prod.id})"><i class="fas fa-trash"></i> Delete</button>
-                </div>`;
-            });
-            container.innerHTML = html;
-            document.getElementById('statProducts').innerText = products.length;
+
+        currentProducts.push(newProduct);
+        saveProducts(currentProducts);
+        renderProductsAdmin();
+
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodImg').value = '';
+        document.getElementById('variantSize').value = '';
+        document.getElementById('variantPrice').value = '';
+        showToast(`✓ ${name} added to catalog`);
+      }
+
+      window.showSection = function(section) {
+        const ordersDiv = document.getElementById('ordersSection');
+        const productsDiv = document.getElementById('productsSection');
+        const tabs = document.querySelectorAll('.nav-tab');
+        if (section === 'orders') {
+          ordersDiv.style.display = 'block';
+          productsDiv.style.display = 'none';
+          tabs[0].classList.add('active');
+          tabs[1].classList.remove('active');
+          renderOrders();
+        } else {
+          ordersDiv.style.display = 'none';
+          productsDiv.style.display = 'block';
+          tabs[0].classList.remove('active');
+          tabs[1].classList.add('active');
+          renderProductsAdmin();
         }
-        
-        window.deleteProduct = function(productId) {
-            if (confirm('⚠️ Remove this product permanently? It will be removed from the store.')) {
-                products = products.filter(p => p.id !== productId);
-                saveProducts(products);
-                renderProductsAdmin();
-                showToast('Product deleted');
-            }
-        };
-        
-        function addNewProduct() {
-            const name = document.getElementById('prodName').value.trim();
-            const category = document.getElementById('prodCat').value;
-            const desc = document.getElementById('prodDesc').value.trim();
-            const img = document.getElementById('prodImg').value.trim();
-            const variantSize = document.getElementById('variantSize').value.trim();
-            const variantPrice = parseFloat(document.getElementById('variantPrice').value);
-            
-            if (!name || !variantSize || isNaN(variantPrice) || variantPrice <= 0) {
-                showToast('Please fill name, size and valid price');
-                return;
-            }
-            
-            const newId = Date.now();
-            const newProduct = {
-                id: newId,
-                name: name,
-                category: category,
-                desc: desc || 'Chemist-formulated formula',
-                img: img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400',
-                variants: [{ size: variantSize, price: variantPrice }]
-            };
-            
-            products.push(newProduct);
-            saveProducts(products);
+      };
+
+      function showToast(msg) {
+        const toast = document.getElementById('toastMsg');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+          if (m === '&') return '&amp;';
+          if (m === '<') return '&lt;';
+          if (m === '>') return '&gt;';
+          return m;
+        });
+      }
+
+      // ==================== LOGIN / LOGOUT ====================
+      function login() {
+        const password = document.getElementById('passwordInput').value;
+        if (password === ADMIN_PASSWORD) {
+          startSession();
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          document.getElementById('loginError').style.display = 'none';
+          document.getElementById('passwordInput').value = '';
+
+          orders = loadOrders();
+          products = loadProducts();
+          renderOrders();
+          renderProductsAdmin();
+          document.getElementById('statProducts').innerText = products.length;
+        } else {
+          document.getElementById('loginError').style.display = 'block';
+          document.getElementById('passwordInput').value = '';
+        }
+      }
+
+      function logout() {
+        clearSession();
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('passwordInput').value = '';
+      }
+
+      function checkAuth() {
+        if (isSessionValid()) {
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          orders = loadOrders();
+          products = loadProducts();
+          renderOrders();
+          renderProductsAdmin();
+          document.getElementById('statProducts').innerText = products.length;
+          refreshSessionTimestamp();
+        } else {
+          clearSession();
+          document.getElementById('loginPage').style.display = 'flex';
+          document.getElementById('dashboard').style.display = 'none';
+        }
+      }
+
+      // Toggle password visibility
+      document.getElementById('togglePasswordBtn').addEventListener('click', function() {
+        const passwordInput = document.getElementById('passwordInput');
+        const icon = this.querySelector('i');
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          icon.classList.remove('fa-eye');
+          icon.classList.add('fa-eye-slash');
+        } else {
+          passwordInput.type = 'password';
+          icon.classList.remove('fa-eye-slash');
+          icon.classList.add('fa-eye');
+        }
+      });
+
+      document.getElementById('loginBtn').addEventListener('click', login);
+      document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') login();
+      });
+      document.getElementById('addProductBtn').addEventListener('click', addNewProduct);
+
+      // Listen for storage changes (sync across tabs/devices using same localStorage)
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_ORDERS) {
+          if (document.getElementById('ordersSection') && document.getElementById('ordersSection').style.display !== 'none') {
+            renderOrders();
+          }
+        }
+        if (e.key === STORAGE_PRODUCTS) {
+          if (document.getElementById('productsSection') && document.getElementById('productsSection').style.display !== 'none') {
             renderProductsAdmin();
-            
-            // Clear form
-            document.getElementById('prodName').value = '';
-            document.getElementById('prodDesc').value = '';
-            document.getElementById('prodImg').value = '';
-            document.getElementById('variantSize').value = '';
-            document.getElementById('variantPrice').value = '';
-            showToast(`✓ ${name} added to catalog`);
+          }
         }
-        
-        // ==================== UI NAVIGATION ====================
-        window.showSection = function(section) {
-            const ordersDiv = document.getElementById('ordersSection');
-            const productsDiv = document.getElementById('productsSection');
-            const tabs = document.querySelectorAll('.nav-tab');
-            
-            if (section === 'orders') {
-                ordersDiv.style.display = 'block';
-                productsDiv.style.display = 'none';
-                tabs[0].classList.add('active');
-                tabs[1].classList.remove('active');
-                renderOrders();
-            } else {
-                ordersDiv.style.display = 'none';
-                productsDiv.style.display = 'block';
-                tabs[0].classList.remove('active');
-                tabs[1].classList.add('active');
-                renderProductsAdmin();
-            }
-        };
-        
-        function showToast(msg) {
-            const toast = document.getElementById('toastMsg');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 2500);
+        // If session is removed by another tab, force logout
+        if (e.key === SESSION_KEY && e.newValue === null) {
+          if (document.getElementById('dashboard').style.display === 'block') {
+            logout();
+          }
         }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
-        // ==================== LOGIN / LOGOUT ====================
-        function login() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === ADMIN_PASSWORD) {
-                // Login success
-                localStorage.setItem('admin_logged_in', 'true');
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                document.getElementById('loginError').style.display = 'none';
-                
-                // Load data
-                orders = loadOrders();
-                products = loadProducts();
-                renderOrders();
-                renderProductsAdmin();
-                document.getElementById('statProducts').innerText = products.length;
-            } else {
-                document.getElementById('loginError').style.display = 'block';
-                document.getElementById('passwordInput').value = '';
-            }
-        }
-        
-        function logout() {
-            localStorage.removeItem('admin_logged_in');
-            document.getElementById('loginPage').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('passwordInput').value = '';
-        }
-        
-        // Check if already logged in
-        function checkAuth() {
-            const loggedIn = localStorage.getItem('admin_logged_in');
-            if (loggedIn === 'true') {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                orders = loadOrders();
-                products = loadProducts();
-                renderOrders();
-                renderProductsAdmin();
-                document.getElementById('statProducts').innerText = products.length;
-            }
-        }
-        
-        // Event listeners
-        document.getElementById('loginBtn').addEventListener('click', login);
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') login();
-        });
-        document.getElementById('addProductBtn').addEventListener('click', addNewProduct);
-        
-        // Listen for storage changes (when new order comes from store)
-        window.addEventListener('storage', (e) => {
-            if (e.key === STORAGE_ORDERS) {
-                if (document.getElementById('ordersSection').style.display !== 'none') {
-                    renderOrders();
-                }
-            }
-            if (e.key === STORAGE_PRODUCTS) {
-                if (document.getElementById('productsSection').style.display !== 'none') {
-                    renderProductsAdmin();
-                }
-            }
-        });
-        
-        // Initialize
-        checkAuth();
-    </script>
+      });
+
+      // Initial check
+      checkAuth();
+
+      // Expose logout globally for inline onclick
+      window.logout = logout;
+    })();
+  </script>
 </body>
 </html>
