@@ -14,40 +14,75 @@
             --stone: #8b7b6e; --border-light: #ece2d9;
         }
         html, body { width: 100%; overflow-x: hidden; font-family: "Inter", sans-serif; background: white; color: var(--charcoal); scroll-behavior: smooth; }
-        body { padding-top: 80px; }
-        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-        @media (max-width: 768px) { body { padding-top: 70px; } .container { padding: 0 18px; } }
-        @media (max-width: 480px) { .product-grid { grid-template-columns: 1fr; } .container { padding: 0 12px; } }
         
-        .top-banner { background: var(--olive); color: #fef1e6; font-size: 0.7rem; text-align: center; padding: 6px 16px; letter-spacing: 0.5px; font-weight: 500; text-transform: uppercase; }
+        .top-banner {
+            background: var(--olive); color: #fef1e6; font-size: 0.7rem; text-align: center;
+            padding: 6px 16px; letter-spacing: 0.5px; font-weight: 500; text-transform: uppercase;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1001;
+        }
         .top-banner i { margin: 0 4px; font-size: 0.6rem; }
         
-        header { background: white; position: fixed; top: 20px; left: 0; width: 100%; z-index: 1000; border-bottom: 1px solid var(--border-light); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
-        @media (max-width: 768px) { header { top: 26px; } }
-        .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 20px; }
-        @media (max-width: 768px) { .header-inner { flex-wrap: wrap; justify-content: center; gap: 12px; } }
+        header {
+            background: white; position: fixed; top: 26px; left: 0; width: 100%; z-index: 1000;
+            border-bottom: 1px solid var(--border-light); background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px); padding: 0;
+        }
+        @media (max-width: 768px) { header { top: 24px; } }
+        
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        @media (max-width: 768px) { .container { padding: 0 18px; } }
+        @media (max-width: 480px) { .container { padding: 0 12px; } }
+        
+        body { padding-top: 96px; }
+        @media (max-width: 768px) { body { padding-top: 120px; } }
+        
+        .header-inner {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 0; gap: 24px;
+        }
+        @media (max-width: 768px) {
+            .header-inner { flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px 0; }
+        }
         
         .logo h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--warm-brown); letter-spacing: -0.5px; }
         .logo p { font-size: 0.65rem; letter-spacing: 1px; color: var(--stone); text-transform: uppercase; margin-top: 2px; }
+        .logo { cursor: default; user-select: none; }
         
         .nav-links { display: flex; gap: 2rem; align-items: center; }
-        .nav-links a { text-decoration: none; font-size: 0.85rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.2s; position: relative; padding: 4px 0; letter-spacing: 0.3px; }
-        .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--warm-brown); transition: width 0.3s; }
+        .nav-links a {
+            text-decoration: none; font-size: 0.85rem; font-weight: 500; color: var(--charcoal);
+            cursor: pointer; transition: all 0.2s; position: relative; padding: 4px 0; letter-spacing: 0.3px;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px;
+            background: var(--warm-brown); transition: width 0.3s;
+        }
         .nav-links a:hover { color: var(--warm-brown); }
         .nav-links a:hover::after { width: 100%; }
         
         .header-actions { display: flex; align-items: center; gap: 16px; }
-        .cart-icon { background: var(--deep-olive); border: none; border-radius: 50px; padding: 10px 20px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; color: white; transition: all 0.2s; font-size: 0.85rem; }
+        .cart-icon {
+            background: var(--deep-olive); border: none; border-radius: 50px; padding: 10px 20px;
+            font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;
+            color: white; transition: all 0.2s; font-size: 0.85rem;
+        }
         .cart-icon:hover { background: var(--warm-brown); transform: translateY(-1px); }
         .cart-count { background: white; color: var(--deep-olive); border-radius: 30px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; }
         
         .hero { padding: 50px 0 60px; }
         .hero-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 50px; }
         .hero-text { flex: 1.2; }
-        .hero-text .badge { background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 24px; letter-spacing: 0.5px; }
+        .hero-text .badge {
+            background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px;
+            font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 24px; letter-spacing: 0.5px;
+        }
         .hero-text h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 6vw, 3.5rem); font-weight: 500; line-height: 1.2; color: var(--deep-olive); max-width: 550px; }
         .hero-text p { color: var(--stone); margin: 20px 0 28px; max-width: 480px; font-size: 1rem; line-height: 1.6; }
-        .btn-shop { background: var(--deep-olive); color: white; border: none; padding: 14px 32px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; display: inline-block; text-decoration: none; letter-spacing: 0.3px; }
+        .btn-shop {
+            background: var(--deep-olive); color: white; border: none; padding: 14px 32px;
+            border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+            display: inline-block; text-decoration: none; letter-spacing: 0.3px;
+        }
         .btn-shop:hover { background: var(--warm-brown); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .hero-img { flex: 1; min-width: 280px; height: 320px; border-radius: 32px; background-size: cover; background-position: center; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1); transition: background-image 1s ease; }
         @media (max-width: 768px) { .hero-grid { flex-direction: column; text-align: center; gap: 30px; } .hero-text h1, .hero-text p { max-width: 100%; } .hero-img { width: 100%; height: 250px; } }
@@ -56,28 +91,46 @@
         .section-subtitle { color: var(--stone); font-size: 0.9rem; margin-bottom: 28px; }
         
         .category-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
-        .cat-btn { background: transparent; border: 1px solid var(--border-light); padding: 10px 24px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone); transition: all 0.2s; letter-spacing: 0.3px; }
+        .cat-btn {
+            background: transparent; border: 1px solid var(--border-light); padding: 10px 24px;
+            font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone);
+            transition: all 0.2s; letter-spacing: 0.3px;
+        }
         .cat-btn.active { background: var(--olive); color: white; border-color: var(--olive); }
         .cat-btn:hover:not(.active) { background: var(--sand); border-color: var(--clay); color: var(--deep-olive); }
         
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; margin: 20px 0 60px; }
         @media (max-width: 640px) { .product-grid { gap: 20px; grid-template-columns: 1fr; } }
-        .product-card { background: white; border-radius: 24px; padding: 20px; transition: all 0.3s ease; border: 1px solid var(--border-light); position: relative; overflow: hidden; }
+        .product-card {
+            background: white; border-radius: 24px; padding: 20px; transition: all 0.3s ease;
+            border: 1px solid var(--border-light); position: relative; overflow: hidden;
+        }
         .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1); border-color: var(--clay); }
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 16px; background: var(--sand); margin-bottom: 16px; }
         .product-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; color: var(--deep-olive); }
         .product-desc { font-size: 0.8rem; color: var(--stone); margin-bottom: 14px; line-height: 1.4; }
         .variant-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-        .variant { border: 1px solid var(--border-light); padding: 6px 14px; border-radius: 40px; font-size: 0.7rem; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; }
+        .variant {
+            border: 1px solid var(--border-light); padding: 6px 14px; border-radius: 40px;
+            font-size: 0.7rem; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s;
+        }
         .variant.selected { background: var(--olive); color: white; border-color: var(--olive); }
         .price-cart { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .price { font-weight: 700; font-size: 1.2rem; color: var(--warm-brown); }
-        .add-to-cart { background: var(--deep-olive); border: none; padding: 10px 20px; border-radius: 50px; color: white; font-weight: 500; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
+        .add-to-cart {
+            background: var(--deep-olive); border: none; padding: 10px 20px; border-radius: 50px;
+            color: white; font-weight: 500; font-size: 0.8rem; display: flex; align-items: center;
+            gap: 6px; cursor: pointer; transition: all 0.2s;
+        }
         .add-to-cart:disabled { background: #cbbcac; cursor: not-allowed; }
         .add-to-cart:not(:disabled):hover { background: var(--warm-brown); }
         
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 2000; display: none; backdrop-filter: blur(2px); }
-        .cart-sidebar { position: fixed; top: 0; right: -100%; width: 100%; max-width: 420px; height: 100vh; background: white; z-index: 2001; padding: 28px 24px; display: flex; flex-direction: column; transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); box-shadow: -8px 0 30px rgba(0,0,0,0.08); }
+        .cart-sidebar {
+            position: fixed; top: 0; right: -100%; width: 100%; max-width: 420px; height: 100vh;
+            background: white; z-index: 2001; padding: 28px 24px; display: flex; flex-direction: column;
+            transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); box-shadow: -8px 0 30px rgba(0,0,0,0.08);
+        }
         .cart-sidebar.open { right: 0; }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
         .cart-header h3 { font-size: 1.4rem; font-weight: 500; font-family: 'Playfair Display', serif; }
@@ -91,7 +144,10 @@
         .qty-btn { background: var(--sand); border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
         .remove-item { background: none; border: none; color: #c27c6e; font-size: 0.7rem; cursor: pointer; text-decoration: underline; }
         .cart-total { font-weight: 700; font-size: 1.4rem; color: var(--deep-olive); margin: 20px 0; }
-        .checkout-btn { background: var(--deep-olive); color: white; border: none; border-radius: 50px; padding: 14px; font-weight: 600; width: 100%; cursor: pointer; font-size: 1rem; letter-spacing: 0.3px; }
+        .checkout-btn {
+            background: var(--deep-olive); color: white; border: none; border-radius: 50px;
+            padding: 14px; font-weight: 600; width: 100%; cursor: pointer; font-size: 1rem; letter-spacing: 0.3px;
+        }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 3000; padding: 20px; }
         .modal.open { display: flex; }
@@ -102,11 +158,21 @@
         .input-group input, .input-group select { width: 100%; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 12px; font-size: 0.9rem; font-family: inherit; }
         .input-group select { appearance: none; background: white; cursor: pointer; }
         .radio-group { display: flex; gap: 12px; margin-top: 6px; }
-        .radio-option { flex: 1; border: 2px solid var(--border-light); border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.8rem; }
+        .radio-option {
+            flex: 1; border: 2px solid var(--border-light); border-radius: 12px; padding: 12px;
+            cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.8rem;
+        }
         .radio-option.selected { border-color: var(--olive); background: #f0f7f2; }
         .radio-option i { display: block; font-size: 1.5rem; margin-bottom: 6px; color: var(--olive); }
-        .btn-primary { background: var(--deep-olive); color: white; border: none; border-radius: 50px; padding: 14px; font-weight: 600; width: 100%; margin-top: 16px; cursor: pointer; font-size: 0.95rem; letter-spacing: 0.3px; }
-        .btn-secondary { background: none; border: 1px solid var(--border-light); border-radius: 50px; padding: 12px; width: 100%; margin-top: 8px; cursor: pointer; font-size: 0.85rem; }
+        .btn-primary {
+            background: var(--deep-olive); color: white; border: none; border-radius: 50px;
+            padding: 14px; font-weight: 600; width: 100%; margin-top: 16px; cursor: pointer;
+            font-size: 0.95rem; letter-spacing: 0.3px;
+        }
+        .btn-secondary {
+            background: none; border: 1px solid var(--border-light); border-radius: 50px;
+            padding: 12px; width: 100%; margin-top: 8px; cursor: pointer; font-size: 0.85rem;
+        }
         
         footer { background: var(--cream); border-top: 1px solid var(--border-light); padding: 48px 0 24px; margin-top: 60px; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 32px; margin-bottom: 32px; }
@@ -116,10 +182,6 @@
         .footer-col a { text-decoration: none; font-size: 0.8rem; color: var(--stone); cursor: pointer; transition: color 0.2s; }
         .footer-col a:hover { color: var(--warm-brown); }
         .copyright { border-top: 1px solid var(--border-light); padding-top: 20px; font-size: 0.7rem; color: var(--stone); text-align: center; }
-        
-        /* Hidden admin trigger - click DERMAKRAFT logo 5 times */
-        .logo { cursor: default; user-select: none; }
-        .hidden-admin-link { display: none; }
     </style>
 </head>
 <body>
@@ -203,7 +265,6 @@
     </div>
 </div>
 
-<!-- Hidden admin link - appears after clicking logo 5 times -->
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;">
     <a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;transition:all 0.2s;" title="Admin Panel">
         <i class="fas fa-lock"></i>
@@ -217,13 +278,13 @@
                 <div class="badge"><i class="fas fa-mortar-pestle"></i> chemist-crafted since 2024</div>
                 <h1>Gentle Formulas,<br>Science‑Backed Rituals</h1>
                 <p>Daily soaps, hand wash & shampoos made by a professional chemist. Balanced pH, natural actives, and zero compromise.</p>
-                <button class="btn-shop" onclick="document.getElementById('productGrid').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button>
+                <button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button>
             </div>
             <div class="hero-img" id="heroImage"></div>
         </div>
     </section>
 
-    <div class="container" id="productGrid">
+    <div class="container">
         <div class="section-title">Our Collection</div>
         <p class="section-subtitle">Chemist-formulated essentials for your daily ritual</p>
         <div class="category-tabs" id="categoryTabs">
@@ -252,7 +313,6 @@
         const SHEETDB_API_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
         const STORAGE_PRODUCTS = "dermakraft_products";
         
-        // Prices in NPR (€1 ≈ NPR 140)
         const DEFAULT_PRODUCTS = [
             { id:1, name:"Gentle Daily Cleansing Bar", category:"soap", desc:"pH 5.5, glycerin-rich, non-stripping", img:"https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400", variants:[{size:"100g",price:686},{size:"150g",price:966}] },
             { id:2, name:"Calendula Soothing Bar", category:"soap", desc:"with calendula & chamomile, sensitive skin", img:"https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400", variants:[{size:"100g",price:826},{size:"150g",price:1190}] },
@@ -295,7 +355,7 @@
                     <div class="product-desc">${prod.desc}</div>
                     <div class="variant-group">${varsHtml}</div>
                     <div class="price-cart">
-                        <span class="price">NPR ${dv.price}</span>
+                        <span class="price">NPR ${dv.price.toLocaleString()}</span>
                         <button class="add-to-cart"><i class="fas fa-plus"></i> Add</button>
                     </div>`;
                 grid.appendChild(card);
@@ -309,7 +369,7 @@
                 g.querySelectorAll('.variant').forEach(x => x.classList.remove('selected'));
                 this.classList.add('selected');
                 const card = this.closest('.product-card');
-                card.querySelector('.price').textContent = `NPR ${parseFloat(this.dataset.price)}`;
+                card.querySelector('.price').textContent = `NPR ${parseFloat(this.dataset.price).toLocaleString()}`;
             }));
             document.querySelectorAll('.add-to-cart').forEach(btn => btn.addEventListener('click', function() {
                 const card = this.closest('.product-card');
@@ -334,7 +394,7 @@
                 cart.forEach((item, idx) => {
                     html += `<li class="cart-item">
                         <img src="${item.img}" class="cart-img">
-                        <div style="flex:1;"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">NPR ${item.price}</div>
+                        <div style="flex:1;"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">NPR ${item.price.toLocaleString()}</div>
                         <div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">−</button><span>${item.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;
                 });
                 container.innerHTML = html;
@@ -347,15 +407,10 @@
             document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.quantity,0);
         }
 
-        function modQty(idx, d) {
-            cart[idx].quantity += d;
-            if(cart[idx].quantity <= 0) removeItem(idx); else updateCartUI();
-        }
-
+        function modQty(idx, d) { cart[idx].quantity += d; if(cart[idx].quantity <= 0) removeItem(idx); else updateCartUI(); }
+        
         function removeItem(idx) {
-            const r = cart[idx];
-            addedKeys.delete(r.uniqueKey);
-            cart.splice(idx,1);
+            const r = cart[idx]; addedKeys.delete(r.uniqueKey); cart.splice(idx,1);
             document.querySelectorAll('.product-card').forEach(card => {
                 if(parseInt(card.dataset.id) === r.productId) {
                     const btn = card.querySelector('.add-to-cart');
@@ -366,11 +421,9 @@
         }
 
         window.selectLocation = function(location, el) {
-            selectedLocation = location;
-            deliveryCharge = location === 'inside' ? 100 : 200;
+            selectedLocation = location; deliveryCharge = location === 'inside' ? 100 : 200;
             document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected');
-            updateCheckoutSummary();
+            el.classList.add('selected'); updateCheckoutSummary();
         };
 
         function updateCheckoutSummary() {
@@ -400,23 +453,8 @@
             
             try {
                 await fetch(SHEETDB_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data: [{
-                            orderId: orderId,
-                            customerName: name,
-                            email: email,
-                            phone: phone,
-                            address: addr,
-                            location: selectedLocation === 'inside' ? 'Inside Kathmandu Valley' : 'Outside Kathmandu Valley',
-                            deliveryCharge: deliveryCharge,
-                            items: itemsStr,
-                            subtotal: subtotal,
-                            total: total,
-                            date: new Date().toISOString()
-                        }]
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: [{ orderId, customerName:name, email, phone, address:addr, location:selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', deliveryCharge, items:itemsStr, subtotal, total, date:new Date().toISOString() }] })
                 });
             } catch(e) {
                 const fb = JSON.parse(localStorage.getItem('dermakraft_fallback_orders') || '[]');
@@ -424,7 +462,7 @@
                 localStorage.setItem('dermakraft_fallback_orders', JSON.stringify(fb));
             }
             
-            document.getElementById('successMsg').innerHTML = `Thank you ${name}!<br>Total: NPR ${total.toLocaleString()}<br>Delivery to: ${selectedLocation === 'inside' ? 'Kathmandu Valley' : 'Outside Valley'}<br>Confirmation sent to ${email}`;
+            document.getElementById('successMsg').innerHTML = `Thank you ${name}!<br>Total: NPR ${total.toLocaleString()}<br>Delivery: ${selectedLocation==='inside'?'Kathmandu Valley':'Outside Valley'}<br>Confirmation sent to ${email}`;
             document.getElementById('checkoutModal').classList.remove('open');
             document.getElementById('successModal').classList.add('open');
             
@@ -442,17 +480,12 @@
             document.getElementById('infoModal').classList.add('open');
         }
 
-        // Hidden admin access - click logo 5 times
         let logoClicks = 0;
         document.getElementById('logoClick').addEventListener('click', function() {
             logoClicks++;
-            if(logoClicks >= 5) {
-                document.getElementById('hiddenAdminLink').style.display = 'block';
-                setTimeout(() => { logoClicks = 0; }, 30000);
-            }
+            if(logoClicks >= 5) { document.getElementById('hiddenAdminLink').style.display = 'block'; setTimeout(() => { logoClicks = 0; }, 30000); }
         });
 
-        // Event bindings
         document.getElementById('cartBtn').addEventListener('click', ()=>{ document.getElementById('cartSidebar').classList.add('open'); document.getElementById('cartOverlay').style.display='block'; });
         document.getElementById('closeCartBtn').addEventListener('click', ()=>{ document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display='none'; });
         document.getElementById('cartOverlay').addEventListener('click', ()=>{ document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display='none'; });
@@ -465,23 +498,21 @@
         document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', function() {
             currentFilter = this.dataset.cat;
             document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
-            this.classList.add('active');
-            renderProducts();
+            this.classList.add('active'); renderProducts();
         }));
         document.querySelectorAll('.footerCatLink').forEach(l => l.addEventListener('click', function() {
             currentFilter = this.dataset.cat;
             document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
             document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`).classList.add('active');
-            renderProducts();
-            document.getElementById('productGrid').scrollIntoView({behavior:'smooth'});
+            renderProducts(); document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});
         }));
 
-        document.getElementById('navShop').addEventListener('click', ()=>document.getElementById('productGrid').scrollIntoView({behavior:'smooth'}));
-        document.getElementById('navStory').addEventListener('click', ()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist with a mission to create gentle, science-backed skincare. Every product is handcrafted in small batches in Kathmandu, Nepal."));
-        document.getElementById('navScience').addEventListener('click', ()=>showInfo("Clean Science","pH-optimized formulas. No sulfates, no parabens, no synthetic dyes. Enriched with glycerin & plant-based actives for healthy, balanced skin."));
+        document.getElementById('navShop').addEventListener('click', ()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
+        document.getElementById('navStory').addEventListener('click', ()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
+        document.getElementById('navScience').addEventListener('click', ()=>showInfo("Clean Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
         document.getElementById('navContact').addEventListener('click', ()=>showInfo("Contact Us","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
         document.getElementById('footerStory').addEventListener('click', ()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
-        document.getElementById('footerScience').addEventListener('click', ()=>showInfo("Formula Philosophy","We believe in transparency. Every ingredient serves a purpose. pH-balanced, dermatologist-tested."));
+        document.getElementById('footerScience').addEventListener('click', ()=>showInfo("Formula Philosophy","Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
         document.getElementById('footerNepal').addEventListener('click', ()=>showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable production."));
         document.getElementById('footerShipping').addEventListener('click', ()=>showInfo("Shipping","Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
         document.getElementById('footerReturns').addEventListener('click', ()=>showInfo("Returns","30-day satisfaction guarantee. Contact us for return or exchange support."));
@@ -492,12 +523,9 @@
         function rh() { he.style.backgroundImage=`url('${heroImages[hi]}')`; hi=(hi+1)%heroImages.length; }
         rh(); setInterval(rh, 4500);
 
-        renderProducts();
-        updateCartUI();
+        renderProducts(); updateCartUI();
         
-        window.addEventListener('storage', (e) => {
-            if(e.key === STORAGE_PRODUCTS) { products = loadProducts(); renderProducts(); updateCartUI(); }
-        });
+        window.addEventListener('storage', (e) => { if(e.key === STORAGE_PRODUCTS) { products = loadProducts(); renderProducts(); updateCartUI(); } });
     })();
 </script>
 </body>
