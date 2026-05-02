@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,19 +16,11 @@
         }
         html, body { width: 100%; overflow-x: hidden; font-family: "Inter", sans-serif; background: white; color: var(--charcoal); scroll-behavior: smooth; }
         
-        .top-banner {
-            background: var(--olive); color: #fef1e6; font-size: 0.7rem; text-align: center;
-            padding: 6px 16px; letter-spacing: 0.5px; font-weight: 500; text-transform: uppercase;
-            position: fixed; top: 2px; left: 0; width: 100%; z-index: 1001;
-        }
+        .top-banner { background: var(--olive); color: #fef1e6; font-size: 0.7rem; text-align: center; padding: 6px 16px; letter-spacing: 0.5px; font-weight: 500; text-transform: uppercase; position: fixed; top: 0; left: 0; width: 100%; z-index: 1001; border-bottom: 2px solid #2a4235; }
         .top-banner i { margin: 0 4px; font-size: 0.6rem; }
         
-        header {
-            background: white; position: fixed; top: 40px; left: 0; width: 100%; z-index: 1000;
-            border-bottom: 1px solid var(--border-light); background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px); padding: 0;
-        }
-        @media (max-width: 768px) { header { top: 40px; } }
+        header { background: white; position: fixed; top: 30px; left: 0; width: 100%; z-index: 1000; border-bottom: 1px solid var(--border-light); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        @media (max-width: 768px) { header { top: 28px; } }
         
         .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
         @media (max-width: 768px) { .container { padding: 0 18px; } }
@@ -36,53 +29,31 @@
         body { padding-top: 100px; }
         @media (max-width: 768px) { body { padding-top: 120px; } }
         
-        .header-inner {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 0; gap: 24px;
-        }
-        @media (max-width: 768px) {
-            .header-inner { flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px 0; }
-        }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 24px; }
+        @media (max-width: 768px) { .header-inner { flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px 0; } }
         
         .logo h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--warm-brown); letter-spacing: -0.5px; }
         .logo p { font-size: 0.65rem; letter-spacing: 1px; color: var(--stone); text-transform: uppercase; margin-top: 2px; }
         .logo { cursor: default; user-select: none; }
         
         .nav-links { display: flex; gap: 2rem; align-items: center; }
-        .nav-links a {
-            text-decoration: none; font-size: 0.85rem; font-weight: 500; color: var(--charcoal);
-            cursor: pointer; transition: all 0.2s; position: relative; padding: 4px 0; letter-spacing: 0.3px;
-        }
-        .nav-links a::after {
-            content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px;
-            background: var(--warm-brown); transition: width 0.3s;
-        }
+        .nav-links a { text-decoration: none; font-size: 0.85rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.2s; position: relative; padding: 4px 0; letter-spacing: 0.3px; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--warm-brown); transition: width 0.3s; }
         .nav-links a:hover { color: var(--warm-brown); }
         .nav-links a:hover::after { width: 100%; }
         
         .header-actions { display: flex; align-items: center; gap: 16px; }
-        .cart-icon {
-            background: var(--deep-olive); border: none; border-radius: 50px; padding: 10px 20px;
-            font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer;
-            color: white; transition: all 0.2s; font-size: 0.85rem;
-        }
+        .cart-icon { background: var(--deep-olive); border: none; border-radius: 50px; padding: 10px 20px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; color: white; transition: all 0.2s; font-size: 0.85rem; }
         .cart-icon:hover { background: var(--warm-brown); transform: translateY(-1px); }
         .cart-count { background: white; color: var(--deep-olive); border-radius: 30px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; }
         
         .hero { padding: 50px 0 60px; }
         .hero-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 50px; }
         .hero-text { flex: 1.2; }
-        .hero-text .badge {
-            background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px;
-            font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 24px; letter-spacing: 0.5px;
-        }
+        .hero-text .badge { background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 24px; letter-spacing: 0.5px; }
         .hero-text h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 6vw, 3.5rem); font-weight: 500; line-height: 1.2; color: var(--deep-olive); max-width: 550px; }
         .hero-text p { color: var(--stone); margin: 20px 0 28px; max-width: 480px; font-size: 1rem; line-height: 1.6; }
-        .btn-shop {
-            background: var(--deep-olive); color: white; border: none; padding: 14px 32px;
-            border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
-            display: inline-block; text-decoration: none; letter-spacing: 0.3px;
-        }
+        .btn-shop { background: var(--deep-olive); color: white; border: none; padding: 14px 32px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; display: inline-block; text-decoration: none; letter-spacing: 0.3px; }
         .btn-shop:hover { background: var(--warm-brown); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .hero-img { flex: 1; min-width: 280px; height: 320px; border-radius: 32px; background-size: cover; background-position: center; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1); transition: background-image 1s ease; }
         @media (max-width: 768px) { .hero-grid { flex-direction: column; text-align: center; gap: 30px; } .hero-text h1, .hero-text p { max-width: 100%; } .hero-img { width: 100%; height: 250px; } }
@@ -91,46 +62,28 @@
         .section-subtitle { color: var(--stone); font-size: 0.9rem; margin-bottom: 28px; }
         
         .category-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
-        .cat-btn {
-            background: transparent; border: 1px solid var(--border-light); padding: 10px 24px;
-            font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone);
-            transition: all 0.2s; letter-spacing: 0.3px;
-        }
+        .cat-btn { background: transparent; border: 1px solid var(--border-light); padding: 10px 24px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone); transition: all 0.2s; letter-spacing: 0.3px; }
         .cat-btn.active { background: var(--olive); color: white; border-color: var(--olive); }
         .cat-btn:hover:not(.active) { background: var(--sand); border-color: var(--clay); color: var(--deep-olive); }
         
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; margin: 20px 0 60px; }
         @media (max-width: 640px) { .product-grid { gap: 20px; grid-template-columns: 1fr; } }
-        .product-card {
-            background: white; border-radius: 24px; padding: 20px; transition: all 0.3s ease;
-            border: 1px solid var(--border-light); position: relative; overflow: hidden;
-        }
+        .product-card { background: white; border-radius: 24px; padding: 20px; transition: all 0.3s ease; border: 1px solid var(--border-light); }
         .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1); border-color: var(--clay); }
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 16px; background: var(--sand); margin-bottom: 16px; }
         .product-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; color: var(--deep-olive); }
         .product-desc { font-size: 0.8rem; color: var(--stone); margin-bottom: 14px; line-height: 1.4; }
         .variant-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-        .variant {
-            border: 1px solid var(--border-light); padding: 6px 14px; border-radius: 40px;
-            font-size: 0.7rem; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s;
-        }
+        .variant { border: 1px solid var(--border-light); padding: 6px 14px; border-radius: 40px; font-size: 0.7rem; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; }
         .variant.selected { background: var(--olive); color: white; border-color: var(--olive); }
         .price-cart { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .price { font-weight: 700; font-size: 1.2rem; color: var(--warm-brown); }
-        .add-to-cart {
-            background: var(--deep-olive); border: none; padding: 10px 20px; border-radius: 50px;
-            color: white; font-weight: 500; font-size: 0.8rem; display: flex; align-items: center;
-            gap: 6px; cursor: pointer; transition: all 0.2s;
-        }
+        .add-to-cart { background: var(--deep-olive); border: none; padding: 10px 20px; border-radius: 50px; color: white; font-weight: 500; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
         .add-to-cart:disabled { background: #cbbcac; cursor: not-allowed; }
         .add-to-cart:not(:disabled):hover { background: var(--warm-brown); }
         
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 2000; display: none; backdrop-filter: blur(2px); }
-        .cart-sidebar {
-            position: fixed; top: 0; right: -100%; width: 100%; max-width: 420px; height: 100vh;
-            background: white; z-index: 2001; padding: 28px 24px; display: flex; flex-direction: column;
-            transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); box-shadow: -8px 0 30px rgba(0,0,0,0.08);
-        }
+        .cart-sidebar { position: fixed; top: 0; right: -100%; width: 100%; max-width: 420px; height: 100vh; background: white; z-index: 2001; padding: 28px 24px; display: flex; flex-direction: column; transition: right 0.3s; box-shadow: -8px 0 30px rgba(0,0,0,0.08); }
         .cart-sidebar.open { right: 0; }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
         .cart-header h3 { font-size: 1.4rem; font-weight: 500; font-family: 'Playfair Display', serif; }
@@ -144,10 +97,7 @@
         .qty-btn { background: var(--sand); border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
         .remove-item { background: none; border: none; color: #c27c6e; font-size: 0.7rem; cursor: pointer; text-decoration: underline; }
         .cart-total { font-weight: 700; font-size: 1.4rem; color: var(--deep-olive); margin: 20px 0; }
-        .checkout-btn {
-            background: var(--deep-olive); color: white; border: none; border-radius: 50px;
-            padding: 14px; font-weight: 600; width: 100%; cursor: pointer; font-size: 1rem; letter-spacing: 0.3px;
-        }
+        .checkout-btn { background: var(--deep-olive); color: white; border: none; border-radius: 50px; padding: 14px; font-weight: 600; width: 100%; cursor: pointer; font-size: 1rem; letter-spacing: 0.3px; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 3000; padding: 20px; }
         .modal.open { display: flex; }
@@ -155,24 +105,13 @@
         .modal-card h3 { font-family: 'Playfair Display', serif; margin-bottom: 20px; font-size: 1.4rem; }
         .input-group { text-align: left; margin-bottom: 14px; }
         .input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 5px; color: var(--charcoal); text-transform: uppercase; letter-spacing: 0.5px; }
-        .input-group input, .input-group select { width: 100%; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 12px; font-size: 0.9rem; font-family: inherit; }
-        .input-group select { appearance: none; background: white; cursor: pointer; }
+        .input-group input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 12px; font-size: 0.9rem; font-family: inherit; }
         .radio-group { display: flex; gap: 12px; margin-top: 6px; }
-        .radio-option {
-            flex: 1; border: 2px solid var(--border-light); border-radius: 12px; padding: 12px;
-            cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.8rem;
-        }
+        .radio-option { flex: 1; border: 2px solid var(--border-light); border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.8rem; }
         .radio-option.selected { border-color: var(--olive); background: #f0f7f2; }
         .radio-option i { display: block; font-size: 1.5rem; margin-bottom: 6px; color: var(--olive); }
-        .btn-primary {
-            background: var(--deep-olive); color: white; border: none; border-radius: 50px;
-            padding: 14px; font-weight: 600; width: 100%; margin-top: 16px; cursor: pointer;
-            font-size: 0.95rem; letter-spacing: 0.3px;
-        }
-        .btn-secondary {
-            background: none; border: 1px solid var(--border-light); border-radius: 50px;
-            padding: 12px; width: 100%; margin-top: 8px; cursor: pointer; font-size: 0.85rem;
-        }
+        .btn-primary { background: var(--deep-olive); color: white; border: none; border-radius: 50px; padding: 14px; font-weight: 600; width: 100%; margin-top: 16px; cursor: pointer; font-size: 0.95rem; letter-spacing: 0.3px; }
+        .btn-secondary { background: none; border: 1px solid var(--border-light); border-radius: 50px; padding: 12px; width: 100%; margin-top: 8px; cursor: pointer; font-size: 0.85rem; }
         
         footer { background: var(--cream); border-top: 1px solid var(--border-light); padding: 48px 0 24px; margin-top: 60px; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 32px; margin-bottom: 32px; }
@@ -228,10 +167,10 @@
             <label>Delivery Location</label>
             <div class="radio-group" id="locationGroup">
                 <div class="radio-option selected" data-location="inside" onclick="selectLocation('inside', this)">
-                    <i class="fas fa-building"></i> Inside Kathmandu Valley<br><small>NPR 100</small>
+                    <i class="fas fa-building"></i> Inside Kathmandu<br><small>NPR 100</small>
                 </div>
                 <div class="radio-option" data-location="outside" onclick="selectLocation('outside', this)">
-                    <i class="fas fa-mountain"></i> Outside Kathmandu Valley<br><small>NPR 200</small>
+                    <i class="fas fa-mountain"></i> Outside Kathmandu<br><small>NPR 200</small>
                 </div>
             </div>
         </div>
@@ -266,7 +205,7 @@
 </div>
 
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;">
-    <a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;transition:all 0.2s;" title="Admin Panel">
+    <a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel">
         <i class="fas fa-lock"></i>
     </a>
 </div>
@@ -312,12 +251,13 @@
     (function(){
         const SHEETDB_API_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
         const STORAGE_PRODUCTS = "dermakraft_products";
+        const STORAGE_CART = "dermakraft_cart";
         
         const DEFAULT_PRODUCTS = [
-            { id:1, name:"Gentle Daily Cleansing Bar", category:"soap", desc:"pH 5.5, glycerin-rich, non-stripping", img:"https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400", variants:[{size:"100g",price:686},{size:"150g",price:966}] },
-            { id:2, name:"Calendula Soothing Bar", category:"soap", desc:"with calendula & chamomile, sensitive skin", img:"https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400", variants:[{size:"100g",price:826},{size:"150g",price:1190}] },
-            { id:3, name:"Aloe Vera Hand Wash", category:"handwash", desc:"sulfate-free, moisturizing foam", img:"https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400", variants:[{size:"300ml",price:1106},{size:"500ml",price:1666}] },
-            { id:4, name:"Rosemary Mint Shampoo Bar", category:"shampoo", desc:"solid shampoo, zero waste, for all hair", img:"https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400", variants:[{size:"85g",price:1246},{size:"120g",price:1890}] }
+            { id:1, name:"Gentle Daily Cleansing Bar", category:"soap", desc:"pH 5.5, glycerin-rich, non-stripping", img:"https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400", variants:[{size:"100g",price:350},{size:"150g",price:500}] },
+            { id:2, name:"Calendula Soothing Bar", category:"soap", desc:"with calendula & chamomile, sensitive skin", img:"https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400", variants:[{size:"100g",price:400},{size:"150g",price:580}] },
+            { id:3, name:"Aloe Vera Hand Wash", category:"handwash", desc:"sulfate-free, moisturizing foam", img:"https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400", variants:[{size:"300ml",price:450},{size:"500ml",price:650}] },
+            { id:4, name:"Rosemary Mint Shampoo Bar", category:"shampoo", desc:"solid shampoo, zero waste, for all hair", img:"https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400", variants:[{size:"85g",price:480},{size:"120g",price:700}] }
         ];
         
         function loadProducts() {
@@ -327,9 +267,17 @@
             return [...DEFAULT_PRODUCTS];
         }
         
+        function loadCart() {
+            const stored = localStorage.getItem(STORAGE_CART);
+            if (stored) { try { return JSON.parse(stored); } catch(e) {} }
+            return [];
+        }
+        
+        function saveCart() { localStorage.setItem(STORAGE_CART, JSON.stringify(cart)); }
+        
         let products = loadProducts();
-        let cart = [];
-        let addedKeys = new Set();
+        let cart = loadCart();
+        let addedKeys = new Set(cart.map(i => i.uniqueKey));
         let currentFilter = "all";
         let selectedLocation = "inside";
         let deliveryCharge = 100;
@@ -355,12 +303,13 @@
                     <div class="product-desc">${prod.desc}</div>
                     <div class="variant-group">${varsHtml}</div>
                     <div class="price-cart">
-                        <span class="price">NPR ${dv.price.toLocaleString()}</span>
+                        <span class="price">NPR ${dv.price}</span>
                         <button class="add-to-cart"><i class="fas fa-plus"></i> Add</button>
                     </div>`;
                 grid.appendChild(card);
             });
             attachEvents();
+            updateCartButtons();
         }
 
         function attachEvents() {
@@ -369,7 +318,8 @@
                 g.querySelectorAll('.variant').forEach(x => x.classList.remove('selected'));
                 this.classList.add('selected');
                 const card = this.closest('.product-card');
-                card.querySelector('.price').textContent = `NPR ${parseFloat(this.dataset.price).toLocaleString()}`;
+                card.querySelector('.price').textContent = `NPR ${parseFloat(this.dataset.price)}`;
+                updateCartButtons();
             }));
             document.querySelectorAll('.add-to-cart').forEach(btn => btn.addEventListener('click', function() {
                 const card = this.closest('.product-card');
@@ -382,8 +332,24 @@
                 addedKeys.add(key);
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-check"></i> Added';
+                saveCart();
                 updateCartUI();
             }));
+        }
+        
+        function updateCartButtons() {
+            document.querySelectorAll('.product-card').forEach(card => {
+                const pid = parseInt(card.dataset.id);
+                const sv = card.querySelector('.variant.selected');
+                if(!sv) return;
+                const key = getKey(pid, sv.dataset.label);
+                const btn = card.querySelector('.add-to-cart');
+                if(addedKeys.has(key)) {
+                    if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Added'; }
+                } else {
+                    if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; }
+                }
+            });
         }
 
         function updateCartUI() {
@@ -394,7 +360,7 @@
                 cart.forEach((item, idx) => {
                     html += `<li class="cart-item">
                         <img src="${item.img}" class="cart-img">
-                        <div style="flex:1;"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">NPR ${item.price.toLocaleString()}</div>
+                        <div style="flex:1;"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">NPR ${item.price}</div>
                         <div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">−</button><span>${item.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;
                 });
                 container.innerHTML = html;
@@ -407,23 +373,27 @@
             document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.quantity,0);
         }
 
-        function modQty(idx, d) { cart[idx].quantity += d; if(cart[idx].quantity <= 0) removeItem(idx); else updateCartUI(); }
+        function modQty(idx, d) { 
+            cart[idx].quantity += d; 
+            if(cart[idx].quantity <= 0) removeItem(idx); 
+            else { saveCart(); updateCartUI(); }
+        }
         
         function removeItem(idx) {
-            const r = cart[idx]; addedKeys.delete(r.uniqueKey); cart.splice(idx,1);
-            document.querySelectorAll('.product-card').forEach(card => {
-                if(parseInt(card.dataset.id) === r.productId) {
-                    const btn = card.querySelector('.add-to-cart');
-                    if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; }
-                }
-            });
+            const r = cart[idx]; 
+            addedKeys.delete(r.uniqueKey); 
+            cart.splice(idx,1);
+            saveCart();
+            updateCartButtons();
             updateCartUI();
         }
 
         window.selectLocation = function(location, el) {
-            selectedLocation = location; deliveryCharge = location === 'inside' ? 100 : 200;
+            selectedLocation = location; 
+            deliveryCharge = location === 'inside' ? 100 : 200;
             document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected'); updateCheckoutSummary();
+            el.classList.add('selected'); 
+            updateCheckoutSummary();
         };
 
         function updateCheckoutSummary() {
@@ -450,15 +420,31 @@
             const total = subtotal + deliveryCharge;
             const itemsStr = cart.map(i => `${i.quantity}x ${i.name}`).join(', ');
             const orderId = 'ORD-' + Date.now();
+            const orderDate = new Date().toISOString();
+            
+            const orderData = {
+                orderId: orderId,
+                customerName: name,
+                email: email,
+                phone: phone,
+                address: addr,
+                location: selectedLocation === 'inside' ? 'Inside Kathmandu Valley' : 'Outside Kathmandu Valley',
+                deliveryCharge: deliveryCharge,
+                items: itemsStr,
+                subtotal: subtotal,
+                total: total,
+                date: orderDate
+            };
             
             try {
                 await fetch(SHEETDB_API_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: [{ orderId, customerName:name, email, phone, address:addr, location:selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', deliveryCharge, items:itemsStr, subtotal, total, date:new Date().toISOString() }] })
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: [orderData] })
                 });
             } catch(e) {
                 const fb = JSON.parse(localStorage.getItem('dermakraft_fallback_orders') || '[]');
-                fb.unshift({ orderId, customerName:name, email, phone, address:addr, location:selectedLocation, deliveryCharge, items:itemsStr, subtotal, total, date:new Date().toISOString() });
+                fb.unshift(orderData);
                 localStorage.setItem('dermakraft_fallback_orders', JSON.stringify(fb));
             }
             
@@ -466,12 +452,14 @@
             document.getElementById('checkoutModal').classList.remove('open');
             document.getElementById('successModal').classList.add('open');
             
-            cart = []; addedKeys.clear();
-            document.querySelectorAll('.add-to-cart').forEach(b => { b.disabled=false; b.innerHTML='<i class="fas fa-plus"></i> Add'; });
+            cart = []; 
+            addedKeys.clear();
+            saveCart();
+            document.querySelectorAll('.add-to-cart').forEach(b => { b.disabled = false; b.innerHTML = '<i class="fas fa-plus"></i> Add'; });
             updateCartUI();
-            ['custName','custEmail','custAddress','custPhone'].forEach(id => document.getElementById(id).value='');
+            ['custName','custEmail','custAddress','custPhone'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('cartSidebar').classList.remove('open');
-            document.getElementById('cartOverlay').style.display='none';
+            document.getElementById('cartOverlay').style.display = 'none';
         }
 
         function showInfo(title, msg) {
@@ -483,49 +471,72 @@
         let logoClicks = 0;
         document.getElementById('logoClick').addEventListener('click', function() {
             logoClicks++;
-            if(logoClicks >= 5) { document.getElementById('hiddenAdminLink').style.display = 'block'; setTimeout(() => { logoClicks = 0; }, 30000); }
+            if(logoClicks >= 5) { 
+                document.getElementById('hiddenAdminLink').style.display = 'block'; 
+                setTimeout(() => { logoClicks = 0; }, 30000); 
+            }
         });
 
-        document.getElementById('cartBtn').addEventListener('click', ()=>{ document.getElementById('cartSidebar').classList.add('open'); document.getElementById('cartOverlay').style.display='block'; });
-        document.getElementById('closeCartBtn').addEventListener('click', ()=>{ document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display='none'; });
-        document.getElementById('cartOverlay').addEventListener('click', ()=>{ document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display='none'; });
+        document.getElementById('cartBtn').addEventListener('click', () => { 
+            document.getElementById('cartSidebar').classList.add('open'); 
+            document.getElementById('cartOverlay').style.display = 'block'; 
+        });
+        document.getElementById('closeCartBtn').addEventListener('click', () => { 
+            document.getElementById('cartSidebar').classList.remove('open'); 
+            document.getElementById('cartOverlay').style.display = 'none'; 
+        });
+        document.getElementById('cartOverlay').addEventListener('click', () => { 
+            document.getElementById('cartSidebar').classList.remove('open'); 
+            document.getElementById('cartOverlay').style.display = 'none'; 
+        });
         document.getElementById('checkoutSideBtn').addEventListener('click', handleCheckout);
         document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
-        document.getElementById('closeCheckoutBtn').addEventListener('click', ()=>document.getElementById('checkoutModal').classList.remove('open'));
-        document.getElementById('closeSuccessBtn').addEventListener('click', ()=>document.getElementById('successModal').classList.remove('open'));
-        document.getElementById('closeInfoBtn').addEventListener('click', ()=>document.getElementById('infoModal').classList.remove('open'));
+        document.getElementById('closeCheckoutBtn').addEventListener('click', () => document.getElementById('checkoutModal').classList.remove('open'));
+        document.getElementById('closeSuccessBtn').addEventListener('click', () => document.getElementById('successModal').classList.remove('open'));
+        document.getElementById('closeInfoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.remove('open'));
 
         document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', function() {
             currentFilter = this.dataset.cat;
             document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
-            this.classList.add('active'); renderProducts();
+            this.classList.add('active'); 
+            renderProducts();
         }));
         document.querySelectorAll('.footerCatLink').forEach(l => l.addEventListener('click', function() {
             currentFilter = this.dataset.cat;
             document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
             document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`).classList.add('active');
-            renderProducts(); document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});
+            renderProducts(); 
+            document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});
         }));
 
-        document.getElementById('navShop').addEventListener('click', ()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-        document.getElementById('navStory').addEventListener('click', ()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
-        document.getElementById('navScience').addEventListener('click', ()=>showInfo("Clean Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
-        document.getElementById('navContact').addEventListener('click', ()=>showInfo("Contact Us","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-        document.getElementById('footerStory').addEventListener('click', ()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
-        document.getElementById('footerScience').addEventListener('click', ()=>showInfo("Formula Philosophy","Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
-        document.getElementById('footerNepal').addEventListener('click', ()=>showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable production."));
-        document.getElementById('footerShipping').addEventListener('click', ()=>showInfo("Shipping","Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
-        document.getElementById('footerReturns').addEventListener('click', ()=>showInfo("Returns","30-day satisfaction guarantee. Contact us for return or exchange support."));
-        document.getElementById('footerContact').addEventListener('click', ()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678"));
+        document.getElementById('navShop').addEventListener('click', () => document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
+        document.getElementById('navStory').addEventListener('click', () => showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
+        document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
+        document.getElementById('navContact').addEventListener('click', () => showInfo("Contact Us","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
+        document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
+        document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy","Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
+        document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable production."));
+        document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping","Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
+        document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns","30-day satisfaction guarantee. Contact us for return or exchange support."));
+        document.getElementById('footerContact').addEventListener('click', () => showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678"));
 
         const heroImages = ["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=600","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600"];
-        let hi=0; const he=document.getElementById('heroImage');
-        function rh() { he.style.backgroundImage=`url('${heroImages[hi]}')`; hi=(hi+1)%heroImages.length; }
-        rh(); setInterval(rh, 4500);
+        let hi = 0; 
+        const he = document.getElementById('heroImage');
+        function rh() { he.style.backgroundImage = `url('${heroImages[hi]}')`; hi = (hi+1) % heroImages.length; }
+        rh(); 
+        setInterval(rh, 4500);
 
-        renderProducts(); updateCartUI();
+        renderProducts(); 
+        updateCartUI();
         
-        window.addEventListener('storage', (e) => { if(e.key === STORAGE_PRODUCTS) { products = loadProducts(); renderProducts(); updateCartUI(); } });
+        window.addEventListener('storage', (e) => { 
+            if(e.key === STORAGE_PRODUCTS) { 
+                products = loadProducts(); 
+                renderProducts(); 
+                updateCartUI(); 
+            } 
+        });
     })();
 </script>
 </body>
