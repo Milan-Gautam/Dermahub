@@ -42,7 +42,7 @@
     .logout-btn, .refresh-btn { background: none; border: 1px solid #ece2d9; padding: 8px 20px; border-radius: 40px; cursor: pointer; color: #8b7b6e; font-family: inherit; }
     .refresh-btn { background: #f3ede7; border: none; color: #2a4235; font-size: 0.8rem; }
     
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
     @media (max-width: 576px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
     .stat-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .stat-card i { font-size: 1.8rem; color: #3a5a45; margin-bottom: 6px; }
@@ -58,6 +58,10 @@
     .badge-location { padding: 3px 8px; border-radius: 12px; font-size: 0.6rem; font-weight: 600; }
     .badge-location.inside { background: #e8f5e9; color: #2a4235; }
     .badge-location.outside { background: #fff3e0; color: #e67e22; }
+    .badge-status { padding: 3px 8px; border-radius: 12px; font-size: 0.6rem; font-weight: 600; }
+    .badge-status.processing { background: #fff3cd; color: #856404; }
+    .badge-status.shipped { background: #cce5ff; color: #004085; }
+    .badge-status.delivered { background: #d4edda; color: #155724; }
     .delete-btn { background: none; border: none; color: #c27c6e; cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 8px; }
     .delete-btn:hover { background: #fee2dd; }
     .empty-state { text-align: center; padding: 48px; color: #8b7b6e; }
@@ -65,6 +69,18 @@
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
     .sync-dot.on { background: #4caf50; }
     .sync-dot.off { background: #f44336; }
+    
+    .product-manager { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-top: 20px; }
+    .add-product-form { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #ece2d9; }
+    .form-field { flex: 1; min-width: 140px; }
+    .form-field label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; color: #8b7b6e; text-transform: uppercase; }
+    .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #ece2d9; border-radius: 8px; font-family: inherit; font-size: 0.85rem; }
+    .btn-sm { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; }
+    .btn-primary-sm { background: #2a4235; color: white; }
+    .btn-warning-sm { background: #ffc107; color: #000; }
+    .btn-success-sm { background: #28a745; color: white; }
+    .status-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.7rem; cursor: pointer; }
+    
     @media (max-width: 576px) { .toast { bottom: 10px; right: 10px; left: 10px; text-align: center; } }
   </style>
 </head>
@@ -92,6 +108,7 @@
       <div class="logo"><h1>DERMAKRAFT</h1><p>admin control panel</p></div>
       <div class="nav-tabs">
         <button class="nav-tab active" onclick="showSection('orders')"><i class="fas fa-shopping-bag"></i> Orders</button>
+        <button class="nav-tab" onclick="showSection('products')"><i class="fas fa-box"></i> Products</button>
         <a href="index.html" class="nav-tab" style="text-decoration:none;" target="_blank"><i class="fas fa-store"></i> View Store</a>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
@@ -104,21 +121,36 @@
       <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3>Total Orders</h3><div class="stat-number" id="statOrders">0</div></div>
       <div class="stat-card"><i class="fas fa-coins"></i><h3>Revenue (NPR)</h3><div class="stat-number" id="statRevenue">NPR 0</div></div>
       <div class="stat-card"><i class="fas fa-users"></i><h3>Customers</h3><div class="stat-number" id="statCustomers">0</div></div>
-      <div class="stat-card"><i class="fas fa-truck"></i><h3>Deliveries</h3><div class="stat-number" id="statDeliveries">NPR 0</div></div>
+      <div class="stat-card"><i class="fas fa-boxes"></i><h3>Products</h3><div class="stat-number" id="statProductsCount">0</div></div>
     </div>
 
     <div id="ordersSection">
       <div class="section-title">
         <i class="fas fa-clipboard-list"></i> All Orders
-        <span style="font-size:0.6rem;color:#8b7b6e;font-family:Inter;font-weight:400;">
-          <span class="sync-dot on" id="syncDot"></span> <span id="syncText">Cloud</span>
-        </span>
+        <span style="font-size:0.6rem;color:#8b7b6e;"><span class="sync-dot on" id="syncDot"></span> <span id="syncText">Cloud</span></span>
       </div>
       <div class="orders-wrapper">
         <table>
-          <thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Location</th><th>Address</th><th>Items</th><th>Subtotal</th><th>Delivery</th><th>Total</th><th>Date</th><th></th></tr></thead>
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Location</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th></th></tr></thead>
           <tbody id="ordersTableBody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <div id="productsSection" style="display:none;">
+      <div class="section-title"><i class="fas fa-plus-circle"></i> Add New Product</div>
+      <div class="product-manager">
+        <div class="add-product-form">
+          <div class="form-field"><label>Name</label><input type="text" id="prodName" placeholder="Product name"></div>
+          <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option></select></div>
+          <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
+          <div class="form-field"><label>Size</label><input type="text" id="prodSize" placeholder="100g"></div>
+          <div class="form-field"><label>Price (NPR)</label><input type="number" id="prodPrice" placeholder="350"></div>
+          <div class="form-field"><label>Image URLs (comma separated)</label><input type="text" id="prodImages" placeholder="url1,url2,url3"></div>
+          <div class="form-field"><button class="btn-sm btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button></div>
+        </div>
+        <div style="font-weight:600;margin-bottom:12px;">Current Products</div>
+        <div id="productListContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
     </div>
   </div>
@@ -128,199 +160,140 @@
   <script>
     (function() {
       const ADMIN_PASSWORD = "admin123";
-      const SHEETDB_API_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
+      const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
+      const SHEETDB_PRODUCTS_URL = "https://sheetdb.io/api/v1/YOUR_PRODUCTS_SHEETDB_ID";
       const SESSION_KEY = "admin_session";
       const SESSION_TIME = "admin_session_time";
-      const SESSION_DURATION = 30;
       
       let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0');
       let lockoutUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0');
       const MAX_ATTEMPTS = 5;
-      const LOCKOUT_DURATION = 30000;
-      let orders = [];
+      let orders = [], products = [];
 
       function startSession() { localStorage.setItem(SESSION_KEY,'true'); localStorage.setItem(SESSION_TIME,Date.now().toString()); }
       function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_TIME); }
-      function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < SESSION_DURATION; }
-      function refreshSession() { if(localStorage.getItem(SESSION_KEY)==='true') localStorage.setItem(SESSION_TIME,Date.now().toString()); }
-
-      ['click','keypress','scroll','mousemove'].forEach(e => document.addEventListener(e, refreshSession));
-
-      setInterval(() => {
-        if(localStorage.getItem(SESSION_KEY)==='true' && !isSessionValid()) { clearSession(); if(document.getElementById('dashboard').style.display==='block') { alert('Session expired.'); logout(); } }
-        if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
-      }, 5000);
+      function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < 30; }
 
       async function loadOrders() {
         try {
-          const res = await fetch(SHEETDB_API_URL);
-          if(res.ok) { 
-            orders = await res.json(); 
-            document.getElementById('syncDot').className='sync-dot on'; 
-            document.getElementById('syncText').textContent='Cloud Synced'; 
-            localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); 
-          } else throw new Error('Failed');
+          const res = await fetch(SHEETDB_ORDERS_URL);
+          if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; }
+          else throw new Error('Failed');
         } catch(e) {
-          document.getElementById('syncDot').className='sync-dot off'; 
-          document.getElementById('syncText').textContent='Offline';
-          const cached = localStorage.getItem('dermakraft_cached_orders'); 
-          orders = cached ? JSON.parse(cached) : [];
-          const fallback = localStorage.getItem('dermakraft_fallback_orders'); 
-          if(fallback) orders = [...JSON.parse(fallback), ...orders];
+          document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline';
+          orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]');
         }
         return orders;
       }
 
+      async function loadProducts() {
+        try {
+          const res = await fetch(SHEETDB_PRODUCTS_URL);
+          if(res.ok) { products = await res.json(); localStorage.setItem('dermakraft_products',JSON.stringify(products)); }
+          else throw new Error('Failed');
+        } catch(e) {
+          products = JSON.parse(localStorage.getItem('dermakraft_products')||'[]');
+        }
+        return products;
+      }
+
       function renderOrders() {
         const tbody = document.getElementById('ordersTableBody');
-        if(!orders.length) { 
-          tbody.innerHTML='<tr><td colspan="11" class="empty-state">No orders yet</td></tr>'; 
-          document.getElementById('statOrders').innerText='0'; 
-          document.getElementById('statRevenue').innerText='NPR 0'; 
-          document.getElementById('statCustomers').innerText='0'; 
-          document.getElementById('statDeliveries').innerText='NPR 0'; 
-          return; 
-        }
-        let totalRevenue=0, totalDelivery=0; 
-        const customers=new Set(); 
-        let html='';
-        orders.forEach(order => {
-          const subtotal = parseFloat(order.subtotal) || 0;
-          const delivery = parseFloat(order.deliveryCharge) || 0;
-          const total = subtotal + delivery;
-          totalRevenue += total; 
-          totalDelivery += delivery;
-          customers.add((order.email||'').toLowerCase());
-          const location = order.location || '';
-          const isInside = location.toLowerCase().includes('inside');
-          const locBadge = location ? `<span class="badge-location ${isInside?'inside':'outside'}">${location}</span>` : '';
+        if(!orders.length) { tbody.innerHTML='<tr><td colspan="9" class="empty-state">No orders yet</td></tr>'; updateStats(); return; }
+        let rev=0; const cust=new Set(); let html='';
+        orders.forEach(o => {
+          const t = parseFloat(o.total)||0; rev+=t; cust.add((o.email||'').toLowerCase());
+          const status = o.status || 'processing';
           html += `<tr>
-            <td><span class="badge-order">#${(order.orderId||'').slice(-8)}</span></td>
-            <td><strong>${escapeHtml(order.customerName||'')}</strong></td>
-            <td>${escapeHtml(order.email||'')}<br><small>${escapeHtml(order.phone||'')}</small></td>
-            <td>${locBadge}</td>
-            <td>${escapeHtml(order.address||'')}</td>
-            <td>${escapeHtml(order.items||'')}</td>
-            <td>NPR ${subtotal.toLocaleString()}</td>
-            <td>NPR ${delivery}</td>
-            <td><strong>NPR ${total.toLocaleString()}</strong></td>
-            <td><small>${order.date ? new Date(order.date).toLocaleDateString() : ''}</small></td>
-            <td><button class="delete-btn" onclick="window._delOrder('${order.orderId}')"><i class="fas fa-trash-alt"></i></button></td>
+            <td><span class="badge-order">#${(o.orderId||'').slice(-8)}</span></td>
+            <td><strong>${esc(o.customerName)}</strong></td>
+            <td>${esc(o.email)}<br><small>${esc(o.phone)}</small></td>
+            <td><span class="badge-location ${(o.location||'').includes('Inside')?'inside':'outside'}">${esc(o.location)}</span></td>
+            <td>${esc(o.items)}</td>
+            <td><strong>NPR ${t.toLocaleString()}</strong></td>
+            <td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td>
+            <td><span class="badge-status ${status}">${status}</span></td>
+            <td><button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td>
           </tr>`;
         });
-        tbody.innerHTML = html;
-        document.getElementById('statOrders').innerText = orders.length;
-        document.getElementById('statRevenue').innerText = `NPR ${totalRevenue.toLocaleString()}`;
-        document.getElementById('statCustomers').innerText = customers.size;
-        document.getElementById('statDeliveries').innerText = `NPR ${totalDelivery.toLocaleString()}`;
+        tbody.innerHTML=html;
+        document.getElementById('statOrders').innerText=orders.length;
+        document.getElementById('statRevenue').innerText=`NPR ${rev.toLocaleString()}`;
+        document.getElementById('statCustomers').innerText=cust.size;
       }
 
-      window._delOrder = async function(orderId) {
-        if(!confirm('Delete this order?')) return;
-        try { await fetch(`${SHEETDB_API_URL}/orderId/${orderId}`,{method:'DELETE'}); } catch(e) {}
-        orders = orders.filter(o => o.orderId !== orderId);
-        localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders));
-        renderOrders(); 
-        showToast('Deleted');
+      function renderProductsList() {
+        const c=document.getElementById('productListContainer');
+        if(!products.length){ c.innerHTML='<div class="empty-state">No products</div>'; return; }
+        let html='';
+        products.forEach(p => {
+          html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fefaf5;border-radius:12px;">
+            <div><strong>${esc(p.name)}</strong> <small>[${p.category}]</small> - NPR ${p.variants?.[0]?.price||0}</div>
+            <button class="delete-btn" onclick="window._delProd('${p.id}')"><i class="fas fa-trash"></i></button>
+          </div>`;
+        });
+        c.innerHTML=html;
+        document.getElementById('statProductsCount').innerText=products.length;
+      }
+
+      window._delOrder=async function(id){ if(confirm('Delete?')){ try{await fetch(`${SHEETDB_ORDERS_URL}/orderId/${id}`,{method:'DELETE'});}catch(e){} orders=orders.filter(o=>o.orderId!==id); renderOrders(); showToast('Deleted'); }};
+      window._delProd=async function(id){ if(confirm('Delete?')){ products=products.filter(p=>String(p.id)!==String(id)); localStorage.setItem('dermakraft_products',JSON.stringify(products)); renderProductsList(); showToast('Deleted'); }};
+
+      async function addProduct(){
+        const name=document.getElementById('prodName').value.trim();
+        const cat=document.getElementById('prodCat').value;
+        const desc=document.getElementById('prodDesc').value.trim();
+        const size=document.getElementById('prodSize').value.trim();
+        const price=parseFloat(document.getElementById('prodPrice').value);
+        const imgs=document.getElementById('prodImages').value.split(',').map(s=>s.trim()).filter(s=>s);
+        if(!name||!size||!price){showToast('Fill all fields');return;}
+        const np={id:Date.now(),name,category:cat,desc:desc||'Premium formula',img:imgs[0]||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400',images:imgs.length?imgs:[imgs[0]],variants:[{size,price}]};
+        products.push(np);
+        localStorage.setItem('dermakraft_products',JSON.stringify(products));
+        renderProductsList();
+        ['prodName','prodDesc','prodSize','prodPrice','prodImages'].forEach(id=>document.getElementById(id).value='');
+        showToast('Product added!');
+      }
+
+      function updateStats(){ document.getElementById('statOrders').innerText=orders.length; document.getElementById('statProductsCount').innerText=products.length; }
+      function esc(s){if(!s)return'';return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);}
+      function showToast(m){const t=document.getElementById('toastMsg');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
+
+      window.showSection=function(s){
+        document.getElementById('ordersSection').style.display=s==='orders'?'block':'none';
+        document.getElementById('productsSection').style.display=s==='products'?'block':'none';
+        document.querySelectorAll('.nav-tab').forEach((t,i)=>{t.classList.toggle('active',(s==='orders'&&i===0)||(s==='products'&&i===1));});
+        if(s==='orders') renderOrders(); else renderProductsList();
       };
 
-      window.showSection = function() { renderOrders(); };
+      async function refreshData(){ await loadOrders(); await loadProducts(); renderOrders(); renderProductsList(); showToast('Refreshed'); }
 
-      async function refreshData() { 
-        showToast('Syncing...'); 
-        await loadOrders(); 
-        renderOrders(); 
-        showToast('Updated'); 
-      }
-
-      function showToast(m) { 
-        const t=document.getElementById('toastMsg'); 
-        t.innerText=m; 
-        t.style.display='block'; 
-        setTimeout(()=>t.style.display='none',2000); 
-      }
-
-      function escapeHtml(s) { 
-        if(!s) return ''; 
-        return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]||m); 
-      }
-
-      function login() {
-        if(Date.now() < lockoutUntil) { 
-          document.getElementById('rateLimitMsg').style.display='block'; 
-          document.getElementById('loginBtn').disabled=true; 
-          return; 
-        }
-        if(document.getElementById('passwordInput').value === ADMIN_PASSWORD) {
-          loginAttempts=0; 
-          localStorage.setItem('admin_login_attempts','0'); 
-          localStorage.removeItem('admin_lockout_until');
-          document.getElementById('rateLimitMsg').style.display='none'; 
-          document.getElementById('loginBtn').disabled=false;
-          startSession(); 
-          document.getElementById('loginPage').style.display='none'; 
-          document.getElementById('dashboard').style.display='block';
-          document.getElementById('loginError').style.display='none'; 
-          document.getElementById('passwordInput').value=''; 
-          refreshData();
-        } else {
-          loginAttempts++; 
-          localStorage.setItem('admin_login_attempts',loginAttempts.toString());
-          if(loginAttempts >= MAX_ATTEMPTS) {
-            lockoutUntil = Date.now() + LOCKOUT_DURATION; 
-            localStorage.setItem('admin_lockout_until',lockoutUntil.toString());
-            document.getElementById('rateLimitMsg').style.display='block'; 
-            document.getElementById('loginBtn').disabled=true; 
-            document.getElementById('loginError').style.display='none';
-          } else { 
-            document.getElementById('loginError').style.display='block'; 
-            document.getElementById('loginError').innerText=`❌ Invalid password. ${MAX_ATTEMPTS-loginAttempts} attempts remaining.`; 
-          }
-          document.getElementById('passwordInput').value='';
+      function login(){
+        if(Date.now()<lockoutUntil){document.getElementById('rateLimitMsg').style.display='block';return;}
+        if(document.getElementById('passwordInput').value===ADMIN_PASSWORD){
+          loginAttempts=0;localStorage.setItem('admin_login_attempts','0');localStorage.removeItem('admin_lockout_until');
+          startSession();document.getElementById('loginPage').style.display='none';document.getElementById('dashboard').style.display='block';
+          document.getElementById('loginError').style.display='none';refreshData();
+        }else{
+          loginAttempts++;localStorage.setItem('admin_login_attempts',loginAttempts.toString());
+          if(loginAttempts>=MAX_ATTEMPTS){lockoutUntil=Date.now()+30000;localStorage.setItem('admin_lockout_until',lockoutUntil.toString());document.getElementById('rateLimitMsg').style.display='block';}
+          else{document.getElementById('loginError').style.display='block';document.getElementById('loginError').innerText=`❌ Invalid. ${MAX_ATTEMPTS-loginAttempts} attempts left.`;}
         }
       }
 
-      function logout() { 
-        clearSession(); 
-        document.getElementById('loginPage').style.display='flex'; 
-        document.getElementById('dashboard').style.display='none'; 
-        document.getElementById('passwordInput').value=''; 
-        document.getElementById('passwordInput').type='password'; 
-        document.getElementById('eyeOpenIcon').style.display='block'; 
-        document.getElementById('eyeOffIcon').style.display='none'; 
-      }
+      function logout(){clearSession();document.getElementById('loginPage').style.display='flex';document.getElementById('dashboard').style.display='none';}
 
-      function checkAuth() { 
-        if(isSessionValid()) { 
-          document.getElementById('loginPage').style.display='none'; 
-          document.getElementById('dashboard').style.display='block'; 
-          refreshData(); 
-        } 
-      }
-
-      if(Date.now() < lockoutUntil) { 
-        document.getElementById('rateLimitMsg').style.display='block'; 
-        document.getElementById('loginBtn').disabled=true; 
-      }
-
-      document.getElementById('loginBtn').addEventListener('click', login);
-      document.getElementById('passwordInput').addEventListener('keypress', e => { if(e.key==='Enter') login(); });
-      document.getElementById('togglePasswordBtn').addEventListener('click', function() {
-        const inp=document.getElementById('passwordInput'), open=document.getElementById('eyeOpenIcon'), off=document.getElementById('eyeOffIcon');
-        if(inp.type==='password') { inp.type='text'; open.style.display='none'; off.style.display='block'; }
-        else { inp.type='password'; open.style.display='block'; off.style.display='none'; }
+      document.getElementById('loginBtn').addEventListener('click',login);
+      document.getElementById('passwordInput').addEventListener('keypress',e=>{if(e.key==='Enter')login();});
+      document.getElementById('addProductBtn').addEventListener('click',addProduct);
+      document.getElementById('togglePasswordBtn').addEventListener('click',function(){
+        const i=document.getElementById('passwordInput'),o=document.getElementById('eyeOpenIcon'),f=document.getElementById('eyeOffIcon');
+        if(i.type==='password'){i.type='text';o.style.display='none';f.style.display='block';}
+        else{i.type='password';o.style.display='block';f.style.display='none';}
       });
 
-      setInterval(() => { 
-        if(document.getElementById('dashboard').style.display==='block') { 
-          loadOrders().then(()=>renderOrders()); 
-        } 
-      }, 30000);
-
-      window.refreshData = refreshData;
-      window.logout = logout;
-
-      checkAuth();
+      window.refreshData=refreshData;window.logout=logout;
+      if(isSessionValid()){document.getElementById('loginPage').style.display='none';document.getElementById('dashboard').style.display='block';refreshData();}
     })();
   </script>
 </body>
