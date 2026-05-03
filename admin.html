@@ -51,19 +51,20 @@
     
     .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #2a4235; margin: 24px 0 18px; padding-left: 14px; border-left: 4px solid #9c6e4b; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .orders-wrapper { background: white; border-radius: 20px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1000px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1100px; }
     th { text-align: left; padding: 14px 10px; background: #f3ede7; font-weight: 600; color: #2a4235; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
     td { padding: 12px 10px; border-bottom: 1px solid #ece2d9; vertical-align: top; }
     .badge-order { background: #3a5a45; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; display: inline-block; }
     .badge-location { padding: 3px 8px; border-radius: 12px; font-size: 0.6rem; font-weight: 600; }
     .badge-location.inside { background: #e8f5e9; color: #2a4235; }
     .badge-location.outside { background: #fff3e0; color: #e67e22; }
-    .badge-status { padding: 3px 8px; border-radius: 12px; font-size: 0.6rem; font-weight: 600; }
+    .badge-status { padding: 3px 8px; border-radius: 12px; font-size: 0.6rem; font-weight: 600; display: inline-block; }
     .badge-status.processing { background: #fff3cd; color: #856404; }
     .badge-status.shipped { background: #cce5ff; color: #004085; }
     .badge-status.delivered { background: #d4edda; color: #155724; }
     .delete-btn { background: none; border: none; color: #c27c6e; cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 8px; }
     .delete-btn:hover { background: #fee2dd; }
+    .status-select { padding: 6px 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.7rem; cursor: pointer; font-family: inherit; background: white; }
     .empty-state { text-align: center; padding: 48px; color: #8b7b6e; }
     .toast { position: fixed; bottom: 20px; right: 20px; background: #2a4235; color: white; padding: 12px 24px; border-radius: 40px; z-index: 1000; display: none; font-size: 0.85rem; }
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
@@ -75,11 +76,8 @@
     .form-field { flex: 1; min-width: 140px; }
     .form-field label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; color: #8b7b6e; text-transform: uppercase; }
     .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #ece2d9; border-radius: 8px; font-family: inherit; font-size: 0.85rem; }
-    .btn-sm { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; }
+    .btn-sm { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; }
     .btn-primary-sm { background: #2a4235; color: white; }
-    .btn-warning-sm { background: #ffc107; color: #000; }
-    .btn-success-sm { background: #28a745; color: white; }
-    .status-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.7rem; cursor: pointer; }
     
     @media (max-width: 576px) { .toast { bottom: 10px; right: 10px; left: 10px; text-align: center; } }
   </style>
@@ -126,12 +124,12 @@
 
     <div id="ordersSection">
       <div class="section-title">
-        <i class="fas fa-clipboard-list"></i> All Orders
+        <i class="fas fa-clipboard-list"></i> Manage Orders
         <span style="font-size:0.6rem;color:#8b7b6e;"><span class="sync-dot on" id="syncDot"></span> <span id="syncText">Cloud</span></span>
       </div>
       <div class="orders-wrapper">
         <table>
-          <thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Location</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Location</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="ordersTableBody"></tbody>
         </table>
       </div>
@@ -143,11 +141,11 @@
         <div class="add-product-form">
           <div class="form-field"><label>Name</label><input type="text" id="prodName" placeholder="Product name"></div>
           <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option></select></div>
-          <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
+          <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short"></div>
           <div class="form-field"><label>Size</label><input type="text" id="prodSize" placeholder="100g"></div>
           <div class="form-field"><label>Price (NPR)</label><input type="number" id="prodPrice" placeholder="350"></div>
-          <div class="form-field"><label>Image URLs (comma separated)</label><input type="text" id="prodImages" placeholder="url1,url2,url3"></div>
-          <div class="form-field"><button class="btn-sm btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button></div>
+          <div class="form-field"><label>Image URLs</label><input type="text" id="prodImages" placeholder="url1,url2,url3"></div>
+          <div class="form-field"><button class="btn-sm btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add</button></div>
         </div>
         <div style="font-weight:600;margin-bottom:12px;">Current Products</div>
         <div id="productListContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -161,9 +159,9 @@
     (function() {
       const ADMIN_PASSWORD = "admin123";
       const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
-      const SHEETDB_PRODUCTS_URL = "https://sheetdb.io/api/v1/YOUR_PRODUCTS_SHEETDB_ID";
       const SESSION_KEY = "admin_session";
       const SESSION_TIME = "admin_session_time";
+      const STORAGE_PRODUCTS = "dermakraft_products_v2";
       
       let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0');
       let lockoutUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0');
@@ -173,33 +171,68 @@
       function startSession() { localStorage.setItem(SESSION_KEY,'true'); localStorage.setItem(SESSION_TIME,Date.now().toString()); }
       function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_TIME); }
       function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < 30; }
+      function refreshSession() { if(localStorage.getItem(SESSION_KEY)==='true') localStorage.setItem(SESSION_TIME,Date.now().toString()); }
+
+      ['click','keypress','scroll','mousemove'].forEach(e => document.addEventListener(e, refreshSession));
+
+      setInterval(() => {
+        if(localStorage.getItem(SESSION_KEY)==='true' && !isSessionValid()) { clearSession(); if(document.getElementById('dashboard').style.display==='block') { alert('Session expired.'); logout(); } }
+        if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
+      }, 5000);
 
       async function loadOrders() {
         try {
           const res = await fetch(SHEETDB_ORDERS_URL);
-          if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; }
+          if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud Synced'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); }
           else throw new Error('Failed');
         } catch(e) {
           document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline';
           orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]');
         }
+        // Ensure all orders have a status
+        orders.forEach(o => { if(!o.status) o.status = 'processing'; });
         return orders;
       }
 
-      async function loadProducts() {
-        try {
-          const res = await fetch(SHEETDB_PRODUCTS_URL);
-          if(res.ok) { products = await res.json(); localStorage.setItem('dermakraft_products',JSON.stringify(products)); }
-          else throw new Error('Failed');
-        } catch(e) {
-          products = JSON.parse(localStorage.getItem('dermakraft_products')||'[]');
-        }
+      function loadProducts() {
+        const stored = localStorage.getItem(STORAGE_PRODUCTS);
+        if (stored) { try { const p = JSON.parse(stored); if (p.length) { products = p; return p; } } catch(e) {} }
+        products = [];
         return products;
+      }
+
+      async function updateOrderStatus(orderId, newStatus) {
+        // Update in SheetDB
+        try {
+          await fetch(`${SHEETDB_ORDERS_URL}/orderId/${orderId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: { status: newStatus } })
+          });
+        } catch(e) { console.log('SheetDB update failed'); }
+        
+        // Update local cache
+        const idx = orders.findIndex(o => o.orderId === orderId);
+        if(idx >= 0) orders[idx].status = newStatus;
+        localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
+        
+        // Update tracking data
+        const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}');
+        if(trackData.orderId) {
+          trackData.status = newStatus;
+          localStorage.setItem('track_'+orderId, JSON.stringify(trackData));
+        }
+        
+        renderOrders();
+        showToast(`Order ${orderId.slice(-8)} updated to ${newStatus}`);
       }
 
       function renderOrders() {
         const tbody = document.getElementById('ordersTableBody');
-        if(!orders.length) { tbody.innerHTML='<tr><td colspan="9" class="empty-state">No orders yet</td></tr>'; updateStats(); return; }
+        if(!orders.length) { 
+          tbody.innerHTML='<tr><td colspan="9" class="empty-state">No orders yet</td></tr>'; 
+          updateStats(); return; 
+        }
         let rev=0; const cust=new Set(); let html='';
         orders.forEach(o => {
           const t = parseFloat(o.total)||0; rev+=t; cust.add((o.email||'').toLowerCase());
@@ -213,87 +246,157 @@
             <td><strong>NPR ${t.toLocaleString()}</strong></td>
             <td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td>
             <td><span class="badge-status ${status}">${status}</span></td>
-            <td><button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td>
+            <td>
+              <select class="status-select" onchange="window._updateStatus('${o.orderId}', this.value)" style="margin-right:4px;">
+                <option value="processing" ${status==='processing'?'selected':''}>Processing</option>
+                <option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option>
+                <option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option>
+              </select>
+              <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button>
+            </td>
           </tr>`;
         });
-        tbody.innerHTML=html;
-        document.getElementById('statOrders').innerText=orders.length;
-        document.getElementById('statRevenue').innerText=`NPR ${rev.toLocaleString()}`;
-        document.getElementById('statCustomers').innerText=cust.size;
+        tbody.innerHTML = html;
+        document.getElementById('statOrders').innerText = orders.length;
+        document.getElementById('statRevenue').innerText = `NPR ${rev.toLocaleString()}`;
+        document.getElementById('statCustomers').innerText = cust.size;
       }
 
       function renderProductsList() {
-        const c=document.getElementById('productListContainer');
-        if(!products.length){ c.innerHTML='<div class="empty-state">No products</div>'; return; }
+        const c = document.getElementById('productListContainer');
+        if(!products.length){ c.innerHTML='<div class="empty-state">No products yet</div>'; document.getElementById('statProductsCount').innerText='0'; return; }
         let html='';
         products.forEach(p => {
-          html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fefaf5;border-radius:12px;">
+          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fefaf5;border-radius:12px;">
             <div><strong>${esc(p.name)}</strong> <small>[${p.category}]</small> - NPR ${p.variants?.[0]?.price||0}</div>
-            <button class="delete-btn" onclick="window._delProd('${p.id}')"><i class="fas fa-trash"></i></button>
+            <button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button>
           </div>`;
         });
-        c.innerHTML=html;
-        document.getElementById('statProductsCount').innerText=products.length;
+        c.innerHTML = html;
+        document.getElementById('statProductsCount').innerText = products.length;
       }
 
-      window._delOrder=async function(id){ if(confirm('Delete?')){ try{await fetch(`${SHEETDB_ORDERS_URL}/orderId/${id}`,{method:'DELETE'});}catch(e){} orders=orders.filter(o=>o.orderId!==id); renderOrders(); showToast('Deleted'); }};
-      window._delProd=async function(id){ if(confirm('Delete?')){ products=products.filter(p=>String(p.id)!==String(id)); localStorage.setItem('dermakraft_products',JSON.stringify(products)); renderProductsList(); showToast('Deleted'); }};
+      window._updateStatus = async function(orderId, newStatus) {
+        await updateOrderStatus(orderId, newStatus);
+      };
 
-      async function addProduct(){
-        const name=document.getElementById('prodName').value.trim();
-        const cat=document.getElementById('prodCat').value;
-        const desc=document.getElementById('prodDesc').value.trim();
-        const size=document.getElementById('prodSize').value.trim();
-        const price=parseFloat(document.getElementById('prodPrice').value);
-        const imgs=document.getElementById('prodImages').value.split(',').map(s=>s.trim()).filter(s=>s);
-        if(!name||!size||!price){showToast('Fill all fields');return;}
-        const np={id:Date.now(),name,category:cat,desc:desc||'Premium formula',img:imgs[0]||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400',images:imgs.length?imgs:[imgs[0]],variants:[{size,price}]};
-        products.push(np);
-        localStorage.setItem('dermakraft_products',JSON.stringify(products));
+      window._delOrder = async function(id) {
+        if(!confirm('Delete this order permanently?')) return;
+        try { await fetch(`${SHEETDB_ORDERS_URL}/orderId/${id}`,{method:'DELETE'}); } catch(e) {}
+        orders = orders.filter(o => o.orderId !== id);
+        localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
+        localStorage.removeItem('track_'+id);
+        renderOrders();
+        showToast('Order deleted');
+      };
+
+      window._delProd = function(id) {
+        if(!confirm('Delete this product?')) return;
+        products = products.filter(p => String(p.id) !== String(id));
+        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
         renderProductsList();
-        ['prodName','prodDesc','prodSize','prodPrice','prodImages'].forEach(id=>document.getElementById(id).value='');
-        showToast('Product added!');
+        showToast('Product deleted');
+      };
+
+      function addProduct() {
+        const name = document.getElementById('prodName').value.trim();
+        const cat = document.getElementById('prodCat').value;
+        const desc = document.getElementById('prodDesc').value.trim();
+        const size = document.getElementById('prodSize').value.trim();
+        const price = parseFloat(document.getElementById('prodPrice').value);
+        const imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
+        if(!name || !size || !price) { showToast('Fill name, size and price'); return; }
+        const np = {
+          id: Date.now(),
+          name,
+          category: cat,
+          desc: desc || 'Premium formula',
+          images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'],
+          variants: [{ size, price }]
+        };
+        products.push(np);
+        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+        renderProductsList();
+        ['prodName','prodDesc','prodSize','prodPrice','prodImages'].forEach(id => document.getElementById(id).value='');
+        showToast(`✓ ${name} added!`);
       }
 
-      function updateStats(){ document.getElementById('statOrders').innerText=orders.length; document.getElementById('statProductsCount').innerText=products.length; }
-      function esc(s){if(!s)return'';return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);}
-      function showToast(m){const t=document.getElementById('toastMsg');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
+      function updateStats() {
+        document.getElementById('statOrders').innerText = orders.length;
+        document.getElementById('statProductsCount').innerText = products.length;
+      }
 
-      window.showSection=function(s){
-        document.getElementById('ordersSection').style.display=s==='orders'?'block':'none';
-        document.getElementById('productsSection').style.display=s==='products'?'block':'none';
-        document.querySelectorAll('.nav-tab').forEach((t,i)=>{t.classList.toggle('active',(s==='orders'&&i===0)||(s==='products'&&i===1));});
+      function esc(s) { if(!s) return ''; return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+      function showToast(m) { const t = document.getElementById('toastMsg'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
+
+      window.showSection = function(s) {
+        document.getElementById('ordersSection').style.display = s==='orders'?'block':'none';
+        document.getElementById('productsSection').style.display = s==='products'?'block':'none';
+        document.querySelectorAll('.nav-tab').forEach((t, i) => {
+          t.classList.toggle('active', (s==='orders' && i===0) || (s==='products' && i===1));
+        });
         if(s==='orders') renderOrders(); else renderProductsList();
       };
 
-      async function refreshData(){ await loadOrders(); await loadProducts(); renderOrders(); renderProductsList(); showToast('Refreshed'); }
+      async function refreshData() {
+        showToast('🔄 Syncing...');
+        await loadOrders();
+        loadProducts();
+        renderOrders();
+        renderProductsList();
+        showToast('✅ Data refreshed');
+      }
 
-      function login(){
-        if(Date.now()<lockoutUntil){document.getElementById('rateLimitMsg').style.display='block';return;}
-        if(document.getElementById('passwordInput').value===ADMIN_PASSWORD){
-          loginAttempts=0;localStorage.setItem('admin_login_attempts','0');localStorage.removeItem('admin_lockout_until');
-          startSession();document.getElementById('loginPage').style.display='none';document.getElementById('dashboard').style.display='block';
-          document.getElementById('loginError').style.display='none';refreshData();
-        }else{
-          loginAttempts++;localStorage.setItem('admin_login_attempts',loginAttempts.toString());
-          if(loginAttempts>=MAX_ATTEMPTS){lockoutUntil=Date.now()+30000;localStorage.setItem('admin_lockout_until',lockoutUntil.toString());document.getElementById('rateLimitMsg').style.display='block';}
-          else{document.getElementById('loginError').style.display='block';document.getElementById('loginError').innerText=`❌ Invalid. ${MAX_ATTEMPTS-loginAttempts} attempts left.`;}
+      function login() {
+        if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display = 'block'; document.getElementById('loginBtn').disabled = true; return; }
+        if(document.getElementById('passwordInput').value === ADMIN_PASSWORD) {
+          loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until');
+          document.getElementById('rateLimitMsg').style.display = 'none'; document.getElementById('loginBtn').disabled = false;
+          startSession(); document.getElementById('loginPage').style.display = 'none'; document.getElementById('dashboard').style.display = 'block';
+          document.getElementById('loginError').style.display = 'none'; document.getElementById('passwordInput').value = '';
+          refreshData();
+        } else {
+          loginAttempts++; localStorage.setItem('admin_login_attempts', loginAttempts.toString());
+          if(loginAttempts >= MAX_ATTEMPTS) {
+            lockoutUntil = Date.now() + 30000; localStorage.setItem('admin_lockout_until', lockoutUntil.toString());
+            document.getElementById('rateLimitMsg').style.display = 'block'; document.getElementById('loginBtn').disabled = true;
+            document.getElementById('loginError').style.display = 'none';
+          } else {
+            document.getElementById('loginError').style.display = 'block';
+            document.getElementById('loginError').innerText = `❌ Invalid password. ${MAX_ATTEMPTS - loginAttempts} attempts remaining.`;
+          }
+          document.getElementById('passwordInput').value = '';
         }
       }
 
-      function logout(){clearSession();document.getElementById('loginPage').style.display='flex';document.getElementById('dashboard').style.display='none';}
+      function logout() {
+        clearSession();
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').type = 'password';
+        document.getElementById('eyeOpenIcon').style.display = 'block';
+        document.getElementById('eyeOffIcon').style.display = 'none';
+      }
 
-      document.getElementById('loginBtn').addEventListener('click',login);
-      document.getElementById('passwordInput').addEventListener('keypress',e=>{if(e.key==='Enter')login();});
-      document.getElementById('addProductBtn').addEventListener('click',addProduct);
-      document.getElementById('togglePasswordBtn').addEventListener('click',function(){
-        const i=document.getElementById('passwordInput'),o=document.getElementById('eyeOpenIcon'),f=document.getElementById('eyeOffIcon');
-        if(i.type==='password'){i.type='text';o.style.display='none';f.style.display='block';}
-        else{i.type='password';o.style.display='block';f.style.display='none';}
+      document.getElementById('loginBtn').addEventListener('click', login);
+      document.getElementById('passwordInput').addEventListener('keypress', e => { if(e.key==='Enter') login(); });
+      document.getElementById('addProductBtn').addEventListener('click', addProduct);
+      document.getElementById('togglePasswordBtn').addEventListener('click', function() {
+        const i = document.getElementById('passwordInput'), o = document.getElementById('eyeOpenIcon'), f = document.getElementById('eyeOffIcon');
+        if(i.type === 'password') { i.type = 'text'; o.style.display = 'none'; f.style.display = 'block'; }
+        else { i.type = 'password'; o.style.display = 'block'; f.style.display = 'none'; }
       });
 
-      window.refreshData=refreshData;window.logout=logout;
-      if(isSessionValid()){document.getElementById('loginPage').style.display='none';document.getElementById('dashboard').style.display='block';refreshData();}
+      setInterval(() => {
+        if(document.getElementById('dashboard').style.display === 'block') { loadOrders().then(() => renderOrders()); }
+      }, 30000);
+
+      window.refreshData = refreshData;
+      window.logout = logout;
+
+      if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display = 'block'; document.getElementById('loginBtn').disabled = true; }
+      if(isSessionValid()) { document.getElementById('loginPage').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; refreshData(); }
     })();
   </script>
 </body>
