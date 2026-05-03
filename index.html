@@ -6,6 +6,7 @@
     <title>DERMAKRAFT | Chemist-Formulated Skincare</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -61,25 +62,38 @@
         .section-subtitle { color: var(--stone); font-size: 0.9rem; margin-bottom: 28px; }
         
         .category-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
-        .cat-btn { background: transparent; border: 1px solid var(--border-light); padding: 10px 24px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone); transition: all 0.2s; letter-spacing: 0.3px; }
+        .cat-btn { background: transparent; border: 1px solid var(--border-light); padding: 10px 20px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone); transition: all 0.2s; }
         .cat-btn.active { background: var(--olive); color: white; border-color: var(--olive); }
         .cat-btn:hover:not(.active) { background: var(--sand); border-color: var(--clay); color: var(--deep-olive); }
         
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; margin: 20px 0 60px; }
-        @media (max-width: 640px) { .product-grid { gap: 20px; grid-template-columns: 1fr; } }
-        .product-card { background: white; border-radius: 24px; padding: 20px; transition: all 0.3s ease; border: 1px solid var(--border-light); }
-        .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1); border-color: var(--clay); }
-        .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 16px; background: var(--sand); margin-bottom: 16px; }
-        .product-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; color: var(--deep-olive); }
-        .product-desc { font-size: 0.8rem; color: var(--stone); margin-bottom: 14px; line-height: 1.4; }
-        .variant-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-        .variant { border: 1px solid var(--border-light); padding: 6px 14px; border-radius: 40px; font-size: 0.7rem; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin: 20px 0 60px; }
+        @media (max-width: 640px) { .product-grid { gap: 16px; grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 400px) { .product-grid { grid-template-columns: 1fr; } }
+        .product-card { background: white; border-radius: 20px; padding: 16px; transition: all 0.3s ease; border: 1px solid var(--border-light); cursor: pointer; position: relative; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 16px 30px -10px rgba(0,0,0,0.1); border-color: var(--clay); }
+        .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 14px; background: var(--sand); margin-bottom: 12px; }
+        .img-dots { display: flex; gap: 4px; justify-content: center; margin-bottom: 8px; }
+        .img-dot { width: 6px; height: 6px; border-radius: 50%; background: #ddd; }
+        .img-dot.active { background: var(--olive); width: 16px; border-radius: 10px; }
+        .product-title { font-weight: 700; font-size: 1rem; margin-bottom: 2px; color: var(--deep-olive); }
+        .product-desc { font-size: 0.7rem; color: var(--stone); margin-bottom: 10px; line-height: 1.3; }
+        .variant-group { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+        .variant { border: 1px solid var(--border-light); padding: 5px 10px; border-radius: 40px; font-size: 0.65rem; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; }
         .variant.selected { background: var(--olive); color: white; border-color: var(--olive); }
-        .price-cart { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-        .price { font-weight: 700; font-size: 1.2rem; color: var(--warm-brown); }
-        .add-to-cart { background: var(--deep-olive); border: none; padding: 10px 20px; border-radius: 50px; color: white; font-weight: 500; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
+        .price-cart { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .price { font-weight: 700; font-size: 1.1rem; color: var(--warm-brown); }
+        .add-to-cart { background: var(--deep-olive); border: none; padding: 8px 16px; border-radius: 50px; color: white; font-weight: 500; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all 0.2s; }
         .add-to-cart:disabled { background: #cbbcac; cursor: not-allowed; }
         .add-to-cart:not(:disabled):hover { background: var(--warm-brown); }
+        
+        .product-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 4000; align-items: center; justify-content: center; padding: 20px; }
+        .product-modal.open { display: flex; }
+        .product-modal-content { background: white; border-radius: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative; }
+        .modal-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--stone); }
+        .modal-img-main { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 16px; margin-bottom: 12px; }
+        .modal-img-thumbs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .modal-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+        .modal-thumb.active { border-color: var(--olive); }
         
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 2000; display: none; backdrop-filter: blur(2px); }
         .cart-sidebar { position: fixed; top: 0; right: -100%; width: 100%; max-width: 420px; height: 100vh; background: white; z-index: 2001; padding: 28px 24px; display: flex; flex-direction: column; transition: right 0.3s; box-shadow: -8px 0 30px rgba(0,0,0,0.08); }
@@ -124,27 +138,13 @@
 </head>
 <body>
 
-<div class="top-banner">
-    <i class="fas fa-flask"></i> chemist-formulated · handcrafted in nepal · ph-balanced <i class="fas fa-leaf"></i>
-</div>
+<div class="top-banner"><i class="fas fa-flask"></i> chemist-formulated · handcrafted in nepal · ph-balanced <i class="fas fa-leaf"></i></div>
 
 <header>
     <div class="container header-inner">
-        <div class="logo" id="logoClick" title="DERMAKRAFT">
-            <h1>DERMAKRAFT</h1>
-            <p>by a chemist, for your skin</p>
-        </div>
-        <nav class="nav-links">
-            <a id="navShop">Shop</a>
-            <a id="navStory">Our Story</a>
-            <a id="navScience">Science</a>
-            <a id="navContact">Contact</a>
-        </nav>
-        <div class="header-actions">
-            <button class="cart-icon" id="cartBtn">
-                <i class="fas fa-shopping-bag"></i> Cart <span class="cart-count" id="cartCount">0</span>
-            </button>
-        </div>
+        <div class="logo" id="logoClick"><h1>DERMAKRAFT</h1><p>by a chemist, for your skin</p></div>
+        <nav class="nav-links"><a id="navShop">Shop</a><a id="navStory">Our Story</a><a id="navScience">Science</a><a id="navContact">Contact</a></nav>
+        <div class="header-actions"><button class="cart-icon" id="cartBtn"><i class="fas fa-shopping-bag"></i> Cart <span class="cart-count" id="cartCount">0</span></button></div>
     </div>
 </header>
 
@@ -162,23 +162,15 @@
         <div class="input-group"><label>Full Name</label><input type="text" id="custName" placeholder="Enter your full name"></div>
         <div class="input-group"><label>Email</label><input type="email" id="custEmail" placeholder="hello@example.com"></div>
         <div class="input-group"><label>Phone</label><input type="tel" id="custPhone" placeholder="+977 98..."></div>
-        <div class="input-group">
-            <label>Delivery Location</label>
+        <div class="input-group"><label>Delivery Location</label>
             <div class="radio-group" id="locationGroup">
-                <div class="radio-option selected" data-location="inside" onclick="selectLocation('inside', this)">
-                    <i class="fas fa-building"></i> Inside Kathmandu<br><small>NPR 100</small>
-                </div>
-                <div class="radio-option" data-location="outside" onclick="selectLocation('outside', this)">
-                    <i class="fas fa-mountain"></i> Outside Kathmandu<br><small>NPR 200</small>
-                </div>
+                <div class="radio-option selected" data-location="inside" onclick="selectLocation('inside', this)"><i class="fas fa-building"></i> Inside Kathmandu<br><small>NPR 100</small></div>
+                <div class="radio-option" data-location="outside" onclick="selectLocation('outside', this)"><i class="fas fa-mountain"></i> Outside Kathmandu<br><small>NPR 200</small></div>
             </div>
         </div>
         <div class="input-group"><label>Shipping Address</label><input type="text" id="custAddress" placeholder="Street, city, postal code"></div>
         <div style="background:#fefaf5;padding:12px;border-radius:12px;margin:12px 0;text-align:left;font-size:0.85rem;">
-            <strong>Order Summary:</strong><br>
-            <span id="checkoutSubtotal">Subtotal: NPR 0</span><br>
-            <span id="checkoutDelivery">Delivery: NPR 0</span><br>
-            <strong id="checkoutTotal">Total: NPR 0</strong>
+            <strong>Order Summary:</strong><br><span id="checkoutSubtotal">Subtotal: NPR 0</span><br><span id="checkoutDelivery">Delivery: NPR 0</span><br><strong id="checkoutTotal">Total: NPR 0</strong>
         </div>
         <button class="btn-primary" id="submitOrderBtn">Place Order</button>
         <button class="btn-secondary" id="closeCheckoutBtn">Cancel</button>
@@ -190,357 +182,183 @@
         <i class="fas fa-check-circle" style="font-size:3.5rem;color:var(--olive);margin-bottom:12px;"></i>
         <h3>Order Received ✨</h3>
         <p id="successMsg">Thank you for supporting clean beauty.</p>
-        <button class="btn-primary" id="closeSuccessBtn">Continue Shopping</button>
+        <button class="btn-primary" id="closeSuccessBtn">Track Order</button>
     </div>
 </div>
 
-<div class="modal" id="infoModal">
-    <div class="modal-card">
-        <i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i>
-        <h3 id="infoTitle">Message</h3>
-        <p id="infoText" style="margin:16px 0;line-height:1.6;"></p>
-        <button class="btn-primary" id="closeInfoBtn">OK</button>
+<div class="product-modal" id="productModal">
+    <div class="product-modal-content">
+        <button class="modal-close" onclick="closeProductModal()">&times;</button>
+        <img class="modal-img-main" id="modalMainImg" src="">
+        <div class="modal-img-thumbs" id="modalThumbs"></div>
+        <h3 id="modalProdName"></h3>
+        <p id="modalProdDesc" style="color:var(--stone);margin-bottom:12px;"></p>
+        <div class="variant-group" id="modalVariants"></div>
+        <div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div>
     </div>
 </div>
 
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;">
-    <a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel">
-        <i class="fas fa-lock"></i>
-    </a>
+    <a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a>
 </div>
 
 <main>
-    <section class="hero">
-        <div class="container hero-grid">
-            <div class="hero-text">
-                <div class="badge"><i class="fas fa-mortar-pestle"></i> chemist-crafted since 2024</div>
-                <h1>Gentle Formulas,<br>Science‑Backed Rituals</h1>
-                <p>Daily soaps, hand wash & shampoos made by a professional chemist. Balanced pH, natural actives, and zero compromise.</p>
-                <button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button>
-            </div>
-            <div class="hero-img" id="heroImage"></div>
-        </div>
-    </section>
-
+    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-mortar-pestle"></i> chemist-crafted since 2024</div><h1>Gentle Formulas,<br>Science‑Backed Rituals</h1><p>Daily soaps, hand wash, shampoos & more made by a professional chemist. Balanced pH, natural actives, zero compromise.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
     <div class="container">
         <div class="section-title">Our Collection</div>
         <p class="section-subtitle">Chemist-formulated essentials for your daily ritual</p>
         <div class="category-tabs" id="categoryTabs">
-            <button class="cat-btn active" data-cat="all">All Products</button>
+            <button class="cat-btn active" data-cat="all">All</button>
             <button class="cat-btn" data-cat="soap">Soap Bars</button>
             <button class="cat-btn" data-cat="handwash">Hand Wash</button>
             <button class="cat-btn" data-cat="shampoo">Hair Care</button>
+            <button class="cat-btn" data-cat="lipbalm">Lip Balm</button>
+            <button class="cat-btn" data-cat="sunscreen">Sunscreen</button>
+            <button class="cat-btn" data-cat="moisturizer">Moisturizer</button>
         </div>
         <div class="product-grid" id="productGridContainer"></div>
     </div>
 </main>
 
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col"><h4>Dermakraft</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Formula Philosophy</a></li><li><a id="footerNepal">Made in Nepal</a></li></ul></div>
-            <div class="footer-col"><h4>Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div>
-            <div class="footer-col"><h4>Shop</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="shampoo">Hair Care</a></li></ul></div>
-        </div>
-        <div class="copyright">© 2025 DERMAKRAFT — Clean Chemist Formulas. All Rights Reserved.</div>
-    </div>
-</footer>
+<footer><div class="container"><div class="footer-grid"><div class="footer-col"><h4>Dermakraft</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Formula Philosophy</a></li><li><a id="footerNepal">Made in Nepal</a></li></ul></div><div class="footer-col"><h4>Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="shampoo">Hair Care</a></li></ul></div></div><div class="copyright">© 2025 DERMAKRAFT — Clean Chemist Formulas. All Rights Reserved.</div></div></footer>
 
 <script>
-    (function(){
-        const SHEETDB_API_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
-        const STORAGE_PRODUCTS = "dermakraft_products";
-        const STORAGE_CART = "dermakraft_cart";
-        
-        // NPR Prices for Nepali market
-        const DEFAULT_PRODUCTS = [
-            { id:1, name:"Gentle Daily Cleansing Bar", category:"soap", desc:"pH 5.5, glycerin-rich, non-stripping", img:"https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400", variants:[{size:"100g",price:350},{size:"150g",price:500}] },
-            { id:2, name:"Calendula Soothing Bar", category:"soap", desc:"with calendula & chamomile, sensitive skin", img:"https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400", variants:[{size:"100g",price:400},{size:"150g",price:580}] },
-            { id:3, name:"Aloe Vera Hand Wash", category:"handwash", desc:"sulfate-free, moisturizing foam", img:"https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400", variants:[{size:"300ml",price:450},{size:"500ml",price:650}] },
-            { id:4, name:"Rosemary Mint Shampoo Bar", category:"shampoo", desc:"solid shampoo, zero waste, for all hair", img:"https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400", variants:[{size:"85g",price:480},{size:"120g",price:700}] }
-        ];
-        
-        // Force new NPR prices - clear old data
-        localStorage.removeItem(STORAGE_PRODUCTS);
-        
-        function loadProducts() {
-            const stored = localStorage.getItem(STORAGE_PRODUCTS);
-            if (stored) { try { const p = JSON.parse(stored); if (p.length) return p; } catch(e) {} }
-            localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-            return [...DEFAULT_PRODUCTS];
-        }
-        
-        function loadCart() {
-            const stored = localStorage.getItem(STORAGE_CART);
-            if (stored) { try { return JSON.parse(stored); } catch(e) {} }
-            return [];
-        }
-        
-        function saveCart() { localStorage.setItem(STORAGE_CART, JSON.stringify(cart)); }
-        
-        let products = loadProducts();
-        let cart = loadCart();
-        let addedKeys = new Set(cart.map(i => i.uniqueKey));
-        let currentFilter = "all";
-        let selectedLocation = "inside";
-        let deliveryCharge = 100;
-
-        function getKey(pid, variant) { return `${pid}-${variant}`; }
-
-        function renderProducts() {
-            const grid = document.getElementById('productGridContainer');
-            grid.innerHTML = '';
-            const filtered = products.filter(p => currentFilter === 'all' || p.category === currentFilter);
-            filtered.forEach(prod => {
-                const dv = prod.variants[0];
-                let varsHtml = '';
-                prod.variants.forEach((v, idx) => {
-                    varsHtml += `<span class="variant ${idx===0?'selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`;
-                });
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.dataset.id = prod.id;
-                card.innerHTML = `
-                    <img src="${prod.img}" class="product-img" loading="lazy">
-                    <div class="product-title">${prod.name}</div>
-                    <div class="product-desc">${prod.desc}</div>
-                    <div class="variant-group">${varsHtml}</div>
-                    <div class="price-cart">
-                        <span class="price">NPR ${dv.price}</span>
-                        <button class="add-to-cart"><i class="fas fa-plus"></i> Add</button>
-                    </div>`;
-                grid.appendChild(card);
-            });
-            attachEvents();
-            updateCartButtons();
-        }
-
-        function attachEvents() {
-            document.querySelectorAll('.variant').forEach(v => v.addEventListener('click', function() {
-                const g = this.closest('.variant-group');
-                g.querySelectorAll('.variant').forEach(x => x.classList.remove('selected'));
-                this.classList.add('selected');
-                const card = this.closest('.product-card');
-                card.querySelector('.price').textContent = `NPR ${parseFloat(this.dataset.price)}`;
-                updateCartButtons();
-            }));
-            document.querySelectorAll('.add-to-cart').forEach(btn => btn.addEventListener('click', function() {
-                const card = this.closest('.product-card');
-                const pid = parseInt(card.dataset.id);
-                const prod = products.find(p => p.id === pid);
-                const sv = card.querySelector('.variant.selected');
-                const key = getKey(pid, sv.dataset.label);
-                if(addedKeys.has(key)) return;
-                cart.push({ uniqueKey:key, productId:pid, variantLabel:sv.dataset.label, price:parseFloat(sv.dataset.price), name:`${prod.name} (${sv.dataset.label})`, img:prod.img, quantity:1 });
-                addedKeys.add(key);
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-check"></i> Added';
-                saveCart();
-                updateCartUI();
-            }));
-        }
-        
-        function updateCartButtons() {
-            document.querySelectorAll('.product-card').forEach(card => {
-                const pid = parseInt(card.dataset.id);
-                const sv = card.querySelector('.variant.selected');
-                if(!sv) return;
-                const key = getKey(pid, sv.dataset.label);
-                const btn = card.querySelector('.add-to-cart');
-                if(addedKeys.has(key)) {
-                    if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Added'; }
-                } else {
-                    if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; }
-                }
-            });
-        }
-
-        function updateCartUI() {
-            const container = document.getElementById('cartList');
-            if(!cart.length) { container.innerHTML = '<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>'; }
-            else {
-                let html = '';
-                cart.forEach((item, idx) => {
-                    html += `<li class="cart-item">
-                        <img src="${item.img}" class="cart-img">
-                        <div style="flex:1;"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">NPR ${item.price}</div>
-                        <div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">−</button><span>${item.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;
-                });
-                container.innerHTML = html;
-                document.querySelectorAll('.dec').forEach(b => b.addEventListener('click', () => modQty(parseInt(b.dataset.idx), -1)));
-                document.querySelectorAll('.inc').forEach(b => b.addEventListener('click', () => modQty(parseInt(b.dataset.idx), 1)));
-                document.querySelectorAll('.remove-item').forEach(b => b.addEventListener('click', () => removeItem(parseInt(b.dataset.idx))));
-            }
-            const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
-            document.getElementById('cartTotal').innerText = `NPR ${subtotal.toLocaleString()}`;
-            document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.quantity,0);
-        }
-
-        function modQty(idx, d) { 
-            cart[idx].quantity += d; 
-            if(cart[idx].quantity <= 0) removeItem(idx); 
-            else { saveCart(); updateCartUI(); }
-        }
-        
-        function removeItem(idx) {
-            const r = cart[idx]; 
-            addedKeys.delete(r.uniqueKey); 
-            cart.splice(idx,1);
-            saveCart();
-            updateCartButtons();
-            updateCartUI();
-        }
-
-        window.selectLocation = function(location, el) {
-            selectedLocation = location; 
-            deliveryCharge = location === 'inside' ? 100 : 200;
-            document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected'); 
-            updateCheckoutSummary();
-        };
-
-        function updateCheckoutSummary() {
-            const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
-            document.getElementById('checkoutSubtotal').textContent = `Subtotal: NPR ${subtotal.toLocaleString()}`;
-            document.getElementById('checkoutDelivery').textContent = `Delivery: NPR ${deliveryCharge}`;
-            document.getElementById('checkoutTotal').textContent = `Total: NPR ${(subtotal + deliveryCharge).toLocaleString()}`;
-        }
-
-        function handleCheckout() {
-            if(cart.length === 0) { showInfo("Empty Cart", "Please add at least one product."); return; }
-            updateCheckoutSummary();
-            document.getElementById('checkoutModal').classList.add('open');
-        }
-
-        async function submitOrder() {
-            const name = document.getElementById('custName').value.trim();
-            const email = document.getElementById('custEmail').value.trim();
-            const addr = document.getElementById('custAddress').value.trim();
-            const phone = document.getElementById('custPhone').value.trim();
-            if(!name || !email || !addr || !phone) { showInfo("Missing Info", "Please fill in all fields."); return; }
-            
-            const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
-            const total = subtotal + deliveryCharge;
-            const itemsStr = cart.map(i => `${i.quantity}x ${i.name}`).join(', ');
-            const orderId = 'ORD-' + Date.now();
-            const orderDate = new Date().toISOString();
-            
-            const orderData = {
-                orderId: orderId,
-                customerName: name,
-                email: email,
-                phone: phone,
-                address: addr,
-                location: selectedLocation === 'inside' ? 'Inside Kathmandu Valley' : 'Outside Kathmandu Valley',
-                deliveryCharge: deliveryCharge,
-                items: itemsStr,
-                subtotal: subtotal,
-                total: total,
-                date: orderDate
-            };
-            
-            try {
-                await fetch(SHEETDB_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: [orderData] })
-                });
-            } catch(e) {
-                const fb = JSON.parse(localStorage.getItem('dermakraft_fallback_orders') || '[]');
-                fb.unshift(orderData);
-                localStorage.setItem('dermakraft_fallback_orders', JSON.stringify(fb));
-            }
-            
-            document.getElementById('successMsg').innerHTML = `Thank you ${name}!<br>Total: NPR ${total.toLocaleString()}<br>Delivery: ${selectedLocation==='inside'?'Kathmandu Valley':'Outside Valley'}<br>Confirmation sent to ${email}`;
-            document.getElementById('checkoutModal').classList.remove('open');
-            document.getElementById('successModal').classList.add('open');
-            
-            cart = []; 
-            addedKeys.clear();
-            saveCart();
-            document.querySelectorAll('.add-to-cart').forEach(b => { b.disabled = false; b.innerHTML = '<i class="fas fa-plus"></i> Add'; });
-            updateCartUI();
-            ['custName','custEmail','custAddress','custPhone'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('cartSidebar').classList.remove('open');
-            document.getElementById('cartOverlay').style.display = 'none';
-        }
-
-        function showInfo(title, msg) {
-            document.getElementById('infoTitle').innerText = title;
-            document.getElementById('infoText').innerText = msg;
-            document.getElementById('infoModal').classList.add('open');
-        }
-
-        let logoClicks = 0;
-        document.getElementById('logoClick').addEventListener('click', function() {
-            logoClicks++;
-            if(logoClicks >= 5) { 
-                document.getElementById('hiddenAdminLink').style.display = 'block'; 
-                setTimeout(() => { logoClicks = 0; }, 30000); 
-            }
+(function(){
+    emailjs.init("2X9gef2Tudenoiugp");
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
+    const STORAGE_PRODUCTS = "dermakraft_products_v2";
+    const STORAGE_CART = "dermakraft_cart";
+    
+    const DEFAULT_PRODUCTS = [
+        { id:1, name:"Gentle Daily Cleansing Bar", category:"soap", desc:"pH 5.5, glycerin-rich", images:["https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400","https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=400","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400"], variants:[{size:"100g",price:350},{size:"150g",price:500}] },
+        { id:2, name:"Calendula Soothing Bar", category:"soap", desc:"with calendula & chamomile", images:["https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400"], variants:[{size:"100g",price:400},{size:"150g",price:580}] },
+        { id:3, name:"Aloe Vera Hand Wash", category:"handwash", desc:"sulfate-free, moisturizing", images:["https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400","https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=400"], variants:[{size:"300ml",price:450},{size:"500ml",price:650}] },
+        { id:4, name:"Rosemary Mint Shampoo Bar", category:"shampoo", desc:"solid shampoo, zero waste", images:["https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400"], variants:[{size:"85g",price:480},{size:"120g",price:700}] },
+        { id:5, name:"Honey & Vitamin E Lip Balm", category:"lipbalm", desc:"nourishing, SPF 15", images:["https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400"], variants:[{size:"10g",price:250},{size:"15g",price:350}] },
+        { id:6, name:"Mineral Sunscreen SPF 50", category:"sunscreen", desc:"broad spectrum, lightweight", images:["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=400","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400"], variants:[{size:"50ml",price:650},{size:"100ml",price:950}] },
+        { id:7, name:"Ceramide Moisturizer", category:"moisturizer", desc:"barrier repair, fragrance-free", images:["https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400","https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400"], variants:[{size:"50ml",price:550},{size:"100ml",price:850}] }
+    ];
+    
+    localStorage.removeItem(STORAGE_PRODUCTS);
+    
+    function loadProducts(){
+        const s=localStorage.getItem(STORAGE_PRODUCTS);
+        if(s){try{const p=JSON.parse(s);if(p.length)return p;}catch(e){}}
+        localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(DEFAULT_PRODUCTS));
+        return[...DEFAULT_PRODUCTS];
+    }
+    function loadCart(){const s=localStorage.getItem(STORAGE_CART);return s?JSON.parse(s):[];}
+    function saveCart(){localStorage.setItem(STORAGE_CART,JSON.stringify(cart));}
+    
+    let products=loadProducts(), cart=loadCart(), addedKeys=new Set(cart.map(i=>i.uniqueKey)), currentFilter="all", selectedLocation="inside", deliveryCharge=100, currentModalProd=null;
+    
+    function getKey(pid,v){return`${pid}-${v}`;}
+    
+    function renderProducts(){
+        const g=document.getElementById('productGridContainer');g.innerHTML='';
+        const f=products.filter(p=>currentFilter==='all'||p.category===currentFilter);
+        f.forEach(prod=>{
+            const dv=prod.variants[0], img=prod.images?.[0]||prod.img||'';
+            let vh=''; prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
+            let dots=''; if(prod.images&&prod.images.length>1) prod.images.forEach((_,i)=>dots+=`<span class="img-dot${i===0?' active':''}"></span>`);
+            const c=document.createElement('div');c.className='product-card';c.dataset.id=prod.id;
+            c.innerHTML=`<img src="${img}" class="product-img" loading="lazy">${dots?`<div class="img-dots">${dots}</div>`:''}<div class="product-title">${prod.name}</div><div class="product-desc">${prod.desc}</div><div class="variant-group">${vh}</div><div class="price-cart"><span class="price">NPR ${dv.price}</span><button class="add-to-cart"><i class="fas fa-plus"></i> Add</button></div>`;
+            c.addEventListener('click',function(e){if(!e.target.closest('.variant')&&!e.target.closest('.add-to-cart'))openProductModal(prod);});
+            g.appendChild(c);
         });
-
-        document.getElementById('cartBtn').addEventListener('click', () => { 
-            document.getElementById('cartSidebar').classList.add('open'); 
-            document.getElementById('cartOverlay').style.display = 'block'; 
-        });
-        document.getElementById('closeCartBtn').addEventListener('click', () => { 
-            document.getElementById('cartSidebar').classList.remove('open'); 
-            document.getElementById('cartOverlay').style.display = 'none'; 
-        });
-        document.getElementById('cartOverlay').addEventListener('click', () => { 
-            document.getElementById('cartSidebar').classList.remove('open'); 
-            document.getElementById('cartOverlay').style.display = 'none'; 
-        });
-        document.getElementById('checkoutSideBtn').addEventListener('click', handleCheckout);
-        document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
-        document.getElementById('closeCheckoutBtn').addEventListener('click', () => document.getElementById('checkoutModal').classList.remove('open'));
-        document.getElementById('closeSuccessBtn').addEventListener('click', () => document.getElementById('successModal').classList.remove('open'));
-        document.getElementById('closeInfoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.remove('open'));
-
-        document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', function() {
-            currentFilter = this.dataset.cat;
-            document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
-            this.classList.add('active'); 
-            renderProducts();
-        }));
-        document.querySelectorAll('.footerCatLink').forEach(l => l.addEventListener('click', function() {
-            currentFilter = this.dataset.cat;
-            document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
-            document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`).classList.add('active');
-            renderProducts(); 
-            document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});
-        }));
-
-        document.getElementById('navShop').addEventListener('click', () => document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-        document.getElementById('navStory').addEventListener('click', () => showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
-        document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
-        document.getElementById('navContact').addEventListener('click', () => showInfo("Contact Us","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-        document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story","DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
-        document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy","Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
-        document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable production."));
-        document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping","Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
-        document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns","30-day satisfaction guarantee. Contact us for return or exchange support."));
-        document.getElementById('footerContact').addEventListener('click', () => showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678"));
-
-        const heroImages = ["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=600","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600"];
-        let hi = 0; 
-        const he = document.getElementById('heroImage');
-        function rh() { he.style.backgroundImage = `url('${heroImages[hi]}')`; hi = (hi+1) % heroImages.length; }
-        rh(); 
-        setInterval(rh, 4500);
-
-        renderProducts(); 
-        updateCartUI();
+        attachEvents();updateCartButtons();
+    }
+    
+    function attachEvents(){
+        document.querySelectorAll('.variant').forEach(v=>v.addEventListener('click',function(e){e.stopPropagation();const g=this.closest('.variant-group');g.querySelectorAll('.variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');const c=this.closest('.product-card');c.querySelector('.price').textContent='NPR '+parseFloat(this.dataset.price);updateCartButtons();}));
+        document.querySelectorAll('.add-to-cart').forEach(b=>b.addEventListener('click',function(e){e.stopPropagation();const c=this.closest('.product-card'),pid=parseInt(c.dataset.id),prod=products.find(p=>p.id===pid),sv=c.querySelector('.variant.selected'),key=getKey(pid,sv.dataset.label);if(addedKeys.has(key))return;cart.push({uniqueKey:key,productId:pid,variantLabel:sv.dataset.label,price:parseFloat(sv.dataset.price),name:`${prod.name} (${sv.dataset.label})`,img:prod.images?.[0]||prod.img,quantity:1});addedKeys.add(key);this.disabled=true;this.innerHTML='<i class="fas fa-check"></i> Added';saveCart();updateCartUI();}));
+    }
+    
+    function updateCartButtons(){document.querySelectorAll('.product-card').forEach(c=>{const pid=parseInt(c.dataset.id),sv=c.querySelector('.variant.selected');if(!sv)return;const key=getKey(pid,sv.dataset.label),btn=c.querySelector('.add-to-cart');if(addedKeys.has(key)){if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i> Added';}}else{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-plus"></i> Add';}}});}
+    
+    function updateCartUI(){
+        const c=document.getElementById('cartList');
+        if(!cart.length){c.innerHTML='<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>';}
+        else{let h='';cart.forEach((i,idx)=>{h+=`<li class="cart-item"><img src="${i.img}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">−</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;});c.innerHTML=h;
+        document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),-1)));
+        document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),1)));
+        document.querySelectorAll('.remove-item').forEach(b=>b.addEventListener('click',()=>removeItem(parseInt(b.dataset.idx))));}
+        const s=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('cartTotal').innerText='NPR '+s.toLocaleString();document.getElementById('cartCount').innerText=cart.reduce((s,i)=>s+i.quantity,0);
+    }
+    
+    function modQty(i,d){cart[i].quantity+=d;if(cart[i].quantity<=0)removeItem(i);else{saveCart();updateCartUI();}}
+    function removeItem(i){const r=cart[i];addedKeys.delete(r.uniqueKey);cart.splice(i,1);saveCart();updateCartButtons();updateCartUI();}
+    
+    window.selectLocation=function(l,el){selectedLocation=l;deliveryCharge=l==='inside'?100:200;document.querySelectorAll('.radio-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');updateCheckoutSummary();};
+    
+    function updateCheckoutSummary(){const s=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('checkoutSubtotal').textContent='Subtotal: NPR '+s.toLocaleString();document.getElementById('checkoutDelivery').textContent='Delivery: NPR '+deliveryCharge;document.getElementById('checkoutTotal').textContent='Total: NPR '+(s+deliveryCharge).toLocaleString();}
+    
+    function handleCheckout(){if(!cart.length){alert('Add products first');return;}updateCheckoutSummary();document.getElementById('checkoutModal').classList.add('open');}
+    
+    function openProductModal(prod){
+        currentModalProd=prod;document.getElementById('modalProdName').textContent=prod.name;document.getElementById('modalProdDesc').textContent=prod.desc;
+        const imgs=prod.images||[prod.img];document.getElementById('modalMainImg').src=imgs[0];
+        let th='';imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
+        document.getElementById('modalThumbs').innerHTML=th;
+        let vh='';const dv=prod.variants[0];prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
+        document.getElementById('modalVariants').innerHTML=vh;document.getElementById('modalPrice').textContent='NPR '+dv.price;
+        document.querySelectorAll('#modalVariants .variant').forEach(v=>v.addEventListener('click',function(){document.querySelectorAll('#modalVariants .variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');document.getElementById('modalPrice').textContent='NPR '+parseFloat(this.dataset.price);}));
+        const btn=document.getElementById('modalAddBtn');const key=getKey(prod.id,dv.label);if(addedKeys.has(key)){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i> Added';}else{btn.disabled=false;btn.innerHTML='<i class="fas fa-plus"></i> Add';}
+        btn.onclick=function(){const sv=document.querySelector('#modalVariants .variant.selected');const key=getKey(prod.id,sv.dataset.label);if(addedKeys.has(key))return;cart.push({uniqueKey:key,productId:prod.id,variantLabel:sv.dataset.label,price:parseFloat(sv.dataset.price),name:`${prod.name} (${sv.dataset.label})`,img:imgs[0],quantity:1});addedKeys.add(key);btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i> Added';saveCart();updateCartUI();updateCartButtons();};
+        document.getElementById('productModal').classList.add('open');
+    }
+    
+    window.closeProductModal=function(){document.getElementById('productModal').classList.remove('open');};
+    
+    async function submitOrder(){
+        const name=document.getElementById('custName').value.trim(),email=document.getElementById('custEmail').value.trim(),addr=document.getElementById('custAddress').value.trim(),phone=document.getElementById('custPhone').value.trim();
+        if(!name||!email||!addr||!phone){alert('Fill all fields');return;}
+        const subtotal=cart.reduce((s,i)=>s+i.price*i.quantity,0),total=subtotal+deliveryCharge,itemsStr=cart.map(i=>`${i.quantity}x ${i.name}`).join(', '),orderId='ORD-'+Date.now(),orderDate=new Date().toISOString();
+        const location=selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley';
+        const trackingUrl=window.location.origin+window.location.pathname.replace('index.html','')+'track.html?orderId='+orderId;
         
-        window.addEventListener('storage', (e) => { 
-            if(e.key === STORAGE_PRODUCTS) { 
-                products = loadProducts(); 
-                renderProducts(); 
-                updateCartUI(); 
-            } 
-        });
-    })();
+        const orderData={orderId,customerName:name,email,phone,address:addr,location,deliveryCharge,items:itemsStr,subtotal,total,date:orderDate,status:'processing'};
+        
+        // Save to SheetDB
+        try{await fetch(SHEETDB_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:[orderData]})});}catch(e){}
+        
+        // Save tracking data locally
+        localStorage.setItem('track_'+orderId,JSON.stringify({...orderData,trackingUrl}));
+        
+        // Send email via EmailJS
+        try{await emailjs.send("service_ycj8myh","template_8sw10cu",{customerName:name,orderId,items:itemsStr,subtotal:subtotal.toLocaleString(),deliveryCharge:deliveryCharge.toString(),total:total.toLocaleString(),location,address:addr,trackingUrl,email:email});}catch(e){console.log('Email failed:',e);}
+        
+        document.getElementById('successMsg').innerHTML=`Thank you ${name}!<br>Total: NPR ${total.toLocaleString()}<br>Check your email (${email}) for tracking link.`;
+        document.getElementById('checkoutModal').classList.remove('open');document.getElementById('successModal').classList.add('open');
+        document.getElementById('closeSuccessBtn').onclick=function(){window.location.href=trackingUrl;};
+        
+        cart=[];addedKeys.clear();saveCart();updateCartUI();updateCartButtons();
+        ['custName','custEmail','custAddress','custPhone'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';
+    }
+    
+    let logoClicks=0;
+    document.getElementById('logoClick').addEventListener('click',function(){logoClicks++;if(logoClicks>=5){document.getElementById('hiddenAdminLink').style.display='block';setTimeout(()=>logoClicks=0,30000);}});
+    document.getElementById('cartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').style.display='block';});
+    document.getElementById('closeCartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
+    document.getElementById('cartOverlay').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
+    document.getElementById('checkoutSideBtn').addEventListener('click',handleCheckout);
+    document.getElementById('submitOrderBtn').addEventListener('click',submitOrder);
+    document.getElementById('closeCheckoutBtn').addEventListener('click',()=>document.getElementById('checkoutModal').classList.remove('open'));
+    document.getElementById('productModal').addEventListener('click',function(e){if(e.target===this)closeProductModal();});
+    
+    document.querySelectorAll('.cat-btn').forEach(b=>b.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');renderProducts();}));
+    
+    document.getElementById('navShop').addEventListener('click',()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
+    document.getElementById('navStory').addEventListener('click',()=>alert('DERMAKRAFT was founded by a professional chemist. Handcrafted in Kathmandu, Nepal.'));
+    document.getElementById('navScience').addEventListener('click',()=>alert('pH-optimized. No sulfates, parabens, or synthetic dyes.'));
+    document.getElementById('navContact').addEventListener('click',()=>alert('Email: hello@dermakraft.com\nPhone: +977 9812345678'));
+    
+    const hi=["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=600","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600"];
+    let hii=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${hi[hii]}')`;hii=(hii+1)%hi.length;}rh();setInterval(rh,4500);
+    
+    renderProducts();updateCartUI();
+})();
 </script>
 </body>
 </html>
