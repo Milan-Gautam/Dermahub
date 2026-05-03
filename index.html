@@ -276,7 +276,7 @@
     function renderProducts(){
         const g = document.getElementById('productGridContainer'); g.innerHTML = '';
         const f = products.filter(p => currentFilter === 'all' || p.category === currentFilter);
-        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. We'll add them very soon!</div>'; return; }
+        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. We will add them very soon!</div>'; return; }
         f.forEach(prod => {
             const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
             let dots = ''; if(imgs.length > 1) imgs.forEach((_, i) => dots += `<span class="img-dot${i===0?' active':''}"></span>`);
