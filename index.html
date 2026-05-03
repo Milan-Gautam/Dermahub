@@ -47,7 +47,7 @@
         .cart-icon:hover { background: var(--warm-brown); }
         .cart-count { background: white; color: var(--deep-olive); border-radius: 30px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; }
         
-        .hero { padding: 40px 0 50px; }
+        .hero { padding: 40px 0 50px; margin-top:20px; }
         .hero-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 40px; }
         .hero-text { flex: 1.2; }
         .hero-text .badge { background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 20px; }
@@ -229,7 +229,7 @@
             <button class="cat-btn" data-cat="sunscreen">Sunscreen</button>
             <button class="cat-btn" data-cat="moisturizer">Moisturizer</button>
         </div>
-        <div class="product-grid" id="productGridContainer"></div>
+        <div clss="product-grid" id="productGridContainer"></div>
     </div>
 </main>
 
@@ -243,18 +243,7 @@
     const STORAGE_PRODUCTS = "dermakraft_products_v3";
     const STORAGE_CART = "dermakraft_cart";
     
-    const DEFAULT_PRODUCTS = [
-        { id:1, name:"Gentle Daily Cleansing Bar", category:"soap", desc:"pH 5.5, glycerin-rich, non-stripping", images:["https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400","https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=400"], variants:[{size:"100g",price:350},{size:"150g",price:500}], discount:0 },
-        { id:2, name:"Calendula Soothing Bar", category:"soap", desc:"with calendula & chamomile, sensitive skin", images:["https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400"], variants:[{size:"100g",price:400},{size:"150g",price:580}], discount:0 },
-        { id:3, name:"Aloe Vera Hand Wash", category:"handwash", desc:"sulfate-free, moisturizing foam", images:["https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400"], variants:[{size:"300ml",price:450},{size:"500ml",price:650}], discount:0 },
-        { id:4, name:"Rosemary Mint Shampoo Bar", category:"shampoo", desc:"solid shampoo, zero waste, for all hair", images:["https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=400"], variants:[{size:"85g",price:480},{size:"120g",price:700}], discount:0 },
-        { id:5, name:"Neem & Tea Tree Face Wash", category:"facewash", desc:"anti-acne, clarifying, gentle", images:["https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400"], variants:[{size:"100ml",price:380},{size:"200ml",price:600}], discount:0 },
-        { id:6, name:"Honey & Vitamin E Lip Balm", category:"lipbalm", desc:"nourishing, SPF 15 protection", images:["https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400"], variants:[{size:"10g",price:250},{size:"15g",price:350}], discount:0 },
-        { id:7, name:"Mineral Sunscreen SPF 50", category:"sunscreen", desc:"broad spectrum, lightweight, non-greasy", images:["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=400"], variants:[{size:"50ml",price:650},{size:"100ml",price:950}], discount:0 },
-        { id:8, name:"Ceramide Moisturizer", category:"moisturizer", desc:"barrier repair, fragrance-free", images:["https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400"], variants:[{size:"50ml",price:550},{size:"100ml",price:850}], discount:0 }
-    ];
-    
-    // Load products from SheetDB first, fallback to localStorage, then defaults
+    // Load products ONLY from SheetDB (admin panel)
     async function loadProducts(){
         try {
             const res = await fetch(SHEETDB_PRODUCTS_URL);
@@ -266,17 +255,13 @@
                     if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants);
                     if(typeof p.images === 'string') p.images = JSON.parse(p.images);
                 });
-                if(data.length > 0) {
-                    localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(data));
-                    return data;
-                }
+                localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(data));
+                return data;
             }
-        } catch(e) { console.log('SheetDB fetch failed, using localStorage'); }
-        
+        } catch(e) { console.log('Loading from backup...'); }
+        // Fallback to last known state
         const stored = localStorage.getItem(STORAGE_PRODUCTS);
-        if(stored) { try { const p = JSON.parse(stored); if(p.length) return p; } catch(e) {} }
-        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-        return [...DEFAULT_PRODUCTS];
+        return stored ? JSON.parse(stored) : [];
     }
     
     function loadCart(){ const s = localStorage.getItem(STORAGE_CART); return s ? JSON.parse(s) : []; }
@@ -291,7 +276,7 @@
     function renderProducts(){
         const g = document.getElementById('productGridContainer'); g.innerHTML = '';
         const f = products.filter(p => currentFilter === 'all' || p.category === currentFilter);
-        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:40px;color:#8b7b6e;grid-column:1/-1;">No products in this category</div>'; return; }
+        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. Admin will add them soon!</div>'; return; }
         f.forEach(prod => {
             const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
             let dots = ''; if(imgs.length > 1) imgs.forEach((_, i) => dots += `<span class="img-dot${i===0?' active':''}"></span>`);
@@ -418,13 +403,13 @@
     
     document.getElementById('navShop').addEventListener('click', () => document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
     document.getElementById('navStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
-    document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science", "pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
+    document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science", "pH-optimized formulas. No sulfates, parabens, or synthetic dyes."));
     document.getElementById('navContact').addEventListener('click', () => showInfo("Contact Us", "Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-    document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
-    document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy", "Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
-    document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal", "Proudly produced in Kathmandu Valley, supporting local communities."));
-    document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping", "Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
-    document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns", "30-day satisfaction guarantee. Contact us for return support."));
+    document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal."));
+    document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy", "Transparency is key. Every ingredient serves a purpose."));
+    document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal", "Proudly produced in Kathmandu Valley."));
+    document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping", "Inside Kathmandu: NPR 100\nOutside: NPR 200\n3-7 business days."));
+    document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns", "30-day satisfaction guarantee."));
     document.getElementById('footerContact').addEventListener('click', () => showInfo("Get in Touch", "Email: hello@dermakraft.com\nPhone: +977 9812345678"));
     
     const heroImages = ["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=600", "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600", "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600"];
@@ -432,10 +417,7 @@
     function rh(){ he.style.backgroundImage = `url('${heroImages[hi]}')`; hi = (hi + 1) % heroImages.length; }
     rh(); setInterval(rh, 4500);
     
-    // Initial load
     loadProducts().then(data => { products = data; renderProducts(); updateCartUI(); });
-    
-    // Listen for product updates from admin
     window.addEventListener('storage', (e) => { if(e.key === STORAGE_PRODUCTS) { products = JSON.parse(e.newValue || '[]'); renderProducts(); updateCartUI(); } });
 })();
 </script>
