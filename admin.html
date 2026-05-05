@@ -94,8 +94,6 @@
     
     .product-item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fefaf5; border-radius: 12px; flex-wrap: wrap; gap: 8px; }
     .product-item-row .prod-info { flex: 1; min-width: 200px; }
-    .product-item-row .prod-info strong { color: #2a4235; }
-    .product-item-row .prod-info small { color: #8b7b6e; }
     .product-item-row .prod-actions { display: flex; gap: 8px; align-items: center; }
     .discount-input { width: 55px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
     
@@ -165,7 +163,6 @@
           <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
           <div class="form-field"><label>Image URLs (comma)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
         </div>
-        
         <div class="variants-section">
           <label>Variants (Size & Price)</label>
           <div id="variantsContainer">
@@ -177,9 +174,7 @@
           </div>
           <button type="button" class="btn-add-variant" onclick="addVariant()"><i class="fas fa-plus"></i> Add Another Variant</button>
         </div>
-        
         <button class="btn-sm btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Product to Store</button>
-        
         <div class="section-divider">
           <div style="font-weight:600;margin-bottom:12px;">📦 Current Products <small style="color:#8b7b6e;">(set discount %)</small></div>
           <div id="productListContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -192,7 +187,6 @@
 
   <script>
     (function() {
-      // SHA-256 hash of "admin123"
       const ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
       const SHEETDB_PRODUCTS_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
       const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
@@ -206,7 +200,6 @@
       const LOCKOUT_DURATION = 60000;
       let orders = [], products = [];
 
-      // SHA-256 hashing
       async function sha256(message) {
         const msgBuffer = new TextEncoder().encode(message);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -218,9 +211,7 @@
       function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_TIME); }
       function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < 30; }
       function refreshSession() { if(localStorage.getItem(SESSION_KEY)==='true') localStorage.setItem(SESSION_TIME,Date.now().toString()); }
-      
       ['click','keypress','scroll','mousemove'].forEach(e => document.addEventListener(e, refreshSession));
-      
       setInterval(() => {
         if(localStorage.getItem(SESSION_KEY)==='true' && !isSessionValid()) { clearSession(); if(document.getElementById('dashboard').style.display==='block') { alert('Session expired.'); logout(); } }
         if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
@@ -231,14 +222,31 @@
         try { const res = await fetch(SHEETDB_ORDERS_URL); if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } else throw new Error('Failed'); }
         catch(e) { document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline'; orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]'); }
         orders.forEach(o => { if(!o.status) o.status = 'ordered'; });
+        // Sync all orders to localStorage tracking
+        orders.forEach(o => {
+          const existing = JSON.parse(localStorage.getItem('track_'+o.orderId) || '{}');
+          localStorage.setItem('track_'+o.orderId, JSON.stringify({...o, ...existing}));
+        });
         return orders;
       }
 
       async function updateOrderStatus(orderId, newStatus) {
+        // Update SheetDB
         try { await fetch(`${SHEETDB_ORDERS_URL}/orderId/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { status: newStatus } }) }); } catch(e) {}
+        // Update local array
         const idx = orders.findIndex(o => o.orderId === orderId); if(idx >= 0) orders[idx].status = newStatus;
         localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
-        const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}'); if(trackData.orderId) { trackData.status = newStatus; localStorage.setItem('track_'+orderId, JSON.stringify(trackData)); }
+        // Update tracking localStorage - THIS IS THE KEY FIX
+        const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}');
+        trackData.status = newStatus;
+        trackData.orderId = trackData.orderId || orderId;
+        trackData.email = trackData.email || (orders[idx]?.email || '');
+        trackData.customerName = trackData.customerName || (orders[idx]?.customerName || '');
+        trackData.items = trackData.items || (orders[idx]?.items || '');
+        trackData.total = trackData.total || (orders[idx]?.total || 0);
+        trackData.location = trackData.location || (orders[idx]?.location || '');
+        trackData.date = trackData.date || (orders[idx]?.date || '');
+        localStorage.setItem('track_'+orderId, JSON.stringify(trackData));
         renderOrders(); showToast(`Status → ${newStatus}`);
       }
 
@@ -318,7 +326,7 @@
       async function refreshData() { showToast('🔄 Syncing...'); await loadOrders(); await loadProducts(); renderOrders(); renderProductsList(); showToast('✅ Refreshed'); }
 
       async function login() {
-        if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('rateLimitMsg').innerText='🔒 Locked. Wait 60 seconds.'; document.getElementById('loginBtn').disabled=true; return; }
+        if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; return; }
         const inputPassword = document.getElementById('passwordInput').value;
         const hashedInput = await sha256(inputPassword);
         if(hashedInput === ADMIN_PASSWORD_HASH) {
@@ -328,8 +336,8 @@
           document.getElementById('loginError').style.display='none'; document.getElementById('passwordInput').value=''; refreshData();
         } else {
           loginAttempts++; localStorage.setItem('admin_login_attempts',loginAttempts.toString());
-          if(loginAttempts >= MAX_ATTEMPTS) { lockoutUntil = Date.now() + LOCKOUT_DURATION; localStorage.setItem('admin_lockout_until',lockoutUntil.toString()); document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('rateLimitMsg').innerText='🔒 Too many attempts. Locked for 60 seconds.'; document.getElementById('loginBtn').disabled=true; }
-          else { document.getElementById('loginError').style.display='block'; document.getElementById('loginError').innerText=`❌ Invalid password. ${MAX_ATTEMPTS-loginAttempts} attempts left.`; }
+          if(loginAttempts >= MAX_ATTEMPTS) { lockoutUntil = Date.now() + LOCKOUT_DURATION; localStorage.setItem('admin_lockout_until',lockoutUntil.toString()); document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; }
+          else { document.getElementById('loginError').style.display='block'; document.getElementById('loginError').innerText=`❌ Invalid. ${MAX_ATTEMPTS-loginAttempts} attempts left.`; }
           document.getElementById('passwordInput').value='';
         }
       }
