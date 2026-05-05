@@ -42,12 +42,12 @@
     .logout-btn, .refresh-btn { background: none; border: 1px solid #ece2d9; padding: 8px 20px; border-radius: 40px; cursor: pointer; color: #8b7b6e; font-family: inherit; }
     .refresh-btn { background: #f3ede7; border: none; color: #2a4235; font-size: 0.8rem; }
     
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 28px; }
     @media (max-width: 576px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
-    .stat-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .stat-card i { font-size: 1.8rem; color: #3a5a45; margin-bottom: 6px; }
-    .stat-card h3 { font-size: 0.7rem; text-transform: uppercase; color: #8b7b6e; letter-spacing: 1px; }
-    .stat-number { font-size: 1.6rem; font-weight: 700; color: #2a4235; }
+    .stat-card { background: white; border-radius: 20px; padding: 18px 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .stat-card i { font-size: 1.5rem; color: #3a5a45; margin-bottom: 6px; }
+    .stat-card h3 { font-size: 0.65rem; text-transform: uppercase; color: #8b7b6e; letter-spacing: 1px; }
+    .stat-number { font-size: 1.4rem; font-weight: 700; color: #2a4235; }
     
     .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #2a4235; margin: 24px 0 18px; padding-left: 14px; border-left: 4px solid #9c6e4b; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     
@@ -61,6 +61,7 @@
     .badge-location.outside { background: #fff3e0; color: #e67e22; }
     .badge-status { padding: 3px 8px; border-radius: 12px; font-size: 0.6rem; font-weight: 600; display: inline-block; }
     .badge-status.ordered { background: #e8e0f7; color: #5b3a8c; }
+    .badge-status.paid { background: #cce5ff; color: #004085; }
     .badge-status.processing { background: #fff3cd; color: #856404; }
     .badge-status.shipped { background: #cce5ff; color: #004085; }
     .badge-status.delivered { background: #d4edda; color: #155724; }
@@ -85,11 +86,7 @@
     .variant-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
     .variant-row input { flex: 1; min-width: 100px; padding: 10px; border: 1px solid #ece2d9; border-radius: 8px; font-size: 0.85rem; font-family: inherit; }
     .variant-row .btn-remove { background: #c27c6e; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; min-width: 36px; }
-    @media (max-width: 480px) {
-      .variant-row { flex-direction: column; gap: 6px; }
-      .variant-row input { width: 100%; }
-      .variant-row .btn-remove { align-self: flex-end; }
-    }
+    @media (max-width: 480px) { .variant-row { flex-direction: column; gap: 6px; } .variant-row input { width: 100%; } .variant-row .btn-remove { align-self: flex-end; } }
     
     .btn-add-variant { background: #3a5a45; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; margin-top: 6px; }
     .btn-sm { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 600; width: 100%; }
@@ -112,7 +109,6 @@
   </style>
 </head>
 <body>
-  <!-- LOGIN PAGE -->
   <div id="loginPage" class="login-container">
     <div class="login-card">
       <div class="lock-icon">🔒</div>
@@ -131,7 +127,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashboard" class="dashboard-container">
     <div class="admin-header">
       <div class="logo"><h1>DERMAKRAFT</h1><p>admin control panel</p></div>
@@ -149,17 +144,16 @@
     <div class="stats-grid">
       <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3>Total Orders</h3><div class="stat-number" id="statOrders">0</div></div>
       <div class="stat-card"><i class="fas fa-coins"></i><h3>Revenue (NPR)</h3><div class="stat-number" id="statRevenue">NPR 0</div></div>
+      <div class="stat-card"><i class="fas fa-check-circle"></i><h3>Paid Orders</h3><div class="stat-number" id="statPaid">0</div></div>
       <div class="stat-card"><i class="fas fa-users"></i><h3>Customers</h3><div class="stat-number" id="statCustomers">0</div></div>
       <div class="stat-card"><i class="fas fa-boxes"></i><h3>Products</h3><div class="stat-number" id="statProductsCount">0</div></div>
     </div>
 
-    <!-- ORDERS SECTION -->
     <div id="ordersSection">
       <div class="section-title"><i class="fas fa-clipboard-list"></i> Manage Orders <span style="font-size:0.6rem;"><span class="sync-dot on" id="syncDot"></span> <span id="syncText">Cloud</span></span></div>
       <div class="orders-wrapper"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Contact</th><th>Location</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ordersTableBody"></tbody></table></div>
     </div>
 
-    <!-- PRODUCTS SECTION -->
     <div id="productsSection" style="display:none;">
       <div class="section-title"><i class="fas fa-plus-circle"></i> Add New Product</div>
       <div class="product-manager">
@@ -169,7 +163,7 @@
         </div>
         <div class="form-row">
           <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
-          <div class="form-field"><label>Image URLs (comma separated)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
+          <div class="form-field"><label>Image URLs (comma)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
         </div>
         
         <div class="variants-section">
@@ -210,7 +204,6 @@
       const MAX_ATTEMPTS = 5;
       let orders = [], products = [];
 
-      // Session
       function startSession() { localStorage.setItem(SESSION_KEY,'true'); localStorage.setItem(SESSION_TIME,Date.now().toString()); }
       function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_TIME); }
       function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < 30; }
@@ -240,15 +233,17 @@
       function renderOrders() {
         const tbody = document.getElementById('ordersTableBody');
         if(!orders.length) { tbody.innerHTML='<tr><td colspan="9" class="empty-state">No orders yet</td></tr>'; updateStats(); return; }
-        let rev=0; const cust=new Set(); let html='';
+        let rev=0, paidCount=0; const cust=new Set(); let html='';
         orders.forEach(o => {
           const t = parseFloat(o.total)||0; rev+=t; cust.add((o.email||'').toLowerCase());
           const status = o.status || 'ordered';
-          html += `<tr><td><span class="badge-order">#${(o.orderId||'').slice(-8)}</span></td><td><strong>${esc(o.customerName)}</strong></td><td>${esc(o.email)}<br><small>${esc(o.phone)}</small></td><td><span class="badge-location ${(o.location||'').includes('Inside')?'inside':'outside'}">${esc(o.location)}</span></td><td>${esc(o.items)}</td><td><strong>NPR ${t.toLocaleString()}</strong></td><td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td><td><span class="badge-status ${status}">${status}</span></td><td><select class="status-select" onchange="window._updateStatus('${o.orderId}', this.value)"><option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option><option value="processing" ${status==='processing'?'selected':''}>Processing</option><option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option><option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option></select> <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+          if(status === 'paid' || status === 'processing' || status === 'shipped' || status === 'delivered') paidCount++;
+          html += `<tr><td><span class="badge-order">#${(o.orderId||'').slice(-8)}</span></td><td><strong>${esc(o.customerName)}</strong></td><td>${esc(o.email)}<br><small>${esc(o.phone)}</small></td><td><span class="badge-location ${(o.location||'').includes('Inside')?'inside':'outside'}">${esc(o.location)}</span></td><td>${esc(o.items)}</td><td><strong>NPR ${t.toLocaleString()}</strong></td><td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td><td><span class="badge-status ${status}">${status}</span></td><td><select class="status-select" onchange="window._updateStatus('${o.orderId}', this.value)"><option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option><option value="paid" ${status==='paid'?'selected':''}>Paid</option><option value="processing" ${status==='processing'?'selected':''}>Processing</option><option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option><option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option></select> <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td></tr>`;
         });
         tbody.innerHTML = html;
         document.getElementById('statOrders').innerText = orders.length;
         document.getElementById('statRevenue').innerText = `NPR ${rev.toLocaleString()}`;
+        document.getElementById('statPaid').innerText = paidCount;
         document.getElementById('statCustomers').innerText = cust.size;
       }
 
@@ -280,22 +275,12 @@
 
       function renderProductsList() {
         const c = document.getElementById('productListContainer');
-        if(!products.length) { c.innerHTML='<div class="empty-state">No products yet. Add your first product above!</div>'; document.getElementById('statProductsCount').innerText='0'; return; }
+        if(!products.length) { c.innerHTML='<div class="empty-state">No products yet.</div>'; document.getElementById('statProductsCount').innerText='0'; return; }
         let html='';
         products.forEach(p => {
           const d = p.discount || 0;
           const variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
-          html += `<div class="product-item-row">
-            <div class="prod-info">
-              <strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br>
-              <small>${variantsStr}</small>
-              ${d>0?` <span style="color:#e74c3c;font-size:0.7rem;font-weight:600;">(${d}% OFF)</span>`:''}
-            </div>
-            <div class="prod-actions">
-              <input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)" title="Discount %">
-              <button class="delete-btn" onclick="window._delProd(${p.id})" title="Delete product"><i class="fas fa-trash"></i></button>
-            </div>
-          </div>`;
+          html += `<div class="product-item-row"><div class="prod-info"><strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br><small>${variantsStr}</small>${d>0?` <span style="color:#e74c3c;font-size:0.7rem;">(${d}% OFF)</span>`:''}</div><div class="prod-actions"><input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)"><button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button></div></div>`;
         });
         c.innerHTML = html;
         document.getElementById('statProductsCount').innerText = products.length;
@@ -304,84 +289,42 @@
       window._setDiscount = async function(prodId, discountVal) {
         const d = Math.max(0, Math.min(99, parseInt(discountVal) || 0));
         const prod = products.find(p => p.id === prodId);
-        if(prod) { prod.discount = d; await saveProductsToCloud(); renderProductsList(); showToast(`Discount: ${d}% for ${prod.name}`); }
+        if(prod) { prod.discount = d; await saveProductsToCloud(); renderProductsList(); showToast(`Discount: ${d}%`); }
       };
 
       window._delProd = async function(id) {
-        if(!confirm('Delete this product?')) return;
+        if(!confirm('Delete product?')) return;
         products = products.filter(p => p.id !== id);
         await saveProductsToCloud();
         renderProductsList();
         showToast('Product deleted');
       };
 
-      // ==================== VARIANTS ====================
       window.addVariant = function() {
         const container = document.getElementById('variantsContainer');
         const row = document.createElement('div');
         row.className = 'variant-row';
-        row.innerHTML = `
-          <input type="text" class="variant-size" placeholder="Size (e.g. 200g)">
-          <input type="number" class="variant-price" placeholder="Price (NPR)">
-          <button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>
-        `;
+        row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`;
         container.appendChild(row);
       };
 
       window.removeVariant = function(btn) {
         const rows = document.querySelectorAll('#variantsContainer .variant-row');
-        if (rows.length > 1) {
-          btn.closest('.variant-row').remove();
-        } else {
-          showToast('Need at least one variant');
-        }
+        if (rows.length > 1) { btn.closest('.variant-row').remove(); } else { showToast('Need at least one variant'); }
       };
 
-      // ==================== ADD PRODUCT ====================
       async function addProduct() {
-        const name = document.getElementById('prodName').value.trim();
-        const cat = document.getElementById('prodCat').value;
-        const desc = document.getElementById('prodDesc').value.trim();
-        const imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
-        
+        const name = document.getElementById('prodName').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
         if (!name) { showToast('Enter product name'); return; }
-        
         const variantRows = document.querySelectorAll('#variantsContainer .variant-row');
         const variants = [];
-        variantRows.forEach(row => {
-          const size = row.querySelector('.variant-size').value.trim();
-          const price = parseFloat(row.querySelector('.variant-price').value);
-          if (size && price > 0) variants.push({ size, price });
-        });
-        
-        if (variants.length === 0) { showToast('Add at least one variant with size and price'); return; }
-        
-        products.push({
-          id: Date.now(),
-          name,
-          category: cat,
-          desc: desc || 'Premium formula',
-          images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'],
-          variants,
-          discount: 0
-        });
-        
-        await saveProductsToCloud();
-        renderProductsList();
-        
-        // Reset form
-        document.getElementById('prodName').value = '';
-        document.getElementById('prodDesc').value = '';
-        document.getElementById('prodImages').value = '';
-        document.getElementById('variantsContainer').innerHTML = `
-          <div class="variant-row">
-            <input type="text" class="variant-size" placeholder="Size (e.g. 100g)">
-            <input type="number" class="variant-price" placeholder="Price (NPR)">
-            <button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>
-          </div>
-        `;
-        
-        showToast(`✓ ${name} added with ${variants.length} variant(s)!`);
+        variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if (size && price > 0) variants.push({ size, price }); });
+        if (variants.length === 0) { showToast('Add at least one variant'); return; }
+        products.push({ id: Date.now(), name, category: cat, desc: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount: 0 });
+        await saveProductsToCloud(); renderProductsList();
+        document.getElementById('prodName').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = '';
+        document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button></div>`;
+        showToast(`✓ ${name} added!`);
       }
 
       function updateStats() { document.getElementById('statOrders').innerText = orders.length; document.getElementById('statProductsCount').innerText = products.length; }
