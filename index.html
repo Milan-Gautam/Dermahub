@@ -47,7 +47,7 @@
         .cart-icon:hover { background: var(--warm-brown); }
         .cart-count { background: white; color: var(--deep-olive); border-radius: 30px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; }
         
-        .hero { padding: 40px 0 50px; margin-top:20px; }
+        .hero { padding: 40px 0 50px; }
         .hero-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 40px; }
         .hero-text { flex: 1.2; }
         .hero-text .badge { background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 20px; }
@@ -229,7 +229,7 @@
             <button class="cat-btn" data-cat="sunscreen">Sunscreen</button>
             <button class="cat-btn" data-cat="moisturizer">Moisturizer</button>
         </div>
-        <div clss="product-grid" id="productGridContainer"></div>
+        <div class="product-grid" id="productGridContainer"></div>
     </div>
 </main>
 
@@ -243,7 +243,6 @@
     const STORAGE_PRODUCTS = "dermakraft_products_v3";
     const STORAGE_CART = "dermakraft_cart";
     
-    // Load products ONLY from SheetDB (admin panel)
     async function loadProducts(){
         try {
             const res = await fetch(SHEETDB_PRODUCTS_URL);
@@ -255,11 +254,12 @@
                     if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants);
                     if(typeof p.images === 'string') p.images = JSON.parse(p.images);
                 });
-                localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(data));
-                return data;
+                if(data.length > 0) {
+                    localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(data));
+                    return data;
+                }
             }
         } catch(e) { console.log('Loading from backup...'); }
-        // Fallback to last known state
         const stored = localStorage.getItem(STORAGE_PRODUCTS);
         return stored ? JSON.parse(stored) : [];
     }
@@ -276,7 +276,7 @@
     function renderProducts(){
         const g = document.getElementById('productGridContainer'); g.innerHTML = '';
         const f = products.filter(p => currentFilter === 'all' || p.category === currentFilter);
-        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. We will add them very soon!</div>'; return; }
+        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. Admin will add them soon!</div>'; return; }
         f.forEach(prod => {
             const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
             let dots = ''; if(imgs.length > 1) imgs.forEach((_, i) => dots += `<span class="img-dot${i===0?' active':''}"></span>`);
@@ -378,7 +378,18 @@
         try { await fetch(SHEETDB_ORDERS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: [orderData] }) }); } catch(e) {}
         localStorage.setItem('track_' + orderId, JSON.stringify({ ...orderData, trackingUrl }));
         try { await emailjs.send("service_ycj8myh", "template_8sw10cu", { customerName: name, orderId, items: itemsStr, subtotal: subtotal.toLocaleString(), deliveryCharge: deliveryCharge.toString(), total: total.toLocaleString(), location, address: addr, trackingUrl, email }); } catch(e) {}
-        document.getElementById('successMsg').innerHTML = `Thank you ${name}!<br>Total: NPR ${total.toLocaleString()}<br>Delivery: ${location}<br>Tracking link sent to ${email}`;
+        document.getElementById('successMsg').innerHTML = `
+            <strong>Thank you ${name}!</strong><br><br>
+            📦 <strong>Order Total: NPR ${total.toLocaleString()}</strong><br>
+            🚚 Delivery: ${location}<br><br>
+            <div style="background:#fff3cd;padding:12px;border-radius:10px;margin:12px 0;font-size:0.8rem;text-align:left;">
+                <strong>💳 Payment Required:</strong><br>
+                Please pay via <strong>eSewa/Khalti</strong> using the QR code sent to <strong>${email}</strong><br>
+                <small style="color:#856404;">⚠️ Your order will be processed after payment confirmation</small>
+            </div>
+            📧 Tracking link sent to ${email}<br>
+            <small style="color:#8b7b6e;">Track your order anytime using Order ID + Email</small>
+        `;
         document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('successModal').classList.add('open');
         document.getElementById('trackOrderBtn').onclick = function(){ window.location.href = trackingUrl; };
         cart = []; addedKeys.clear(); saveCart(); updateCartUI(); updateCartButtons();
@@ -403,16 +414,20 @@
     
     document.getElementById('navShop').addEventListener('click', () => document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
     document.getElementById('navStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
-    document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science", "pH-optimized formulas. No sulfates, parabens, or synthetic dyes."));
+    document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science", "pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
     document.getElementById('navContact').addEventListener('click', () => showInfo("Contact Us", "Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-    document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal."));
-    document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy", "Transparency is key. Every ingredient serves a purpose."));
-    document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal", "Proudly produced in Kathmandu Valley."));
-    document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping", "Inside Kathmandu: NPR 100\nOutside: NPR 200\n3-7 business days."));
-    document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns", "30-day satisfaction guarantee."));
+    document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
+    document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy", "Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
+    document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal", "Proudly produced in Kathmandu Valley, supporting local communities."));
+    document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping", "Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
+    document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns", "30-day satisfaction guarantee. Contact us for return support."));
     document.getElementById('footerContact').addEventListener('click', () => showInfo("Get in Touch", "Email: hello@dermakraft.com\nPhone: +977 9812345678"));
     
-    const heroImages = ["https://images.unsplash.com/photo-1556228578-8c89e6adf0c4?w=600", "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=600", "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600"];
+    const heroImages = [
+        "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800",
+        "https://images.unsplash.com/photo-1570194065650-d99fb4ee8e39?w=800",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
+    ];
     let hi = 0, he = document.getElementById('heroImage');
     function rh(){ he.style.backgroundImage = `url('${heroImages[hi]}')`; hi = (hi + 1) % heroImages.length; }
     rh(); setInterval(rh, 4500);
