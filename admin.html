@@ -63,7 +63,7 @@
     .badge-status.ordered { background: #e8e0f7; color: #5b3a8c; }
     .badge-status.paid { background: #cce5ff; color: #004085; }
     .badge-status.processing { background: #fff3cd; color: #856404; }
-    .badge-status.shipped { background: #cce5ff; color: #004085; }
+    .badge-status.shipped { background: #b8daff; color: #004085; }
     .badge-status.delivered { background: #d4edda; color: #155724; }
     .delete-btn { background: none; border: none; color: #c27c6e; cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 8px; }
     .delete-btn:hover { background: #fee2dd; }
@@ -113,7 +113,7 @@
     <div class="login-card">
       <div class="lock-icon">🔒</div>
       <h1>DERMAKRAFT</h1>
-      <p class="subtitle">Admin Access</p>
+      <p class="subtitle">Secure Admin Access</p>
       <div class="password-wrapper">
         <input type="password" id="passwordInput" placeholder="Enter Admin Passkey" autocomplete="off">
         <button type="button" class="toggle-password" id="togglePasswordBtn">
@@ -123,7 +123,7 @@
       </div>
       <button class="login-btn" id="loginBtn">Login to Dashboard</button>
       <div id="loginError" class="error-msg">❌ Invalid password. Access denied.</div>
-      <div id="rateLimitMsg" class="rate-limit-msg">⏳ Too many attempts. Please wait 30 seconds.</div>
+      <div id="rateLimitMsg" class="rate-limit-msg">⏳ Too many attempts. Please wait.</div>
     </div>
   </div>
 
@@ -192,23 +192,35 @@
 
   <script>
     (function() {
-      const ADMIN_PASSWORD = "admin123";
+      // SHA-256 hash of "admin123"
+      const ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
       const SHEETDB_PRODUCTS_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
       const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
-      const SESSION_KEY = "admin_session";
+      const SESSION_KEY = "admin_session_secure";
       const SESSION_TIME = "admin_session_time";
       const STORAGE_PRODUCTS = "dermakraft_products_v3";
       
       let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0');
       let lockoutUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0');
       const MAX_ATTEMPTS = 5;
+      const LOCKOUT_DURATION = 60000;
       let orders = [], products = [];
+
+      // SHA-256 hashing
+      async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
 
       function startSession() { localStorage.setItem(SESSION_KEY,'true'); localStorage.setItem(SESSION_TIME,Date.now().toString()); }
       function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_TIME); }
       function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < 30; }
       function refreshSession() { if(localStorage.getItem(SESSION_KEY)==='true') localStorage.setItem(SESSION_TIME,Date.now().toString()); }
+      
       ['click','keypress','scroll','mousemove'].forEach(e => document.addEventListener(e, refreshSession));
+      
       setInterval(() => {
         if(localStorage.getItem(SESSION_KEY)==='true' && !isSessionValid()) { clearSession(); if(document.getElementById('dashboard').style.display==='block') { alert('Session expired.'); logout(); } }
         if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
@@ -237,7 +249,7 @@
         orders.forEach(o => {
           const t = parseFloat(o.total)||0; rev+=t; cust.add((o.email||'').toLowerCase());
           const status = o.status || 'ordered';
-          if(status === 'paid' || status === 'processing' || status === 'shipped' || status === 'delivered') paidCount++;
+          if(status==='paid'||status==='processing'||status==='shipped'||status==='delivered') paidCount++;
           html += `<tr><td><span class="badge-order">#${(o.orderId||'').slice(-8)}</span></td><td><strong>${esc(o.customerName)}</strong></td><td>${esc(o.email)}<br><small>${esc(o.phone)}</small></td><td><span class="badge-location ${(o.location||'').includes('Inside')?'inside':'outside'}">${esc(o.location)}</span></td><td>${esc(o.items)}</td><td><strong>NPR ${t.toLocaleString()}</strong></td><td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td><td><span class="badge-status ${status}">${status}</span></td><td><select class="status-select" onchange="window._updateStatus('${o.orderId}', this.value)"><option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option><option value="paid" ${status==='paid'?'selected':''}>Paid</option><option value="processing" ${status==='processing'?'selected':''}>Processing</option><option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option><option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option></select> <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td></tr>`;
         });
         tbody.innerHTML = html;
@@ -252,25 +264,13 @@
 
       // ==================== PRODUCTS ====================
       async function loadProducts() {
-        try {
-          const res = await fetch(SHEETDB_PRODUCTS_URL);
-          if(res.ok) { 
-            products = await res.json(); 
-            products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); });
-            if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-          }
-        } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
+        try { const res = await fetch(SHEETDB_PRODUCTS_URL); if(res.ok) { products = await res.json(); products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
         return products;
       }
 
       async function saveProductsToCloud() {
         const data = products.map(p => ({ id: p.id, name: p.name, category: p.category, desc: p.desc, images: JSON.stringify(p.images), variants: JSON.stringify(p.variants), discount: p.discount||0 }));
-        try {
-          const existing = await fetch(SHEETDB_PRODUCTS_URL).then(r => r.json());
-          for (const item of existing) { await fetch(`${SHEETDB_PRODUCTS_URL}/id/${item.id}`, { method: 'DELETE' }).catch(()=>{}); }
-          if(data.length > 0) { await fetch(SHEETDB_PRODUCTS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); }
-          localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-        } catch(e) { console.log('Cloud save failed'); }
+        try { const existing = await fetch(SHEETDB_PRODUCTS_URL).then(r => r.json()); for (const item of existing) { await fetch(`${SHEETDB_PRODUCTS_URL}/id/${item.id}`, { method: 'DELETE' }).catch(()=>{}); } if(data.length > 0) { await fetch(SHEETDB_PRODUCTS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); } localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } catch(e) { console.log('Cloud save failed'); }
       }
 
       function renderProductsList() {
@@ -278,48 +278,25 @@
         if(!products.length) { c.innerHTML='<div class="empty-state">No products yet.</div>'; document.getElementById('statProductsCount').innerText='0'; return; }
         let html='';
         products.forEach(p => {
-          const d = p.discount || 0;
-          const variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
+          const d = p.discount || 0, variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
           html += `<div class="product-item-row"><div class="prod-info"><strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br><small>${variantsStr}</small>${d>0?` <span style="color:#e74c3c;font-size:0.7rem;">(${d}% OFF)</span>`:''}</div><div class="prod-actions"><input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)"><button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button></div></div>`;
         });
         c.innerHTML = html;
         document.getElementById('statProductsCount').innerText = products.length;
       }
 
-      window._setDiscount = async function(prodId, discountVal) {
-        const d = Math.max(0, Math.min(99, parseInt(discountVal) || 0));
-        const prod = products.find(p => p.id === prodId);
-        if(prod) { prod.discount = d; await saveProductsToCloud(); renderProductsList(); showToast(`Discount: ${d}%`); }
-      };
+      window._setDiscount = async function(prodId, discountVal) { const d = Math.max(0, Math.min(99, parseInt(discountVal) || 0)); const prod = products.find(p => p.id === prodId); if(prod) { prod.discount = d; await saveProductsToCloud(); renderProductsList(); showToast(`Discount: ${d}%`); } };
+      window._delProd = async function(id) { if(!confirm('Delete product?')) return; products = products.filter(p => p.id !== id); await saveProductsToCloud(); renderProductsList(); showToast('Product deleted'); };
 
-      window._delProd = async function(id) {
-        if(!confirm('Delete product?')) return;
-        products = products.filter(p => p.id !== id);
-        await saveProductsToCloud();
-        renderProductsList();
-        showToast('Product deleted');
-      };
-
-      window.addVariant = function() {
-        const container = document.getElementById('variantsContainer');
-        const row = document.createElement('div');
-        row.className = 'variant-row';
-        row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`;
-        container.appendChild(row);
-      };
-
-      window.removeVariant = function(btn) {
-        const rows = document.querySelectorAll('#variantsContainer .variant-row');
-        if (rows.length > 1) { btn.closest('.variant-row').remove(); } else { showToast('Need at least one variant'); }
-      };
+      window.addVariant = function() { const container = document.getElementById('variantsContainer'); const row = document.createElement('div'); row.className = 'variant-row'; row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`; container.appendChild(row); };
+      window.removeVariant = function(btn) { const rows = document.querySelectorAll('#variantsContainer .variant-row'); if(rows.length > 1) btn.closest('.variant-row').remove(); else showToast('Need at least one variant'); };
 
       async function addProduct() {
         const name = document.getElementById('prodName').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
-        if (!name) { showToast('Enter product name'); return; }
-        const variantRows = document.querySelectorAll('#variantsContainer .variant-row');
-        const variants = [];
-        variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if (size && price > 0) variants.push({ size, price }); });
-        if (variants.length === 0) { showToast('Add at least one variant'); return; }
+        if(!name) { showToast('Enter product name'); return; }
+        const variantRows = document.querySelectorAll('#variantsContainer .variant-row'); const variants = [];
+        variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if(size && price > 0) variants.push({ size, price }); });
+        if(variants.length === 0) { showToast('Add at least one variant'); return; }
         products.push({ id: Date.now(), name, category: cat, desc: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount: 0 });
         await saveProductsToCloud(); renderProductsList();
         document.getElementById('prodName').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = '';
@@ -340,24 +317,27 @@
 
       async function refreshData() { showToast('🔄 Syncing...'); await loadOrders(); await loadProducts(); renderOrders(); renderProductsList(); showToast('✅ Refreshed'); }
 
-      function login() {
-        if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; return; }
-        if(document.getElementById('passwordInput').value === ADMIN_PASSWORD) {
+      async function login() {
+        if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('rateLimitMsg').innerText='🔒 Locked. Wait 60 seconds.'; document.getElementById('loginBtn').disabled=true; return; }
+        const inputPassword = document.getElementById('passwordInput').value;
+        const hashedInput = await sha256(inputPassword);
+        if(hashedInput === ADMIN_PASSWORD_HASH) {
           loginAttempts=0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until');
           document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false;
           startSession(); document.getElementById('loginPage').style.display='none'; document.getElementById('dashboard').style.display='block';
           document.getElementById('loginError').style.display='none'; document.getElementById('passwordInput').value=''; refreshData();
         } else {
           loginAttempts++; localStorage.setItem('admin_login_attempts',loginAttempts.toString());
-          if(loginAttempts >= MAX_ATTEMPTS) { lockoutUntil = Date.now() + 30000; localStorage.setItem('admin_lockout_until',lockoutUntil.toString()); document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; }
-          else { document.getElementById('loginError').style.display='block'; document.getElementById('loginError').innerText=`❌ Invalid. ${MAX_ATTEMPTS-loginAttempts} attempts left.`; }
+          if(loginAttempts >= MAX_ATTEMPTS) { lockoutUntil = Date.now() + LOCKOUT_DURATION; localStorage.setItem('admin_lockout_until',lockoutUntil.toString()); document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('rateLimitMsg').innerText='🔒 Too many attempts. Locked for 60 seconds.'; document.getElementById('loginBtn').disabled=true; }
+          else { document.getElementById('loginError').style.display='block'; document.getElementById('loginError').innerText=`❌ Invalid password. ${MAX_ATTEMPTS-loginAttempts} attempts left.`; }
+          document.getElementById('passwordInput').value='';
         }
       }
 
       function logout() { clearSession(); document.getElementById('loginPage').style.display='flex'; document.getElementById('dashboard').style.display='none'; }
       
       document.getElementById('loginBtn').addEventListener('click', login);
-      document.getElementById('passwordInput').addEventListener('keypress', e => { if(e.key==='Enter') login(); });
+      document.getElementById('passwordInput').addEventListener('keypress', async (e) => { if(e.key==='Enter') await login(); });
       document.getElementById('addProductBtn').addEventListener('click', addProduct);
       document.getElementById('togglePasswordBtn').addEventListener('click', function() { const i=document.getElementById('passwordInput'),o=document.getElementById('eyeOpenIcon'),f=document.getElementById('eyeOffIcon'); if(i.type==='password'){i.type='text';o.style.display='none';f.style.display='block';}else{i.type='password';o.style.display='block';f.style.display='none';} });
       
