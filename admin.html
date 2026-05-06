@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>DERMAKRAFT | Admin Dashboard</title>
+  <title>DERMAKRAFT | Admin Dashboard | Manage Orders & Products</title>
+  <meta name="description" content="DERMAKRAFT admin panel - Manage customer orders, update order status, add or remove products, set discounts, and control your skincare store from one dashboard.">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
   <style>
@@ -96,7 +98,6 @@
     .product-item-row .prod-info { flex: 1; min-width: 200px; }
     .product-item-row .prod-actions { display: flex; gap: 8px; align-items: center; }
     .discount-input { width: 55px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
-    
     .section-divider { border-top: 1px solid #ece2d9; margin: 20px 0; padding-top: 20px; }
     
     @media (max-width: 576px) {
@@ -164,7 +165,7 @@
           <div class="form-field"><label>Image URLs (comma)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
         </div>
         <div class="variants-section">
-          <label>Variants (Size & Price)</label>
+          <label>Variants (Size & Price in NPR)</label>
           <div id="variantsContainer">
             <div class="variant-row">
               <input type="text" class="variant-size" placeholder="Size (e.g. 100g)">
@@ -217,12 +218,10 @@
         if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
       }, 5000);
 
-      // ==================== ORDERS ====================
       async function loadOrders() {
         try { const res = await fetch(SHEETDB_ORDERS_URL); if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } else throw new Error('Failed'); }
         catch(e) { document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline'; orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]'); }
         orders.forEach(o => { if(!o.status) o.status = 'ordered'; });
-        // Sync all orders to localStorage tracking
         orders.forEach(o => {
           const existing = JSON.parse(localStorage.getItem('track_'+o.orderId) || '{}');
           localStorage.setItem('track_'+o.orderId, JSON.stringify({...o, ...existing}));
@@ -231,12 +230,9 @@
       }
 
       async function updateOrderStatus(orderId, newStatus) {
-        // Update SheetDB
         try { await fetch(`${SHEETDB_ORDERS_URL}/orderId/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { status: newStatus } }) }); } catch(e) {}
-        // Update local array
         const idx = orders.findIndex(o => o.orderId === orderId); if(idx >= 0) orders[idx].status = newStatus;
         localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
-        // Update tracking localStorage - THIS IS THE KEY FIX
         const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}');
         trackData.status = newStatus;
         trackData.orderId = trackData.orderId || orderId;
@@ -257,7 +253,7 @@
         orders.forEach(o => {
           const t = parseFloat(o.total)||0; rev+=t; cust.add((o.email||'').toLowerCase());
           const status = o.status || 'ordered';
-          if(status==='paid'||status==='processing'||status==='shipped'||status==='delivered') paidCount++;
+          if(['paid','processing','shipped','delivered'].includes(status)) paidCount++;
           html += `<tr><td><span class="badge-order">#${(o.orderId||'').slice(-8)}</span></td><td><strong>${esc(o.customerName)}</strong></td><td>${esc(o.email)}<br><small>${esc(o.phone)}</small></td><td><span class="badge-location ${(o.location||'').includes('Inside')?'inside':'outside'}">${esc(o.location)}</span></td><td>${esc(o.items)}</td><td><strong>NPR ${t.toLocaleString()}</strong></td><td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td><td><span class="badge-status ${status}">${status}</span></td><td><select class="status-select" onchange="window._updateStatus('${o.orderId}', this.value)"><option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option><option value="paid" ${status==='paid'?'selected':''}>Paid</option><option value="processing" ${status==='processing'?'selected':''}>Processing</option><option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option><option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option></select> <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td></tr>`;
         });
         tbody.innerHTML = html;
@@ -270,7 +266,6 @@
       window._updateStatus = async function(orderId, newStatus) { await updateOrderStatus(orderId, newStatus); };
       window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await fetch(`${SHEETDB_ORDERS_URL}/orderId/${id}`,{method:'DELETE'}); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders)); localStorage.removeItem('track_'+id); renderOrders(); showToast('Order deleted'); };
 
-      // ==================== PRODUCTS ====================
       async function loadProducts() {
         try { const res = await fetch(SHEETDB_PRODUCTS_URL); if(res.ok) { products = await res.json(); products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
         return products;
@@ -338,7 +333,6 @@
           loginAttempts++; localStorage.setItem('admin_login_attempts',loginAttempts.toString());
           if(loginAttempts >= MAX_ATTEMPTS) { lockoutUntil = Date.now() + LOCKOUT_DURATION; localStorage.setItem('admin_lockout_until',lockoutUntil.toString()); document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; }
           else { document.getElementById('loginError').style.display='block'; document.getElementById('loginError').innerText=`❌ Invalid. ${MAX_ATTEMPTS-loginAttempts} attempts left.`; }
-          document.getElementById('passwordInput').value='';
         }
       }
 
