@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-    <title>DERMAKRAFT | Chemist-Formulated Skincare</title>
+    <title>DERMAKRAFT | Handmade Chemist-Formulated Skincare Nepal | Natural Soap, Shampoo & Face Wash</title>
+    <meta name="description" content="DERMAKRAFT offers chemist-formulated, pH-balanced skincare handmade in Nepal. Shop natural soap bars, hand wash, shampoo bars, face wash, sunscreen, lip balm & moisturizer. Free delivery in Kathmandu.">
+    <meta name="keywords" content="skincare nepal, handmade soap kathmandu, natural shampoo bar, organic face wash nepal, chemist formulated skincare, pH balanced soap, sunscreen nepal, lip balm, moisturizer, dermakraft, esewa payment, khalti payment">
+    <meta name="author" content="DERMAKRAFT">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="DERMAKRAFT | Handmade Chemist-Formulated Skincare Nepal">
+    <meta property="og:description" content="Shop pH-balanced, natural skincare handmade by a professional chemist in Kathmandu, Nepal. Soap bars, shampoo, face wash & more.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://akraft.vercel.app">
+    <link rel="canonical" href="https://akraft.vercel.app">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -36,8 +45,8 @@
         .logo p { font-size: 0.65rem; letter-spacing: 1px; color: var(--stone); text-transform: uppercase; margin-top: 2px; }
         .logo { cursor: default; user-select: none; }
         
-        .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
-        .nav-links a { text-decoration: none; font-size: 0.8rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.2s; position: relative; padding: 4px 0; letter-spacing: 0.3px; white-space: nowrap; }
+        .nav-links { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; font-size: 0.78rem; font-weight: 500; color: var(--charcoal); cursor: pointer; transition: all 0.2s; position: relative; padding: 4px 0; letter-spacing: 0.3px; white-space: nowrap; }
         .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--warm-brown); transition: width 0.3s; }
         .nav-links a:hover { color: var(--warm-brown); }
         .nav-links a:hover::after { width: 100%; }
@@ -103,7 +112,7 @@
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 3000; padding: 16px; }
         .modal.open { display: flex; }
-        .modal-card { background: white; border-radius: 24px; max-width: 440px; width: 100%; padding: 28px 24px; text-align: center; max-height: 85vh; overflow-y: auto; }
+        .modal-card { background: white; border-radius: 24px; max-width: 440px; width: 100%; padding: 28px 24px; text-align: center; max-height: 85vh; overflow-y: auto; position: relative; }
         .modal-card h3 { font-family: 'Playfair Display', serif; margin-bottom: 16px; font-size: 1.3rem; }
         .input-group { text-align: left; margin-bottom: 12px; }
         .input-group label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; color: var(--charcoal); text-transform: uppercase; }
@@ -137,12 +146,17 @@
 </head>
 <body>
 
-<div class="top-banner"><i class="fas fa-flask"></i> chemist-formulated · handcrafted in nepal · ph-balanced <i class="fas fa-leaf"></i></div>
+<div class="top-banner"><i class="fas fa-flask"></i> chemist-formulated · handmade in nepal · pH-balanced skincare <i class="fas fa-leaf"></i></div>
 
 <header>
     <div class="container header-inner">
-        <div class="logo" id="logoClick"><h1>DERMAKRAFT</h1><p>by a chemist, for your skin</p></div>
-        <nav class="nav-links"><a id="navShop">Shop</a><a id="navStory">Our Story</a><a id="navScience">Science</a><a id="navContact">Contact</a></nav>
+        <div class="logo" id="logoClick" title="DERMAKRAFT - Natural Skincare Nepal"><h1>DERMAKRAFT</h1><p>by a chemist, for your skin</p></div>
+        <nav class="nav-links">
+            <a id="navShop">🛍️ Shop All</a>
+            <a id="navStory">📖 Our Story</a>
+            <a id="navScience">🔬 Our Science</a>
+            <a id="navContact">📞 Contact</a>
+        </nav>
         <div class="header-actions"><button class="cart-icon" id="cartBtn"><i class="fas fa-shopping-bag"></i> Cart <span class="cart-count" id="cartCount">0</span></button></div>
     </div>
 </header>
@@ -155,70 +169,21 @@
     <button class="checkout-btn" id="checkoutSideBtn">Proceed to Checkout</button>
 </div>
 
-<div class="modal" id="checkoutModal">
-    <div class="modal-card">
-        <h3>Complete Your Order</h3>
-        <div class="input-group"><label>Full Name</label><input type="text" id="custName" placeholder="Enter your full name"></div>
-        <div class="input-group"><label>Email</label><input type="email" id="custEmail" placeholder="hello@example.com"></div>
-        <div class="input-group"><label>Phone</label><input type="tel" id="custPhone" placeholder="+977 98..."></div>
-        <div class="input-group"><label>Delivery Location</label>
-            <div class="radio-group" id="locationGroup">
-                <div class="radio-option selected" data-location="inside" onclick="selectLocation('inside', this)"><i class="fas fa-building"></i> Inside Kathmandu<br><small>NPR 100</small></div>
-                <div class="radio-option" data-location="outside" onclick="selectLocation('outside', this)"><i class="fas fa-mountain"></i> Outside Kathmandu<br><small>NPR 200</small></div>
-            </div>
-        </div>
-        <div class="input-group"><label>Shipping Address</label><input type="text" id="custAddress" placeholder="Street, city, postal code"></div>
-        <div style="background:#fefaf5;padding:12px;border-radius:12px;margin:12px 0;text-align:left;font-size:0.85rem;">
-            <strong>Order Summary:</strong><br>
-            <span id="checkoutSubtotal">Subtotal: NPR 0</span><br>
-            <span id="checkoutDelivery">Delivery: NPR 0</span><br>
-            <strong id="checkoutTotal">Total: NPR 0</strong>
-        </div>
-        <button class="btn-primary" id="submitOrderBtn">Place Order</button>
-        <button class="btn-secondary" id="closeCheckoutBtn">Cancel</button>
-    </div>
-</div>
+<div class="modal" id="checkoutModal"><div class="modal-card"><h3>Complete Your Order</h3><div class="input-group"><label>Full Name</label><input type="text" id="custName" placeholder="Enter your full name"></div><div class="input-group"><label>Email</label><input type="email" id="custEmail" placeholder="hello@example.com"></div><div class="input-group"><label>Phone</label><input type="tel" id="custPhone" placeholder="+977 98..."></div><div class="input-group"><label>Delivery Location</label><div class="radio-group"><div class="radio-option selected" onclick="selectLocation('inside', this)"><i class="fas fa-building"></i> Inside Kathmandu<br><small>NPR 100</small></div><div class="radio-option" onclick="selectLocation('outside', this)"><i class="fas fa-mountain"></i> Outside Kathmandu<br><small>NPR 200</small></div></div></div><div class="input-group"><label>Shipping Address</label><input type="text" id="custAddress" placeholder="Street, city, postal code"></div><div style="background:#fefaf5;padding:12px;border-radius:12px;margin:12px 0;text-align:left;font-size:0.85rem;"><strong>Order Summary:</strong><br><span id="checkoutSubtotal">Subtotal: NPR 0</span><br><span id="checkoutDelivery">Delivery: NPR 0</span><br><strong id="checkoutTotal">Total: NPR 0</strong></div><button class="btn-primary" id="submitOrderBtn">Place Order</button><button class="btn-secondary" onclick="document.getElementById('checkoutModal').classList.remove('open')">Cancel</button></div></div>
 
-<div class="modal" id="successModal">
-    <div class="modal-card">
-        <i class="fas fa-check-circle" style="font-size:3.5rem;color:var(--olive);margin-bottom:12px;"></i>
-        <h3>Order Received ✨</h3>
-        <p id="successMsg">Thank you for supporting clean beauty.</p>
-        <button class="btn-primary" id="trackOrderBtn">🔍 Track Your Order</button>
-        <button class="btn-secondary" id="closeSuccessBtn">Continue Shopping</button>
-    </div>
-</div>
+<div class="modal" id="successModal"><div class="modal-card"><i class="fas fa-check-circle" style="font-size:3.5rem;color:var(--olive);margin-bottom:12px;"></i><h3>Order Received ✨</h3><p id="successMsg">Thank you for supporting clean beauty.</p><button class="btn-primary" id="trackOrderBtn">🔍 Track Your Order</button><button class="btn-secondary" onclick="document.getElementById('successModal').classList.remove('open')">Continue Shopping</button></div></div>
 
-<div class="modal" id="infoModal">
-    <div class="modal-card">
-        <i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i>
-        <h3 id="infoTitle">Message</h3>
-        <p id="infoText" style="margin:16px 0;line-height:1.6;"></p>
-        <button class="btn-primary" id="closeInfoBtn">OK</button>
-    </div>
-</div>
+<div class="modal" id="infoModal"><div class="modal-card"><i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i><h3 id="infoTitle">Message</h3><p id="infoText" style="margin:16px 0;line-height:1.6;"></p><button class="btn-primary" id="closeInfoBtn">OK</button></div></div>
 
-<div class="product-modal" id="productModal">
-    <div class="product-modal-content">
-        <button class="modal-close" onclick="closeProductModal()">&times;</button>
-        <img class="modal-img-main" id="modalMainImg" src="">
-        <div class="modal-img-thumbs" id="modalThumbs"></div>
-        <h3 id="modalProdName" style="font-size:1.1rem;"></h3>
-        <p id="modalProdDesc" style="color:var(--stone);font-size:0.8rem;margin-bottom:10px;"></p>
-        <div class="variant-group" id="modalVariants"></div>
-        <div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div>
-    </div>
-</div>
+<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><h3 id="modalProdName"></h3><p id="modalProdDesc" style="color:var(--stone);font-size:0.8rem;margin-bottom:10px;"></p><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div></div></div>
 
-<div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;">
-    <a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a>
-</div>
+<div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;"><a href="admin.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a></div>
 
 <div id="toastMsg" class="toast"></div>
 
 <main>
-    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-mortar-pestle"></i> chemist-crafted since 2024</div><h1>Gentle Formulas,<br>Science‑Backed Rituals</h1><p>Daily soaps, hand wash, shampoos & skincare made by a professional chemist. Balanced pH, natural actives, and zero compromise.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
-    <div class="container"><div class="section-title">Our Collection</div><p class="section-subtitle">Chemist-formulated essentials for your daily ritual</p>
+    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-mortar-pestle"></i> chemist-crafted since 2024</div><h1>Gentle Formulas,<br>Science‑Backed Rituals</h1><p>Daily soaps, hand wash, shampoos & skincare made by a professional chemist in Kathmandu, Nepal. Balanced pH, natural actives, and zero compromise.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
+    <div class="container"><div class="section-title">Our Collection</div><p class="section-subtitle">Chemist-formulated essentials for your daily skincare ritual</p>
         <div class="category-tabs" id="categoryTabs">
             <button class="cat-btn active" data-cat="all">All</button>
             <button class="cat-btn" data-cat="soap">Soap Bars</button>
@@ -233,7 +198,7 @@
     </div>
 </main>
 
-<footer><div class="container"><div class="footer-grid"><div class="footer-col"><h4>Dermakraft</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Formula Philosophy</a></li><li><a id="footerNepal">Made in Nepal</a></li></ul></div><div class="footer-col"><h4>Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div></div><div class="copyright">© 2025 DERMAKRAFT — Clean Chemist Formulas. All Rights Reserved.</div></div></footer>
+<footer><div class="container"><div class="footer-grid"><div class="footer-col"><h4>DERMAKRAFT Nepal</h4><ul><li><a id="footerStory">📖 Our Story</a></li><li><a id="footerScience">🔬 Formula Science</a></li><li><a id="footerNepal">🇳🇵 Made in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a id="footerShipping">🚚 Shipping Info</a></li><li><a id="footerReturns">🔄 Returns Policy</a></li><li><a id="footerContact">📞 Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">🧼 Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">🧴 Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">💆 Face Wash</a></li></ul></div></div><div class="copyright">© 2025 DERMAKRAFT — Chemist-Formulated Skincare | Handmade in Kathmandu, Nepal | pH-Balanced | Natural Ingredients</div></div></footer>
 
 <script>
 (function(){
@@ -244,196 +209,125 @@
     const STORAGE_CART = "dermakraft_cart";
     
     async function loadProducts(){
-        try {
-            const res = await fetch(SHEETDB_PRODUCTS_URL);
-            if(res.ok) {
-                let data = await res.json();
-                data.forEach(p => {
-                    p.id = parseInt(p.id);
-                    p.discount = parseInt(p.discount) || 0;
-                    if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants);
-                    if(typeof p.images === 'string') p.images = JSON.parse(p.images);
-                });
-                if(data.length > 0) {
-                    localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(data));
-                    return data;
-                }
-            }
-        } catch(e) { console.log('Loading from backup...'); }
-        const stored = localStorage.getItem(STORAGE_PRODUCTS);
-        return stored ? JSON.parse(stored) : [];
+        try{const res=await fetch(SHEETDB_PRODUCTS_URL);if(res.ok){let data=await res.json();data.forEach(p=>{p.id=parseInt(p.id);p.discount=parseInt(p.discount)||0;if(typeof p.variants==='string')p.variants=JSON.parse(p.variants);if(typeof p.images==='string')p.images=JSON.parse(p.images);});if(data.length>0){localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(data));return data;}}}catch(e){}
+        const stored=localStorage.getItem(STORAGE_PRODUCTS);return stored?JSON.parse(stored):[];
     }
+    function loadCart(){const s=localStorage.getItem(STORAGE_CART);return s?JSON.parse(s):[];}
+    function saveCart(){localStorage.setItem(STORAGE_CART,JSON.stringify(cart));}
     
-    function loadCart(){ const s = localStorage.getItem(STORAGE_CART); return s ? JSON.parse(s) : []; }
-    function saveCart(){ localStorage.setItem(STORAGE_CART, JSON.stringify(cart)); }
+    let products=[],cart=loadCart(),addedKeys=new Set(cart.map(i=>i.uniqueKey)),currentFilter="all",selectedLocation="inside",deliveryCharge=100;
     
-    let products = [], cart = loadCart(), addedKeys = new Set(cart.map(i => i.uniqueKey)), currentFilter = "all", selectedLocation = "inside", deliveryCharge = 100;
-    
-    function toast(msg){ const t = document.getElementById('toastMsg'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
-    function getKey(pid, v){ return `${pid}-${v}`; }
-    function getDiscountedPrice(price, discount){ return discount > 0 ? Math.round(price * (1 - discount/100)) : price; }
+    function toast(msg){const t=document.getElementById('toastMsg');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
+    function getKey(pid,v){return`${pid}-${v}`;}
+    function getDiscountedPrice(price,discount){return discount>0?Math.round(price*(1-discount/100)):price;}
     
     function renderProducts(){
-        const g = document.getElementById('productGridContainer'); g.innerHTML = '';
-        const f = products.filter(p => currentFilter === 'all' || p.category === currentFilter);
-        if(f.length === 0) { g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. Admin will add them soon!</div>'; return; }
-        f.forEach(prod => {
-            const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
-            let dots = ''; if(imgs.length > 1) imgs.forEach((_, i) => dots += `<span class="img-dot${i===0?' active':''}"></span>`);
-            const dv = prod.variants[0], origPrice = dv.price, disPrice = getDiscountedPrice(dv.price, prod.discount || 0);
-            let vh = ''; prod.variants.forEach((v, i) => vh += `<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
-            const c = document.createElement('div'); c.className = 'product-card'; c.dataset.id = prod.id;
-            c.innerHTML = `<img src="${imgs[0]}" class="product-img" loading="lazy">${dots ? `<div class="img-dots">${dots}</div>` : ''}<div class="product-title">${prod.name}</div><div class="product-desc">${prod.desc}</div><div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount > 0 ? `<span class="original">NPR ${origPrice}</span> ` : ''}NPR ${disPrice}</span><button class="add-to-cart"><i class="fas fa-plus"></i> Add</button></div>`;
-            c.addEventListener('click', function(e){ if(!e.target.closest('.variant') && !e.target.closest('.add-to-cart')) openProductModal(prod); });
+        const g=document.getElementById('productGridContainer');g.innerHTML='';
+        const f=products.filter(p=>currentFilter==='all'||p.category===currentFilter);
+        if(f.length===0){g.innerHTML='<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">📦 No products yet. Admin will add them soon!</div>';return;}
+        f.forEach(prod=>{
+            const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
+            let dots='';if(imgs.length>1)imgs.forEach((_,i)=>dots+=`<span class="img-dot${i===0?' active':''}"></span>`);
+            const dv=prod.variants[0],origPrice=dv.price,disPrice=getDiscountedPrice(dv.price,prod.discount||0);
+            let vh='';prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
+            const c=document.createElement('div');c.className='product-card';c.dataset.id=prod.id;
+            c.innerHTML=`<img src="${imgs[0]}" class="product-img" loading="lazy">${dots?`<div class="img-dots">${dots}</div>`:''}<div class="product-title">${prod.name}</div><div class="product-desc">${prod.desc}</div><div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</span><button class="add-to-cart"><i class="fas fa-plus"></i> Add</button></div>`;
+            c.addEventListener('click',function(e){if(!e.target.closest('.variant')&&!e.target.closest('.add-to-cart'))openProductModal(prod);});
             g.appendChild(c);
         });
-        attachEvents(); updateCartButtons();
+        attachEvents();updateCartButtons();
     }
     
     function attachEvents(){
-        document.querySelectorAll('.variant').forEach(v => v.addEventListener('click', function(e){
-            e.stopPropagation();
-            const g = this.closest('.variant-group'); g.querySelectorAll('.variant').forEach(x => x.classList.remove('selected'));
-            this.classList.add('selected');
-            const c = this.closest('.product-card'), prod = products.find(p => p.id === parseInt(c.dataset.id)), discount = prod?.discount || 0, price = getDiscountedPrice(parseFloat(this.dataset.price), discount);
-            c.querySelector('.price').innerHTML = `${discount > 0 ? `<span class="original">NPR ${this.dataset.price}</span> ` : ''}NPR ${price}`;
-            updateCartButtons();
-        }));
-        document.querySelectorAll('.add-to-cart').forEach(b => b.addEventListener('click', function(e){
-            e.stopPropagation();
-            const c = this.closest('.product-card'), pid = parseInt(c.dataset.id), prod = products.find(p => p.id === pid), sv = c.querySelector('.variant.selected'), key = getKey(pid, sv.dataset.label), discount = prod?.discount || 0, price = getDiscountedPrice(parseFloat(sv.dataset.price), discount);
-            if(addedKeys.has(key)) { toast('Already in cart'); return; }
-            cart.push({ uniqueKey: key, productId: pid, variantLabel: sv.dataset.label, price, name: `${prod.name} (${sv.dataset.label})`, img: prod.images?.[0] || prod.img, quantity: 1 });
-            addedKeys.add(key); this.disabled = true; this.innerHTML = '<i class="fas fa-check"></i>'; saveCart(); updateCartUI(); toast('Added to cart ✓');
-        }));
+        document.querySelectorAll('.variant').forEach(v=>v.addEventListener('click',function(e){e.stopPropagation();const g=this.closest('.variant-group');g.querySelectorAll('.variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');const c=this.closest('.product-card'),prod=products.find(p=>p.id===parseInt(c.dataset.id)),discount=prod?.discount||0,price=getDiscountedPrice(parseFloat(this.dataset.price),discount);c.querySelector('.price').innerHTML=`${discount>0?`<span class="original">NPR ${this.dataset.price}</span> `:''}NPR ${price}`;updateCartButtons();}));
+        document.querySelectorAll('.add-to-cart').forEach(b=>b.addEventListener('click',function(e){e.stopPropagation();const c=this.closest('.product-card'),pid=parseInt(c.dataset.id),prod=products.find(p=>p.id===pid),sv=c.querySelector('.variant.selected'),key=getKey(pid,sv.dataset.label),discount=prod?.discount||0,price=getDiscountedPrice(parseFloat(sv.dataset.price),discount);if(addedKeys.has(key)){toast('Already in cart');return;}cart.push({uniqueKey:key,productId:pid,variantLabel:sv.dataset.label,price,name:`${prod.name} (${sv.dataset.label})`,img:prod.images?.[0]||prod.img,quantity:1});addedKeys.add(key);this.disabled=true;this.innerHTML='<i class="fas fa-check"></i>';saveCart();updateCartUI();toast('Added to cart ✓');}));
     }
     
-    function updateCartButtons(){
-        document.querySelectorAll('.product-card').forEach(c => {
-            const pid = parseInt(c.dataset.id), sv = c.querySelector('.variant.selected'); if(!sv) return;
-            const key = getKey(pid, sv.dataset.label), btn = c.querySelector('.add-to-cart');
-            if(addedKeys.has(key)) { if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i>'; } }
-            else { if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; } }
-        });
-    }
+    function updateCartButtons(){document.querySelectorAll('.product-card').forEach(c=>{const pid=parseInt(c.dataset.id),sv=c.querySelector('.variant.selected');if(!sv)return;const key=getKey(pid,sv.dataset.label),btn=c.querySelector('.add-to-cart');if(addedKeys.has(key)){if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i>';}}else{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-plus"></i> Add';}}});}
     
     function updateCartUI(){
-        const c = document.getElementById('cartList');
-        if(!cart.length) { c.innerHTML = '<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>'; }
-        else {
-            let h = ''; cart.forEach((i, idx) => {
-                h += `<li class="cart-item"><img src="${i.img}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">−</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;
-            });
-            c.innerHTML = h;
-            document.querySelectorAll('.dec').forEach(b => b.addEventListener('click', () => modQty(parseInt(b.dataset.idx), -1)));
-            document.querySelectorAll('.inc').forEach(b => b.addEventListener('click', () => modQty(parseInt(b.dataset.idx), 1)));
-            document.querySelectorAll('.remove-item').forEach(b => b.addEventListener('click', () => removeItem(parseInt(b.dataset.idx))));
-        }
-        const s = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-        document.getElementById('cartTotal').innerText = 'NPR ' + s.toLocaleString();
-        document.getElementById('cartCount').innerText = cart.reduce((s, i) => s + i.quantity, 0);
+        const c=document.getElementById('cartList');
+        if(!cart.length){c.innerHTML='<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>';}
+        else{let h='';cart.forEach((i,idx)=>{h+=`<li class="cart-item"><img src="${i.img}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">−</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;});c.innerHTML=h;
+        document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),-1)));
+        document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),1)));
+        document.querySelectorAll('.remove-item').forEach(b=>b.addEventListener('click',()=>removeItem(parseInt(b.dataset.idx))));}
+        const s=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('cartTotal').innerText='NPR '+s.toLocaleString();document.getElementById('cartCount').innerText=cart.reduce((s,i)=>s+i.quantity,0);
     }
+    function modQty(i,d){cart[i].quantity+=d;if(cart[i].quantity<=0)removeItem(i);else{saveCart();updateCartUI();}}
+    function removeItem(i){addedKeys.delete(cart[i].uniqueKey);cart.splice(i,1);saveCart();updateCartButtons();updateCartUI();}
     
-    function modQty(i, d){ cart[i].quantity += d; if(cart[i].quantity <= 0) removeItem(i); else { saveCart(); updateCartUI(); } }
-    function removeItem(i){ addedKeys.delete(cart[i].uniqueKey); cart.splice(i, 1); saveCart(); updateCartButtons(); updateCartUI(); }
-    
-    window.selectLocation = function(l, el){ selectedLocation = l; deliveryCharge = l === 'inside' ? 100 : 200; document.querySelectorAll('#checkoutModal .radio-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); updateCheckoutSummary(); };
-    function updateCheckoutSummary(){ const s = cart.reduce((s, i) => s + i.price * i.quantity, 0); document.getElementById('checkoutSubtotal').textContent = 'Subtotal: NPR ' + s.toLocaleString(); document.getElementById('checkoutDelivery').textContent = 'Delivery: NPR ' + deliveryCharge; document.getElementById('checkoutTotal').textContent = 'Total: NPR ' + (s + deliveryCharge).toLocaleString(); }
+    window.selectLocation=function(l,el){selectedLocation=l;deliveryCharge=l==='inside'?100:200;document.querySelectorAll('#checkoutModal .radio-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');updateCheckoutSummary();};
+    function updateCheckoutSummary(){const s=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('checkoutSubtotal').textContent='Subtotal: NPR '+s.toLocaleString();document.getElementById('checkoutDelivery').textContent='Delivery: NPR '+deliveryCharge;document.getElementById('checkoutTotal').textContent='Total: NPR '+(s+deliveryCharge).toLocaleString();}
     
     function openProductModal(prod){
-        const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
-        document.getElementById('modalMainImg').src = imgs[0]; document.getElementById('modalProdName').textContent = prod.name; document.getElementById('modalProdDesc').textContent = prod.desc;
-        let th = ''; imgs.forEach((img, i) => th += `<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
-        document.getElementById('modalThumbs').innerHTML = th;
-        const discount = prod.discount || 0, dv = prod.variants[0], dPrice = getDiscountedPrice(dv.price, discount);
-        let vh = ''; prod.variants.forEach((v, i) => vh += `<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
-        document.getElementById('modalVariants').innerHTML = vh;
-        document.getElementById('modalPrice').innerHTML = `${discount > 0 ? `<span class="original">NPR ${dv.price}</span> ` : ''}NPR ${dPrice}`;
-        document.querySelectorAll('#modalVariants .variant').forEach(v => v.addEventListener('click', function(){
-            document.querySelectorAll('#modalVariants .variant').forEach(x => x.classList.remove('selected')); this.classList.add('selected');
-            const price = parseFloat(this.dataset.price), disPrice = getDiscountedPrice(price, discount);
-            document.getElementById('modalPrice').innerHTML = `${discount > 0 ? `<span class="original">NPR ${price}</span> ` : ''}NPR ${disPrice}`;
-        }));
-        const btn = document.getElementById('modalAddBtn'), sv = document.querySelector('#modalVariants .variant.selected'), key = getKey(prod.id, sv.dataset.label);
-        if(addedKeys.has(key)) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i>'; } else { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; }
-        btn.onclick = function(){
-            const sv = document.querySelector('#modalVariants .variant.selected'), key = getKey(prod.id, sv.dataset.label), discount = prod.discount || 0, price = getDiscountedPrice(parseFloat(sv.dataset.price), discount);
-            if(addedKeys.has(key)) { toast('Already in cart'); closeProductModal(); return; }
-            cart.push({ uniqueKey: key, productId: prod.id, variantLabel: sv.dataset.label, price, name: `${prod.name} (${sv.dataset.label})`, img: imgs[0], quantity: 1 });
-            addedKeys.add(key); saveCart(); updateCartUI(); updateCartButtons(); toast('Added to cart ✓'); closeProductModal();
-        };
+        const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
+        document.getElementById('modalMainImg').src=imgs[0];document.getElementById('modalProdName').textContent=prod.name;document.getElementById('modalProdDesc').textContent=prod.desc;
+        let th='';imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
+        document.getElementById('modalThumbs').innerHTML=th;
+        const discount=prod.discount||0,dv=prod.variants[0],dPrice=getDiscountedPrice(dv.price,discount);
+        let vh='';prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
+        document.getElementById('modalVariants').innerHTML=vh;
+        document.getElementById('modalPrice').innerHTML=`${discount>0?`<span class="original">NPR ${dv.price}</span> `:''}NPR ${dPrice}`;
+        document.querySelectorAll('#modalVariants .variant').forEach(v=>v.addEventListener('click',function(){document.querySelectorAll('#modalVariants .variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');const price=parseFloat(this.dataset.price),disPrice=getDiscountedPrice(price,discount);document.getElementById('modalPrice').innerHTML=`${discount>0?`<span class="original">NPR ${price}</span> `:''}NPR ${disPrice}`;}));
+        const btn=document.getElementById('modalAddBtn'),sv=document.querySelector('#modalVariants .variant.selected'),key=getKey(prod.id,sv.dataset.label);
+        if(addedKeys.has(key)){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i>';}else{btn.disabled=false;btn.innerHTML='<i class="fas fa-plus"></i> Add';}
+        btn.onclick=function(){const sv=document.querySelector('#modalVariants .variant.selected'),key=getKey(prod.id,sv.dataset.label),discount=prod.discount||0,price=getDiscountedPrice(parseFloat(sv.dataset.price),discount);if(addedKeys.has(key)){toast('Already in cart');closeProductModal();return;}cart.push({uniqueKey:key,productId:prod.id,variantLabel:sv.dataset.label,price,name:`${prod.name} (${sv.dataset.label})`,img:imgs[0],quantity:1});addedKeys.add(key);saveCart();updateCartUI();updateCartButtons();toast('Added to cart ✓');closeProductModal();};
         document.getElementById('productModal').classList.add('open');
     }
+    window.closeProductModal=function(){document.getElementById('productModal').classList.remove('open');};
     
-    window.closeProductModal = function(){ document.getElementById('productModal').classList.remove('open'); };
-    document.getElementById('productModal').addEventListener('click', function(e){ if(e.target === this) closeProductModal(); });
+    // Close modals on outside click
+    document.getElementById('productModal').addEventListener('click',function(e){if(e.target===this)closeProductModal();});
+    document.getElementById('checkoutModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+    document.getElementById('successModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+    document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
     
-    function handleCheckout(){ if(!cart.length) { toast('Cart is empty'); return; } updateCheckoutSummary(); document.getElementById('checkoutModal').classList.add('open'); }
+    function handleCheckout(){if(!cart.length){toast('Cart is empty');return;}updateCheckoutSummary();document.getElementById('checkoutModal').classList.add('open');}
     
     async function submitOrder(){
-        const name = document.getElementById('custName').value.trim(), email = document.getElementById('custEmail').value.trim(), addr = document.getElementById('custAddress').value.trim(), phone = document.getElementById('custPhone').value.trim();
-        if(!name || !email || !addr || !phone) { toast('Please fill all fields'); return; }
-        const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0), total = subtotal + deliveryCharge, itemsStr = cart.map(i => `${i.quantity}x ${i.name}`).join(', '), orderId = 'ORD-' + Date.now(), orderDate = new Date().toISOString(), location = selectedLocation === 'inside' ? 'Inside Kathmandu Valley' : 'Outside Kathmandu Valley', trackingUrl = window.location.origin + window.location.pathname.replace('index.html', '') + 'track.html?orderId=' + orderId;
-        const orderData = { orderId, customerName: name, email, phone, address: addr, location, deliveryCharge, items: itemsStr, subtotal, total, date: orderDate, status: 'ordered' };
-        try { await fetch(SHEETDB_ORDERS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: [orderData] }) }); } catch(e) {}
-        localStorage.setItem('track_' + orderId, JSON.stringify({ ...orderData, trackingUrl }));
-        try { await emailjs.send("service_ycj8myh", "template_8sw10cu", { customerName: name, orderId, items: itemsStr, subtotal: subtotal.toLocaleString(), deliveryCharge: deliveryCharge.toString(), total: total.toLocaleString(), location, address: addr, trackingUrl, email }); } catch(e) {}
-        document.getElementById('successMsg').innerHTML = `
-            <strong>Thank you ${name}!</strong><br><br>
-            📦 <strong>Order Total: NPR ${total.toLocaleString()}</strong><br>
-            🚚 Delivery: ${location}<br><br>
-            <div style="background:#fff3cd;padding:12px;border-radius:10px;margin:12px 0;font-size:0.8rem;text-align:left;">
-                <strong>💳 Payment Required:</strong><br>
-                Please pay via <strong>eSewa/Khalti</strong> using the QR code sent to <strong>${email}</strong><br>
-                <small style="color:#856404;">⚠️ Your order will be processed after payment confirmation</small>
-            </div>
-            📧 Tracking link sent to ${email}<br>
-            <small style="color:#8b7b6e;">Track your order anytime using Order ID + Email</small>
-        `;
-        document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('successModal').classList.add('open');
-        document.getElementById('trackOrderBtn').onclick = function(){ window.location.href = trackingUrl; };
-        cart = []; addedKeys.clear(); saveCart(); updateCartUI(); updateCartButtons();
-        ['custName', 'custEmail', 'custAddress', 'custPhone'].forEach(id => document.getElementById(id).value = '');
+        const name=document.getElementById('custName').value.trim(),email=document.getElementById('custEmail').value.trim(),addr=document.getElementById('custAddress').value.trim(),phone=document.getElementById('custPhone').value.trim();
+        if(!name||!email||!addr||!phone){toast('Please fill all fields');return;}
+        const subtotal=cart.reduce((s,i)=>s+i.price*i.quantity,0),total=subtotal+deliveryCharge,itemsStr=cart.map(i=>`${i.quantity}x ${i.name}`).join(', '),orderId='ORD-'+Date.now(),orderDate=new Date().toISOString(),location=selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley',trackingUrl=window.location.origin+window.location.pathname.replace('index.html','')+'track.html?orderId='+orderId;
+        const orderData={orderId,customerName:name,email,phone,address:addr,location,deliveryCharge,items:itemsStr,subtotal,total,date:orderDate,status:'ordered'};
+        try{await fetch(SHEETDB_ORDERS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:[orderData]})});}catch(e){}
+        localStorage.setItem('track_'+orderId,JSON.stringify({...orderData,trackingUrl}));
+        try{await emailjs.send("service_ycj8myh","template_8sw10cu",{customerName:name,orderId,items:itemsStr,subtotal:subtotal.toLocaleString(),deliveryCharge:deliveryCharge.toString(),total:total.toLocaleString(),location,address:addr,trackingUrl,email});}catch(e){}
+        document.getElementById('successMsg').innerHTML=`<strong>Thank you ${name}!</strong><br><br>📦 <strong>Total: NPR ${total.toLocaleString()}</strong><br>🚚 ${location}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;">💳 <strong>Pay via eSewa/Khalti</strong><br>QR code sent to ${email}<br><small>Order processes after payment</small></div><br>📧 Tracking link sent to ${email}`;
+        document.getElementById('checkoutModal').classList.remove('open');document.getElementById('successModal').classList.add('open');
+        document.getElementById('trackOrderBtn').onclick=function(){window.location.href=trackingUrl;};
+        cart=[];addedKeys.clear();saveCart();updateCartUI();updateCartButtons();
+        ['custName','custEmail','custAddress','custPhone'].forEach(id=>document.getElementById(id).value='');
     }
     
-    function showInfo(title, msg){ document.getElementById('infoTitle').innerText = title; document.getElementById('infoText').innerText = msg; document.getElementById('infoModal').classList.add('open'); }
+    function showInfo(title,msg){document.getElementById('infoTitle').innerText=title;document.getElementById('infoText').innerText=msg;document.getElementById('infoModal').classList.add('open');}
     
-    let logoClicks = 0;
-    document.getElementById('logoClick').addEventListener('click', function(){ logoClicks++; if(logoClicks >= 5) { document.getElementById('hiddenAdminLink').style.display = 'block'; setTimeout(() => logoClicks = 0, 30000); } });
-    document.getElementById('cartBtn').addEventListener('click', () => { document.getElementById('cartSidebar').classList.add('open'); document.getElementById('cartOverlay').style.display = 'block'; });
-    document.getElementById('closeCartBtn').addEventListener('click', () => { document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display = 'none'; });
-    document.getElementById('cartOverlay').addEventListener('click', () => { document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display = 'none'; });
-    document.getElementById('checkoutSideBtn').addEventListener('click', handleCheckout);
-    document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
-    document.getElementById('closeCheckoutBtn').addEventListener('click', () => document.getElementById('checkoutModal').classList.remove('open'));
-    document.getElementById('closeSuccessBtn').addEventListener('click', () => document.getElementById('successModal').classList.remove('open'));
-    document.getElementById('closeInfoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.remove('open'));
+    let logoClicks=0;document.getElementById('logoClick').addEventListener('click',function(){logoClicks++;if(logoClicks>=5){document.getElementById('hiddenAdminLink').style.display='block';setTimeout(()=>logoClicks=0,30000);}});
+    document.getElementById('cartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').style.display='block';});
+    document.getElementById('closeCartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
+    document.getElementById('cartOverlay').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
+    document.getElementById('checkoutSideBtn').addEventListener('click',handleCheckout);
+    document.getElementById('submitOrderBtn').addEventListener('click',submitOrder);
     
-    document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', function(){ currentFilter = this.dataset.cat; document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); renderProducts(); }));
-    document.querySelectorAll('.footerCatLink').forEach(l => l.addEventListener('click', function(){ currentFilter = this.dataset.cat; document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active')); document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active'); renderProducts(); document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}); }));
+    document.querySelectorAll('.cat-btn').forEach(b=>b.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');renderProducts();}));
+    document.querySelectorAll('.footerCatLink').forEach(l=>l.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active');renderProducts();document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});}));
     
-    document.getElementById('navShop').addEventListener('click', () => document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-    document.getElementById('navStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Every product is handcrafted in small batches in Kathmandu, Nepal."));
-    document.getElementById('navScience').addEventListener('click', () => showInfo("Clean Science", "pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives."));
-    document.getElementById('navContact').addEventListener('click', () => showInfo("Contact Us", "Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-    document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story", "DERMAKRAFT was founded by a professional chemist. Handcrafted in Nepal with premium ingredients."));
-    document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Philosophy", "Transparency is key. Every ingredient serves a purpose. pH-balanced and dermatologist-tested."));
-    document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal", "Proudly produced in Kathmandu Valley, supporting local communities."));
-    document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping", "Inside Kathmandu Valley: NPR 100\nOutside Valley: NPR 200\nDelivery within 3-7 business days."));
-    document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns", "30-day satisfaction guarantee. Contact us for return support."));
-    document.getElementById('footerContact').addEventListener('click', () => showInfo("Get in Touch", "Email: hello@dermakraft.com\nPhone: +977 9812345678"));
+    document.getElementById('navShop').addEventListener('click',()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
+    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist in Kathmandu, Nepal. Every product is handcrafted in small batches using premium natural ingredients. We believe in transparent, science-backed skincare that's gentle on your skin and the environment."));
+    document.getElementById('navScience').addEventListener('click',()=>showInfo("Our Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin & plant-based actives. Every ingredient serves a purpose — we never use fillers. Our chemist personally oversees each formulation."));
+    document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAKRAFT","📧 Email: hello@dermakraft.com\n📞 Phone: +977 9812345678\n📍 Kathmandu, Nepal\n\nWe'd love to hear from you! Reach out for custom orders or wholesale inquiries."));
+    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","Founded by a chemist. Handcrafted in Kathmandu, Nepal. Small batches, premium ingredients, zero compromise."));
+    document.getElementById('footerScience').addEventListener('click',()=>showInfo("Formula Science","pH-balanced. No sulfates. No parabens. Plant-based actives. Every ingredient has a purpose."));
+    document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Made in Nepal 🇳🇵","Proudly produced in Kathmandu Valley, supporting local communities and sustainable practices."));
+    document.getElementById('footerShipping').addEventListener('click',()=>showInfo("Shipping 🚚","Inside Kathmandu: NPR 100 (3-5 days)\nOutside Valley: NPR 200 (5-7 days)\nFree shipping on orders above NPR 2000"));
+    document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support. Your happiness matters."));
+    document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","📧 hello@dermakraft.com\n📞 +977 9812345678\n📍 Kathmandu, Nepal"));
     
-    const heroImages = [
-        "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800",
-        "https://images.unsplash.com/photo-1570194065650-d99fb4ee8e39?w=800",
-        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
-    ];
-    let hi = 0, he = document.getElementById('heroImage');
-    function rh(){ he.style.backgroundImage = `url('${heroImages[hi]}')`; hi = (hi + 1) % heroImages.length; }
-    rh(); setInterval(rh, 4500);
+    const heroImages=["https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800","https://images.unsplash.com/photo-1570194065650-d99fb4ee8e39?w=800","https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"];
+    let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
     
-    loadProducts().then(data => { products = data; renderProducts(); updateCartUI(); });
-    window.addEventListener('storage', (e) => { if(e.key === STORAGE_PRODUCTS) { products = JSON.parse(e.newValue || '[]'); renderProducts(); updateCartUI(); } });
+    loadProducts().then(data=>{products=data;renderProducts();updateCartUI();});
+    window.addEventListener('storage',(e)=>{if(e.key===STORAGE_PRODUCTS){products=JSON.parse(e.newValue||'[]');renderProducts();updateCartUI();}});
 })();
 </script>
 </body>
