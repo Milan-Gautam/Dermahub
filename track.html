@@ -2,45 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>DERMAKRAFT | Track Order</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Inter',sans-serif;background:#f5f0eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-        .card{background:white;border-radius:24px;padding:32px 24px;max-width:520px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.06);}
-        h1{font-family:'Playfair Display',serif;color:#9c6e4b;margin-bottom:8px;font-size:1.8rem;}
-        p.subtitle{color:#8b7b6e;font-size:0.85rem;margin-bottom:24px;}
-        .input-group{text-align:left;margin-bottom:14px;}
-        .input-group label{display:block;font-size:0.7rem;font-weight:600;margin-bottom:4px;color:#2c2b28;text-transform:uppercase;}
-        .input-group input{width:100%;padding:12px 16px;border:1px solid #ece2d9;border-radius:10px;font-size:0.9rem;font-family:inherit;}
-        .btn{display:inline-block;background:#2a4235;color:white;padding:14px 28px;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.95rem;border:none;cursor:pointer;width:100%;font-family:inherit;}
-        .btn:hover{background:#9c6e4b;}
-        .error-msg{color:#c27c6e;font-size:0.8rem;margin-top:8px;display:none;}
+        body{font-family:'Inter',sans-serif;background:#f5f0eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
+        .card{background:white;border-radius:20px;padding:24px 20px;max-width:500px;width:100%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.06);}
+        h1{font-family:'Playfair Display',serif;color:#9c6e4b;margin-bottom:4px;font-size:1.5rem;}
+        p.subtitle{color:#8b7b6e;font-size:0.8rem;margin-bottom:20px;}
         
-        .status-bar{display:flex;justify-content:space-between;margin:28px 0;position:relative;flex-wrap:wrap;}
-        .status-bar::before{content:'';position:absolute;top:18px;left:0;width:100%;height:3px;background:#ece2d9;z-index:0;}
-        .status-step{z-index:1;text-align:center;flex:1;min-width:60px;}
-        .step-circle{width:36px;height:36px;border-radius:50%;background:#ece2d9;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:14px;color:white;font-weight:700;}
+        .input-group{text-align:left;margin-bottom:12px;}
+        .input-group label{display:block;font-size:0.65rem;font-weight:600;margin-bottom:3px;color:#2c2b28;text-transform:uppercase;letter-spacing:0.5px;}
+        .input-group input{width:100%;padding:11px 14px;border:1px solid #ece2d9;border-radius:10px;font-size:0.85rem;font-family:inherit;background:#fefaf5;}
+        .input-group input:focus{outline:none;border-color:#9c6e4b;}
+        
+        .btn{display:block;background:#2a4235;color:white;padding:12px;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;width:100%;font-family:inherit;text-align:center;margin-top:4px;}
+        .btn:hover{background:#9c6e4b;}
+        .btn:disabled{background:#999;cursor:not-allowed;}
+        .btn-sm{background:#3a5a45;font-size:0.8rem;padding:10px;}
+        .btn-outline{background:white;color:#2a4235;border:1px solid #2a4235;font-size:0.8rem;}
+        .error-msg{color:#c27c6e;font-size:0.75rem;margin-top:8px;display:none;}
+        
+        /* Progress Bar */
+        .status-bar{display:flex;justify-content:space-between;margin:24px 0 20px;position:relative;gap:2px;}
+        .status-bar::before{content:'';position:absolute;top:15px;left:8%;width:84%;height:2px;background:#ece2d9;z-index:0;}
+        .status-step{z-index:1;text-align:center;flex:1;min-width:50px;}
+        .step-circle{width:30px;height:30px;border-radius:50%;background:#ece2d9;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;font-size:12px;color:white;font-weight:700;transition:all 0.3s;}
         .step-circle.done{background:#3a5a45;}
-        .step-circle.current{background:#9c6e4b;box-shadow:0 0 0 6px rgba(156,110,75,0.2);}
-        .step-label{font-size:0.5rem;color:#8b7b6e;text-transform:uppercase;font-weight:600;line-height:1.2;}
-        .info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ece2d9;font-size:0.85rem;text-align:left;}
-        .info-label{color:#8b7b6e;}
-        .info-value{font-weight:600;color:#2c2b28;}
-        .not-found{color:#c27c6e;padding:20px;}
-        .delivered-msg{background:#d4edda;color:#155724;padding:12px;border-radius:12px;margin-top:16px;font-size:0.85rem;}
-        .payment-msg{background:#fff3cd;color:#856404;padding:12px;border-radius:12px;margin-top:16px;font-size:0.85rem;}
-        .paid-msg{background:#cce5ff;color:#004085;padding:12px;border-radius:12px;margin-top:16px;font-size:0.85rem;}
-        .logout-link{color:#8b7b6e;font-size:0.8rem;margin-top:16px;cursor:pointer;text-decoration:underline;}
+        .step-circle.current{background:#9c6e4b;box-shadow:0 0 0 4px rgba(156,110,75,0.25);transform:scale(1.15);}
+        .step-label{font-size:0.45rem;color:#8b7b6e;text-transform:uppercase;font-weight:600;line-height:1.2;letter-spacing:0.3px;}
+        .step-label.done{color:#2a4235;}
+        
+        /* Info Rows */
+        .info-section{background:#fefaf5;border-radius:12px;padding:12px 14px;margin-top:16px;text-align:left;}
+        .info-row{display:flex;justify-content:space-between;padding:7px 0;font-size:0.78rem;border-bottom:1px solid #f3ede7;}
+        .info-row:last-child{border-bottom:none;}
+        .info-label{color:#8b7b6e;font-weight:500;}
+        .info-value{font-weight:600;color:#2c2b28;text-align:right;}
+        
+        /* Status Messages */
+        .status-msg{padding:10px 12px;border-radius:10px;margin-top:12px;font-size:0.75rem;line-height:1.5;text-align:left;}
+        .msg-warning{background:#fff8e1;color:#856404;border-left:3px solid #ffc107;}
+        .msg-info{background:#e8f0fe;color:#004085;border-left:3px solid #2196F3;}
+        .msg-success{background:#e8f5e9;color:#155724;border-left:3px solid #4caf50;}
+        
+        .not-found{color:#c27c6e;padding:20px;font-size:0.9rem;}
+        .logout-link{color:#8b7b6e;font-size:0.75rem;margin-top:14px;cursor:pointer;text-decoration:underline;display:inline-block;}
+        
         #trackingView{display:none;}
         #loginView{display:block;}
-        .loading-spinner{display:inline-block;width:20px;height:20px;border:3px solid #ece2d9;border-top-color:#2a4235;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;}
+        
+        .loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle;}
         @keyframes spin{to{transform:rotate(360deg);}}
         
-        @media (max-width: 400px) {
-            .status-bar{flex-direction:column;gap:12px;align-items:flex-start;}
+        /* Mobile responsive */
+        @media (max-width: 420px) {
+            .card{padding:20px 14px;border-radius:16px;}
+            h1{font-size:1.3rem;}
+            .status-bar{gap:1px;margin:20px 0 16px;}
+            .status-bar::before{top:13px;left:5%;width:90%;}
+            .step-circle{width:26px;height:26px;font-size:10px;}
+            .step-label{font-size:0.4rem;}
+            .info-row{font-size:0.72rem;flex-direction:column;gap:2px;}
+            .info-value{text-align:left;}
+            .btn{font-size:0.8rem;padding:10px;}
+        }
+        
+        @media (max-width: 340px) {
+            .status-bar{flex-direction:column;align-items:flex-start;gap:8px;padding-left:20px;}
             .status-bar::before{display:none;}
+            .status-step{display:flex;align-items:center;gap:10px;min-width:100%;}
+            .step-circle{margin:0;}
+            .step-label{font-size:0.55rem;text-align:left;}
         }
     </style>
 </head>
@@ -50,8 +84,8 @@
     
     <!-- LOGIN VIEW -->
     <div id="loginView">
-        <p class="subtitle">Enter your Order ID and Email to track</p>
-        <div class="input-group"><label>Order ID</label><input type="text" id="loginOrderId" placeholder="e.g. ORD-1234567890"></div>
+        <p class="subtitle">Enter Order ID & Email to track</p>
+        <div class="input-group"><label>Order ID</label><input type="text" id="loginOrderId" placeholder="e.g. ORD-1715000000"></div>
         <div class="input-group"><label>Email Address</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
         <button class="btn" id="loginBtn" onclick="loginToTrack()">🔍 Track Order</button>
         <div class="error-msg" id="loginError"></div>
@@ -60,15 +94,14 @@
     <!-- TRACKING VIEW -->
     <div id="trackingView">
         <div id="trackContent"></div>
-        <button class="btn" onclick="refreshTracking()" style="margin-top:12px;background:#3a5a45;">🔄 Refresh Status</button>
-        <a href="index.html" class="btn" style="display:inline-block;margin-top:8px;background:#8b7b6e;">← Back to Store</a>
-        <div class="logout-link" onclick="logoutTracking()">Track a different order</div>
+        <button class="btn btn-sm" onclick="refreshTracking()" style="margin-top:10px;">🔄 Refresh Status</button>
+        <a href="index.html" class="btn btn-outline" style="margin-top:6px;">← Back to Store</a>
+        <div class="logout-link" onclick="logoutTracking()">Track different order</div>
     </div>
 </div>
 
 <script>
     const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
-    let currentOrderData = null;
     let currentOrderId = null;
     let currentEmail = null;
 
@@ -84,198 +117,155 @@
             return;
         }
         
-        // Show loading
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...';
         errorEl.style.display = 'none';
         
+        await searchOrder(orderId, email, errorEl, loginBtn);
+    }
+    
+    async function searchOrder(orderId, email, errorEl, loginBtn) {
         try {
-            // SEARCH SHEETDB FIRST - This is the main source of truth
-            const res = await fetch(`${SHEETDB_ORDERS_URL}/search?orderId=${encodeURIComponent(orderId)}`);
+            // PRIMARY: Search SheetDB (admin's data source)
+            const url = `${SHEETDB_ORDERS_URL}/search?orderId=${encodeURIComponent(orderId)}`;
+            const res = await fetch(url);
             
-            if (!res.ok) throw new Error('Not found');
-            
-            const orders = await res.json();
-            
-            // Find matching order with correct email
-            const order = orders.find(o => 
-                o.orderId === orderId && 
-                (o.email || '').toLowerCase() === email
-            );
-            
-            if (order) {
-                // Found in SheetDB - use this data
-                currentOrderData = order;
-                currentOrderId = orderId;
-                currentEmail = email;
+            if (res.ok) {
+                const orders = await res.json();
+                const order = orders.find(o => 
+                    (o.orderId === orderId) && 
+                    (o.email || '').toLowerCase() === email
+                );
                 
-                // Also update localStorage for offline access
-                localStorage.setItem('track_' + orderId, JSON.stringify({
-                    ...order,
-                    trackingUrl: window.location.origin + window.location.pathname + '?orderId=' + orderId
-                }));
-                
-                showTracking(order);
-                return;
+                if (order) {
+                    // Save to localStorage for caching
+                    localStorage.setItem('track_' + orderId, JSON.stringify(order));
+                    showTracking(order, orderId, email);
+                    if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
+                    return;
+                }
             }
             
-            // If not found in SheetDB, try localStorage fallback
+            // FALLBACK: Check localStorage
             const localData = JSON.parse(localStorage.getItem('track_' + orderId) || 'null');
             if (localData && (localData.email || '').toLowerCase() === email) {
-                currentOrderData = localData;
-                currentOrderId = orderId;
-                currentEmail = email;
-                showTracking(localData);
+                showTracking(localData, orderId, email);
+                if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
                 return;
             }
             
-            // Not found anywhere
-            errorEl.style.display = 'block';
-            errorEl.innerText = '❌ No order found with that ID and email combination.';
-            
+            // Not found
+            if(errorEl) {
+                errorEl.style.display = 'block';
+                errorEl.innerText = '❌ No order found. Please check your Order ID and Email.';
+            }
         } catch(e) {
             // Network error - try localStorage
             const localData = JSON.parse(localStorage.getItem('track_' + orderId) || 'null');
             if (localData && (localData.email || '').toLowerCase() === email) {
-                currentOrderData = localData;
-                currentOrderId = orderId;
-                currentEmail = email;
-                showTracking(localData);
-            } else {
+                showTracking(localData, orderId, email);
+            } else if(errorEl) {
                 errorEl.style.display = 'block';
-                errorEl.innerText = '❌ Unable to connect. Please check your internet and try again.';
+                errorEl.innerText = '❌ Cannot connect. Check your internet.';
             }
-        } finally {
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '🔍 Track Order';
         }
+        if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
     }
     
     async function refreshTracking() {
         if (!currentOrderId || !currentEmail) return;
-        
-        try {
-            // Fetch latest from SheetDB
-            const res = await fetch(`${SHEETDB_ORDERS_URL}/search?orderId=${encodeURIComponent(currentOrderId)}`);
-            if (res.ok) {
-                const orders = await res.json();
-                const updatedOrder = orders.find(o => 
-                    o.orderId === currentOrderId && 
-                    (o.email || '').toLowerCase() === currentEmail
-                );
-                if (updatedOrder) {
-                    currentOrderData = updatedOrder;
-                    localStorage.setItem('track_' + currentOrderId, JSON.stringify({
-                        ...updatedOrder,
-                        trackingUrl: window.location.origin + window.location.pathname + '?orderId=' + currentOrderId
-                    }));
-                    showTracking(updatedOrder);
-                    return;
-                }
-            }
-        } catch(e) {}
-        
-        // Fallback to localStorage
-        const localData = JSON.parse(localStorage.getItem('track_' + currentOrderId) || 'null');
-        if (localData) {
-            currentOrderData = localData;
-            showTracking(localData);
-        }
+        const trackContent = document.getElementById('trackContent');
+        trackContent.innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
+        await searchOrder(currentOrderId, currentEmail, null, null);
     }
     
-    function showTracking(data) {
+    function showTracking(data, orderId, email) {
+        currentOrderId = orderId;
+        currentEmail = email;
+        
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('trackingView').style.display = 'block';
-        document.getElementById('loginError').style.display = 'none';
+        const loginError = document.getElementById('loginError');
+        if(loginError) loginError.style.display = 'none';
         
-        const status = data.status || 'ordered';
+        const status = (data.status || 'ordered').toLowerCase();
         
-        // Define steps with clear progression
+        // Define steps
         const steps = [
-            { label: 'Order\nPlaced', done: true },
-            { label: 'Payment\nReceived', done: ['paid', 'processing', 'shipped', 'delivered'].includes(status) },
-            { label: 'Processing', done: ['processing', 'shipped', 'delivered'].includes(status) },
-            { label: 'Shipped', done: ['shipped', 'delivered'].includes(status) },
-            { label: 'Delivered', done: status === 'delivered' }
+            { label: 'Ordered', key: 'ordered' },
+            { label: 'Paid', key: 'paid' },
+            { label: 'Processing', key: 'processing' },
+            { label: 'Shipped', key: 'shipped' },
+            { label: 'Delivered', key: 'delivered' }
         ];
+        
+        // Determine which steps are done
+        const statusOrder = ['ordered', 'paid', 'processing', 'shipped', 'delivered'];
+        const currentIndex = statusOrder.indexOf(status);
         
         // Build progress bar
         let bar = '<div class="status-bar">';
         steps.forEach((s, i) => {
-            let cls = '';
-            if (s.done) cls += 'done ';
-            // Find current step (first incomplete)
-            const firstIncomplete = steps.findIndex(x => !x.done);
-            if (i === firstIncomplete && firstIncomplete !== -1) cls += 'current';
-            // If all done, mark last as current
-            if (i === steps.length - 1 && steps.every(x => x.done)) cls += 'current';
+            const done = i <= currentIndex;
+            const isCurrent = i === currentIndex;
+            let cls = done ? 'done' : '';
+            if (isCurrent) cls += ' current';
             bar += `<div class="status-step">
-                <div class="step-circle ${cls.trim()}">${s.done ? '✓' : i + 1}</div>
-                <div class="step-label">${s.label.replace('\n','<br>')}</div>
+                <div class="step-circle ${cls.trim()}">${done ? '✓' : i + 1}</div>
+                <div class="step-label ${done ? 'done' : ''}">${s.label}</div>
             </div>`;
         });
         bar += '</div>';
         
         // Status messages
-        let messages = '';
+        let msgHtml = '';
         if (status === 'ordered') {
-            messages += '<div class="payment-msg">⏳ <strong>Payment Pending</strong><br>Please pay via eSewa/Khalti using the QR code sent to your email.<br><small>Your order will be processed after payment is confirmed.</small></div>';
-        }
-        if (status === 'paid') {
-            messages += '<div class="paid-msg">✅ <strong>Payment Received!</strong><br>Your order is now being processed. We\'ll update you when it ships.</div>';
-        }
-        if (status === 'processing') {
-            messages += '<div class="paid-msg">🔄 <strong>Order Processing</strong><br>We\'re preparing your products with care. Shipping soon!</div>';
-        }
-        if (status === 'shipped') {
-            messages += '<div class="paid-msg">🚚 <strong>Order Shipped!</strong><br>Your package is on its way. Delivery expected within 3-7 business days.</div>';
-        }
-        if (status === 'delivered') {
-            messages += '<div class="delivered-msg">✅ <strong>Delivered!</strong><br>Your order has been delivered. Thank you for choosing DERMAKRAFT!<br><small>Tracking will expire in 24 hours.</small></div>';
+            msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Please pay via eSewa/Khalti using QR code sent to your email. Order processes after payment.</div>';
+        } else if (status === 'paid') {
+            msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>Your order is being prepared. We\'ll update you when it ships.</div>';
+        } else if (status === 'processing') {
+            msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>We\'re crafting your products with care. Shipping soon!</div>';
+        } else if (status === 'shipped') {
+            msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Your package is on its way. Delivery in 3-7 business days.</div>';
+        } else if (status === 'delivered') {
+            msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
         }
         
         // Payment status
         const isPaid = ['paid', 'processing', 'shipped', 'delivered'].includes(status);
-        const paymentStatus = isPaid ? '✅ Received' : '⏳ Pending';
-        const paymentColor = isPaid ? '#155724' : '#856404';
         
         document.getElementById('trackContent').innerHTML = `
             ${bar}
-            ${messages}
-            <div style="margin-top:20px;">
+            ${msgHtml}
+            <div class="info-section">
                 <div class="info-row"><span class="info-label">Order ID</span><span class="info-value">#${(data.orderId||'').slice(-8)}</span></div>
                 <div class="info-row"><span class="info-label">Customer</span><span class="info-value">${data.customerName||'N/A'}</span></div>
                 <div class="info-row"><span class="info-label">Items</span><span class="info-value">${data.items||'N/A'}</span></div>
                 <div class="info-row"><span class="info-label">Total</span><span class="info-value">NPR ${parseFloat(data.total||0).toLocaleString()}</span></div>
-                <div class="info-row"><span class="info-label">Payment</span><span class="info-value" style="color:${paymentColor};">${paymentStatus}</span></div>
+                <div class="info-row"><span class="info-label">Payment</span><span class="info-value" style="color:${isPaid?'#155724':'#856404'};">${isPaid?'✅ Paid':'⏳ Pending'}</span></div>
                 <div class="info-row"><span class="info-label">Delivery</span><span class="info-value">${data.location||'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Address</span><span class="info-value">${data.address||'N/A'}</span></div>
                 <div class="info-row"><span class="info-label">Date</span><span class="info-value">${data.date?new Date(data.date).toLocaleDateString():'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Status</span><span class="info-value" style="color:#9c6e4b;text-transform:uppercase;">${status}</span></div>
             </div>
         `;
     }
     
     function logoutTracking() {
-        currentOrderData = null;
         currentOrderId = null;
         currentEmail = null;
         document.getElementById('loginView').style.display = 'block';
         document.getElementById('trackingView').style.display = 'none';
         document.getElementById('loginOrderId').value = '';
         document.getElementById('loginEmail').value = '';
-        document.getElementById('loginError').style.display = 'none';
     }
     
-    // Enter key support
+    // Enter key
     document.getElementById('loginEmail').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
     document.getElementById('loginOrderId').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
     
-    // Auto-fill order ID from URL
+    // Auto-fill from URL
     const params = new URLSearchParams(window.location.search);
-    const urlOrderId = params.get('orderId');
-    if (urlOrderId) {
-        document.getElementById('loginOrderId').value = urlOrderId;
+    if(params.get('orderId')) {
+        document.getElementById('loginOrderId').value = params.get('orderId');
         document.getElementById('loginEmail').focus();
     }
 </script>
