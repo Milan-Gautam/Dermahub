@@ -3,56 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>DERMAKRAFT | Admin Dashboard | Manage Orders & Products</title>
-  <meta name="description" content="DERMAKRAFT admin panel - Manage customer orders, update order status, add or remove products, set discounts.">
+  <title>DERMAKRAFT | Admin Dashboard</title>
+  <meta name="description" content="DERMAKRAFT admin panel - Manage orders, products, discounts.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #f5f0eb; min-height: 100vh; }
-    
     .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #fefaf5 0%, #f3ede7 100%); padding: 20px; }
     .login-card { background: white; border-radius: 32px; padding: 40px 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #ece2d9; }
     .login-card .lock-icon { font-size: 3rem; margin-bottom: 16px; }
     .login-card h1 { font-family: 'Playfair Display', serif; color: #9c6e4b; font-size: 2rem; margin-bottom: 8px; }
     .login-card .subtitle { color: #8b7b6e; font-size: 0.85rem; margin-bottom: 32px; }
-    
     .password-wrapper { position: relative; width: 100%; margin-bottom: 20px; }
     .password-wrapper input { width: 100%; padding: 14px 48px 14px 18px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; font-family: inherit; background: #fff; outline: none; }
     .password-wrapper input:focus { border-color: #9c6e4b; }
     .toggle-password { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; color: #888; z-index: 2; }
     .toggle-password svg { width: 20px; height: 20px; }
-    
     .login-btn { width: 100%; padding: 14px; background: #2a4235; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .login-btn:hover { background: #9c6e4b; }
     .login-btn:disabled { background: #999; cursor: not-allowed; }
     .error-msg { color: #c27c6e; font-size: 0.8rem; margin-top: 12px; display: none; }
     .rate-limit-msg { color: #e67e22; font-size: 0.75rem; margin-top: 8px; display: none; }
-    
     .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 24px; display: none; }
     @media (max-width: 768px) { .dashboard-container { padding: 16px; } }
-    
     .admin-header { background: white; border-radius: 24px; padding: 20px 28px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     @media (max-width: 576px) { .admin-header { padding: 16px 20px; flex-direction: column; text-align: center; } }
     .logo h1 { font-family: 'Playfair Display', serif; color: #9c6e4b; font-size: 1.6rem; }
     .logo p { font-size: 0.7rem; color: #8b7b6e; }
-    
     .nav-tabs { display: flex; gap: 12px; flex-wrap: wrap; }
     .nav-tab { background: none; border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 500; color: #8b7b6e; font-family: inherit; font-size: 0.9rem; }
     .nav-tab.active { background: #3a5a45; color: white; }
     .logout-btn, .refresh-btn { background: none; border: 1px solid #ece2d9; padding: 8px 20px; border-radius: 40px; cursor: pointer; color: #8b7b6e; font-family: inherit; }
     .refresh-btn { background: #f3ede7; border: none; color: #2a4235; font-size: 0.8rem; }
-    
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 28px; }
     @media (max-width: 576px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
     .stat-card { background: white; border-radius: 20px; padding: 18px 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .stat-card i { font-size: 1.5rem; color: #3a5a45; margin-bottom: 6px; }
     .stat-card h3 { font-size: 0.65rem; text-transform: uppercase; color: #8b7b6e; letter-spacing: 1px; }
     .stat-number { font-size: 1.4rem; font-weight: 700; color: #2a4235; }
-    
     .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #2a4235; margin: 24px 0 18px; padding-left: 14px; border-left: 4px solid #9c6e4b; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    
     .orders-wrapper { background: white; border-radius: 20px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1100px; }
     th { text-align: left; padding: 14px 10px; background: #f3ede7; font-weight: 600; color: #2a4235; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -71,35 +62,29 @@
     .delete-btn:hover { background: #fee2dd; }
     .status-select { padding: 6px 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.7rem; cursor: pointer; font-family: inherit; background: white; }
     .empty-state { text-align: center; padding: 48px; color: #8b7b6e; }
-    
     .toast { position: fixed; bottom: 20px; right: 20px; background: #2a4235; color: white; padding: 12px 24px; border-radius: 40px; z-index: 1000; display: none; font-size: 0.85rem; }
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
     .sync-dot.on { background: #4caf50; }
     .sync-dot.off { background: #f44336; }
-    
     .product-manager { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-top: 20px; }
     .form-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
     .form-field { flex: 1; min-width: 140px; }
     .form-field label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; color: #8b7b6e; text-transform: uppercase; }
     .form-field input, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #ece2d9; border-radius: 8px; font-family: inherit; font-size: 0.85rem; }
-    
     .variants-section { margin-bottom: 16px; }
     .variants-section > label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 8px; color: #8b7b6e; text-transform: uppercase; }
     .variant-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
     .variant-row input { flex: 1; min-width: 100px; padding: 10px; border: 1px solid #ece2d9; border-radius: 8px; font-size: 0.85rem; font-family: inherit; }
     .variant-row .btn-remove { background: #c27c6e; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; min-width: 36px; }
     @media (max-width: 480px) { .variant-row { flex-direction: column; gap: 6px; } .variant-row input { width: 100%; } .variant-row .btn-remove { align-self: flex-end; } }
-    
     .btn-add-variant { background: #3a5a45; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; margin-top: 6px; }
     .btn-sm { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 600; width: 100%; }
     .btn-primary-sm { background: #2a4235; color: white; }
-    
     .product-item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fefaf5; border-radius: 12px; flex-wrap: wrap; gap: 8px; }
     .product-item-row .prod-info { flex: 1; min-width: 200px; }
     .product-item-row .prod-actions { display: flex; gap: 8px; align-items: center; }
     .discount-input { width: 55px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
     .section-divider { border-top: 1px solid #ece2d9; margin: 20px 0; padding-top: 20px; }
-    
     @media (max-width: 576px) {
       .toast { bottom: 10px; right: 10px; left: 10px; text-align: center; }
       .product-item-row { flex-direction: column; align-items: flex-start; }
@@ -189,10 +174,9 @@
   <script>
     (function() {
       const ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
-      // NEW: Google Apps Script URL for orders (unlimited)
-      const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby9gXUJVqeEud0lNod9svz3g7_2BJMsHMGJXkFZFG_xcQI9eXbaSsaX5UAsjA-WgMWl/exec";
-      // Products still on SheetDB (you can migrate later)
-      const PRODUCTS_API_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
+      // Your separate API URLs
+      const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby26tid8ZDO1C3RxVdt9JWdM6OKLkndrHAVHF5UT5CkoSb6TmhsqZ-hAW0Fl2t-bO-6/exec";
+      const PRODUCTS_API_URL = "https://script.google.com/macros/s/AKfycbwtuH5YMcUvsMX239ll6tW8ZXPXZhfLfdBobTkOn52tLenIIABu_FcYKQ6ci7hBINgZ/exec";
       const SESSION_KEY = "admin_session_secure";
       const SESSION_TIME = "admin_session_time";
       const STORAGE_PRODUCTS = "dermakraft_products_v3";
@@ -220,12 +204,11 @@
         if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
       }, 5000);
 
-      // ==================== ORDERS (using Apps Script) ====================
+      // Orders
       async function loadOrders() {
         try { const res = await fetch(ORDERS_API_URL); if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } else throw new Error('Failed'); }
         catch(e) { document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline'; orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]'); }
         orders.forEach(o => { if(!o.status) o.status = 'ordered'; });
-        // Sync tracking to localStorage
         orders.forEach(o => {
           const existing = JSON.parse(localStorage.getItem('track_'+o.orderId) || '{}');
           localStorage.setItem('track_'+o.orderId, JSON.stringify({...o, ...existing}));
@@ -234,19 +217,14 @@
       }
 
       async function updateOrderStatus(orderId, newStatus) {
-        // PATCH to Apps Script
         try { await fetch(`${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { status: newStatus } }) }); } catch(e) {}
         const idx = orders.findIndex(o => o.orderId === orderId); if(idx >= 0) orders[idx].status = newStatus;
         localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
         const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}');
-        trackData.status = newStatus;
-        trackData.orderId = trackData.orderId || orderId;
-        trackData.email = trackData.email || (orders[idx]?.email || '');
-        trackData.customerName = trackData.customerName || (orders[idx]?.customerName || '');
-        trackData.items = trackData.items || (orders[idx]?.items || '');
-        trackData.total = trackData.total || (orders[idx]?.total || 0);
-        trackData.location = trackData.location || (orders[idx]?.location || '');
-        trackData.date = trackData.date || (orders[idx]?.date || '');
+        trackData.status = newStatus; trackData.orderId = trackData.orderId || orderId;
+        trackData.email = trackData.email || (orders[idx]?.email || ''); trackData.customerName = trackData.customerName || (orders[idx]?.customerName || '');
+        trackData.items = trackData.items || (orders[idx]?.items || ''); trackData.total = trackData.total || (orders[idx]?.total || 0);
+        trackData.location = trackData.location || (orders[idx]?.location || ''); trackData.date = trackData.date || (orders[idx]?.date || '');
         localStorage.setItem('track_'+orderId, JSON.stringify(trackData));
         renderOrders(); showToast(`Status → ${newStatus}`);
       }
@@ -271,7 +249,7 @@
       window._updateStatus = async function(orderId, newStatus) { await updateOrderStatus(orderId, newStatus); };
       window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await fetch(`${ORDERS_API_URL}?orderId=${id}`,{method:'DELETE'}); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders)); localStorage.removeItem('track_'+id); renderOrders(); showToast('Order deleted'); };
 
-      // ==================== PRODUCTS (still using SheetDB) ====================
+      // Products
       async function loadProducts() {
         try { const res = await fetch(PRODUCTS_API_URL); if(res.ok) { products = await res.json(); products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
         return products;
@@ -279,7 +257,7 @@
 
       async function saveProductsToCloud() {
         const data = products.map(p => ({ id: p.id, name: p.name, category: p.category, desc: p.desc, images: JSON.stringify(p.images), variants: JSON.stringify(p.variants), discount: p.discount||0 }));
-        try { const existing = await fetch(PRODUCTS_API_URL).then(r => r.json()); for (const item of existing) { await fetch(`${PRODUCTS_API_URL}/id/${item.id}`, { method: 'DELETE' }).catch(()=>{}); } if(data.length > 0) { await fetch(PRODUCTS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); } localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } catch(e) { console.log('Cloud save failed'); }
+        try { const existing = await fetch(PRODUCTS_API_URL).then(r => r.json()); for (const item of existing) { await fetch(`${PRODUCTS_API_URL}?id=${item.id}`, { method: 'DELETE' }).catch(()=>{}); } if(data.length > 0) { await fetch(PRODUCTS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); } localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } catch(e) { console.log('Cloud save failed'); }
       }
 
       function renderProductsList() {
