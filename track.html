@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>DERMAKRAFT | Track Your Order</title>
-    <meta name="description" content="Track your DERMAKRAFT order status. Enter your Order ID and email to see real-time updates on your skincare products delivery.">
+    <meta name="description" content="Track your DERMAKRAFT order status.">
     <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
     <style>
@@ -13,20 +13,16 @@
         .card{background:white;border-radius:20px;padding:24px 20px;max-width:500px;width:100%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.06);}
         h1{font-family:'Playfair Display',serif;color:#9c6e4b;margin-bottom:4px;font-size:1.5rem;}
         p.subtitle{color:#8b7b6e;font-size:0.8rem;margin-bottom:20px;}
-        
         .input-group{text-align:left;margin-bottom:12px;}
         .input-group label{display:block;font-size:0.65rem;font-weight:600;margin-bottom:3px;color:#2c2b28;text-transform:uppercase;letter-spacing:0.5px;}
         .input-group input{width:100%;padding:11px 14px;border:1px solid #ece2d9;border-radius:10px;font-size:0.85rem;font-family:inherit;background:#fefaf5;}
         .input-group input:focus{outline:none;border-color:#9c6e4b;}
-        
         .btn{display:block;background:#2a4235;color:white;padding:12px;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;width:100%;font-family:inherit;text-align:center;margin-top:4px;}
         .btn:hover{background:#9c6e4b;}
         .btn:disabled{background:#999;cursor:not-allowed;}
         .btn-sm{background:#3a5a45;font-size:0.8rem;padding:10px;}
         .btn-outline{background:white;color:#2a4235;border:1px solid #2a4235;font-size:0.8rem;}
         .error-msg{color:#c27c6e;font-size:0.75rem;margin-top:8px;display:none;}
-        
-        /* Progress Bar */
         .status-bar{display:flex;justify-content:space-between;margin:24px 0 20px;position:relative;gap:2px;}
         .status-bar::before{content:'';position:absolute;top:15px;left:8%;width:84%;height:2px;background:#ece2d9;z-index:0;}
         .status-step{z-index:1;text-align:center;flex:1;min-width:50px;}
@@ -35,29 +31,21 @@
         .step-circle.current{background:#9c6e4b;box-shadow:0 0 0 4px rgba(156,110,75,0.25);transform:scale(1.15);}
         .step-label{font-size:0.45rem;color:#8b7b6e;text-transform:uppercase;font-weight:600;line-height:1.2;letter-spacing:0.3px;}
         .step-label.done{color:#2a4235;}
-        
-        /* Info Rows */
         .info-section{background:#fefaf5;border-radius:12px;padding:12px 14px;margin-top:16px;text-align:left;}
         .info-row{display:flex;justify-content:space-between;padding:7px 0;font-size:0.78rem;border-bottom:1px solid #f3ede7;}
         .info-row:last-child{border-bottom:none;}
         .info-label{color:#8b7b6e;font-weight:500;}
         .info-value{font-weight:600;color:#2c2b28;text-align:right;}
-        
-        /* Status Messages */
         .status-msg{padding:10px 12px;border-radius:10px;margin-top:12px;font-size:0.75rem;line-height:1.5;text-align:left;}
         .msg-warning{background:#fff8e1;color:#856404;border-left:3px solid #ffc107;}
         .msg-info{background:#e8f0fe;color:#004085;border-left:3px solid #2196F3;}
         .msg-success{background:#e8f5e9;color:#155724;border-left:3px solid #4caf50;}
-        
         .not-found{color:#c27c6e;padding:20px;font-size:0.9rem;}
         .logout-link{color:#8b7b6e;font-size:0.75rem;margin-top:14px;cursor:pointer;text-decoration:underline;display:inline-block;}
-        
         #trackingView{display:none;}
         #loginView{display:block;}
-        
         .loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle;}
         @keyframes spin{to{transform:rotate(360deg);}}
-        
         @media (max-width: 420px) {
             .card{padding:20px 14px;border-radius:16px;}
             h1{font-size:1.3rem;}
@@ -92,131 +80,77 @@
 </div>
 
 <script>
-    // NEW: Google Apps Script URL for orders
-    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby9gXUJVqeEud0lNod9svz3g7_2BJMsHMGJXkFZFG_xcQI9eXbaSsaX5UAsjA-WgMWl/exec";
-    let currentOrderId = null;
-    let currentEmail = null;
+    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby26tid8ZDO1C3RxVdt9JWdM6OKLkndrHAVHF5UT5CkoSb6TmhsqZ-hAW0Fl2t-bO-6/exec";
+    let currentOrderId = null, currentEmail = null;
 
     async function loginToTrack() {
         const orderId = document.getElementById('loginOrderId').value.trim();
         const email = document.getElementById('loginEmail').value.trim().toLowerCase();
         const errorEl = document.getElementById('loginError');
         const loginBtn = document.getElementById('loginBtn');
-        
-        if (!orderId || !email) {
-            errorEl.style.display = 'block';
-            errorEl.innerText = 'Please fill both fields.';
-            return;
-        }
-        
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...';
-        errorEl.style.display = 'none';
-        
+        if (!orderId || !email) { errorEl.style.display='block'; errorEl.innerText='Please fill both fields.'; return; }
+        loginBtn.disabled = true; loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...'; errorEl.style.display = 'none';
         await searchOrder(orderId, email, errorEl, loginBtn);
     }
-    
+
     async function searchOrder(orderId, email, errorEl, loginBtn) {
         try {
-            // Search via Apps Script (unlimited)
-            const url = `${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`;
-            const res = await fetch(url);
-            
+            const res = await fetch(`${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`);
             if (res.ok) {
                 const orders = await res.json();
-                const order = orders.find(o => 
-                    (o.orderId === orderId) && 
-                    (o.email || '').toLowerCase() === email
-                );
-                
+                const order = orders.find(o => (o.orderId === orderId) && (o.email||'').toLowerCase() === email);
                 if (order) {
-                    localStorage.setItem('track_' + orderId, JSON.stringify(order));
+                    localStorage.setItem('track_'+orderId, JSON.stringify(order));
                     showTracking(order, orderId, email);
-                    if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
+                    if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
                     return;
                 }
             }
-            
-            // Fallback to localStorage
-            const localData = JSON.parse(localStorage.getItem('track_' + orderId) || 'null');
-            if (localData && (localData.email || '').toLowerCase() === email) {
+            const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
+            if (localData && (localData.email||'').toLowerCase() === email) {
                 showTracking(localData, orderId, email);
-                if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
+                if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
                 return;
             }
-            
-            if(errorEl) {
-                errorEl.style.display = 'block';
-                errorEl.innerText = '❌ No order found. Please check your Order ID and Email.';
-            }
+            if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ No order found.'; }
         } catch(e) {
-            const localData = JSON.parse(localStorage.getItem('track_' + orderId) || 'null');
-            if (localData && (localData.email || '').toLowerCase() === email) {
-                showTracking(localData, orderId, email);
-            } else if(errorEl) {
-                errorEl.style.display = 'block';
-                errorEl.innerText = '❌ Cannot connect. Check your internet.';
-            }
+            const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
+            if (localData && (localData.email||'').toLowerCase() === email) showTracking(localData, orderId, email);
+            else if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ Cannot connect.'; }
         }
-        if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
+        if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
     }
-    
+
     async function refreshTracking() {
         if (!currentOrderId || !currentEmail) return;
-        const trackContent = document.getElementById('trackContent');
-        trackContent.innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
+        document.getElementById('trackContent').innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
         await searchOrder(currentOrderId, currentEmail, null, null);
     }
-    
+
     function showTracking(data, orderId, email) {
-        currentOrderId = orderId;
-        currentEmail = email;
-        
+        currentOrderId = orderId; currentEmail = email;
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('trackingView').style.display = 'block';
-        const loginError = document.getElementById('loginError');
-        if(loginError) loginError.style.display = 'none';
-        
         const status = (data.status || 'ordered').toLowerCase();
-        const steps = [
-            { label: 'Ordered', key: 'ordered' },
-            { label: 'Paid', key: 'paid' },
-            { label: 'Processing', key: 'processing' },
-            { label: 'Shipped', key: 'shipped' },
-            { label: 'Delivered', key: 'delivered' }
-        ];
-        
-        const statusOrder = ['ordered', 'paid', 'processing', 'shipped', 'delivered'];
+        const steps = [{label:'Ordered',key:'ordered'},{label:'Paid',key:'paid'},{label:'Processing',key:'processing'},{label:'Shipped',key:'shipped'},{label:'Delivered',key:'delivered'}];
+        const statusOrder = ['ordered','paid','processing','shipped','delivered'];
         const currentIndex = statusOrder.indexOf(status);
-        
         let bar = '<div class="status-bar">';
-        steps.forEach((s, i) => {
+        steps.forEach((s,i) => {
             const done = i <= currentIndex;
             const isCurrent = i === currentIndex;
             let cls = done ? 'done' : '';
-            if (isCurrent) cls += ' current';
-            bar += `<div class="status-step">
-                <div class="step-circle ${cls.trim()}">${done ? '✓' : i + 1}</div>
-                <div class="step-label ${done ? 'done' : ''}">${s.label}</div>
-            </div>`;
+            if(isCurrent) cls += ' current';
+            bar += `<div class="status-step"><div class="step-circle ${cls.trim()}">${done ? '✓' : i+1}</div><div class="step-label ${done ? 'done' : ''}">${s.label}</div></div>`;
         });
         bar += '</div>';
-        
         let msgHtml = '';
-        if (status === 'ordered') {
-            msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Please pay via eSewa/Khalti using QR code sent to your email. Order processes after payment.</div>';
-        } else if (status === 'paid') {
-            msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>Your order is being prepared. We\'ll update you when it ships.</div>';
-        } else if (status === 'processing') {
-            msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>We\'re crafting your products with care. Shipping soon!</div>';
-        } else if (status === 'shipped') {
-            msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Your package is on its way. Delivery in 3-7 business days.</div>';
-        } else if (status === 'delivered') {
-            msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
-        }
-        
-        const isPaid = ['paid', 'processing', 'shipped', 'delivered'].includes(status);
-        
+        if(status==='ordered') msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Pay via eSewa/Khalti using QR code sent to your email.</div>';
+        else if(status==='paid') msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>Your order is being prepared.</div>';
+        else if(status==='processing') msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>We\'re crafting your products.</div>';
+        else if(status==='shipped') msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Delivery in 3-7 business days.</div>';
+        else if(status==='delivered') msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
+        const isPaid = ['paid','processing','shipped','delivered'].includes(status);
         document.getElementById('trackContent').innerHTML = `
             ${bar}
             ${msgHtml}
@@ -231,24 +165,19 @@
             </div>
         `;
     }
-    
+
     function logoutTracking() {
-        currentOrderId = null;
-        currentEmail = null;
+        currentOrderId = null; currentEmail = null;
         document.getElementById('loginView').style.display = 'block';
         document.getElementById('trackingView').style.display = 'none';
         document.getElementById('loginOrderId').value = '';
         document.getElementById('loginEmail').value = '';
     }
-    
+
     document.getElementById('loginEmail').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
     document.getElementById('loginOrderId').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
-    
     const params = new URLSearchParams(window.location.search);
-    if(params.get('orderId')) {
-        document.getElementById('loginOrderId').value = params.get('orderId');
-        document.getElementById('loginEmail').focus();
-    }
+    if(params.get('orderId')) { document.getElementById('loginOrderId').value = params.get('orderId'); document.getElementById('loginEmail').focus(); }
 </script>
 </body>
 </html>
