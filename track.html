@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>DERMAKRAFT | Track Order</title>
+    <title>DERMAKRAFT | Track Your Order</title>
+    <meta name="description" content="Track your DERMAKRAFT order status. Enter your Order ID and email to see real-time updates on your skincare products delivery.">
+    <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -56,7 +58,6 @@
         .loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle;}
         @keyframes spin{to{transform:rotate(360deg);}}
         
-        /* Mobile responsive */
         @media (max-width: 420px) {
             .card{padding:20px 14px;border-radius:16px;}
             h1{font-size:1.3rem;}
@@ -68,21 +69,12 @@
             .info-value{text-align:left;}
             .btn{font-size:0.8rem;padding:10px;}
         }
-        
-        @media (max-width: 340px) {
-            .status-bar{flex-direction:column;align-items:flex-start;gap:8px;padding-left:20px;}
-            .status-bar::before{display:none;}
-            .status-step{display:flex;align-items:center;gap:10px;min-width:100%;}
-            .step-circle{margin:0;}
-            .step-label{font-size:0.55rem;text-align:left;}
-        }
     </style>
 </head>
 <body>
 <div class="card">
     <h1>📦 Track Your Order</h1>
     
-    <!-- LOGIN VIEW -->
     <div id="loginView">
         <p class="subtitle">Enter Order ID & Email to track</p>
         <div class="input-group"><label>Order ID</label><input type="text" id="loginOrderId" placeholder="e.g. ORD-1715000000"></div>
@@ -91,7 +83,6 @@
         <div class="error-msg" id="loginError"></div>
     </div>
     
-    <!-- TRACKING VIEW -->
     <div id="trackingView">
         <div id="trackContent"></div>
         <button class="btn btn-sm" onclick="refreshTracking()" style="margin-top:10px;">🔄 Refresh Status</button>
@@ -101,7 +92,8 @@
 </div>
 
 <script>
-    const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
+    // NEW: Google Apps Script URL for orders
+    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby9gXUJVqeEud0lNod9svz3g7_2BJMsHMGJXkFZFG_xcQI9eXbaSsaX5UAsjA-WgMWl/exec";
     let currentOrderId = null;
     let currentEmail = null;
 
@@ -126,8 +118,8 @@
     
     async function searchOrder(orderId, email, errorEl, loginBtn) {
         try {
-            // PRIMARY: Search SheetDB (admin's data source)
-            const url = `${SHEETDB_ORDERS_URL}/search?orderId=${encodeURIComponent(orderId)}`;
+            // Search via Apps Script (unlimited)
+            const url = `${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`;
             const res = await fetch(url);
             
             if (res.ok) {
@@ -138,7 +130,6 @@
                 );
                 
                 if (order) {
-                    // Save to localStorage for caching
                     localStorage.setItem('track_' + orderId, JSON.stringify(order));
                     showTracking(order, orderId, email);
                     if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '🔍 Track Order'; }
@@ -146,7 +137,7 @@
                 }
             }
             
-            // FALLBACK: Check localStorage
+            // Fallback to localStorage
             const localData = JSON.parse(localStorage.getItem('track_' + orderId) || 'null');
             if (localData && (localData.email || '').toLowerCase() === email) {
                 showTracking(localData, orderId, email);
@@ -154,13 +145,11 @@
                 return;
             }
             
-            // Not found
             if(errorEl) {
                 errorEl.style.display = 'block';
                 errorEl.innerText = '❌ No order found. Please check your Order ID and Email.';
             }
         } catch(e) {
-            // Network error - try localStorage
             const localData = JSON.parse(localStorage.getItem('track_' + orderId) || 'null');
             if (localData && (localData.email || '').toLowerCase() === email) {
                 showTracking(localData, orderId, email);
@@ -189,8 +178,6 @@
         if(loginError) loginError.style.display = 'none';
         
         const status = (data.status || 'ordered').toLowerCase();
-        
-        // Define steps
         const steps = [
             { label: 'Ordered', key: 'ordered' },
             { label: 'Paid', key: 'paid' },
@@ -199,11 +186,9 @@
             { label: 'Delivered', key: 'delivered' }
         ];
         
-        // Determine which steps are done
         const statusOrder = ['ordered', 'paid', 'processing', 'shipped', 'delivered'];
         const currentIndex = statusOrder.indexOf(status);
         
-        // Build progress bar
         let bar = '<div class="status-bar">';
         steps.forEach((s, i) => {
             const done = i <= currentIndex;
@@ -217,7 +202,6 @@
         });
         bar += '</div>';
         
-        // Status messages
         let msgHtml = '';
         if (status === 'ordered') {
             msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Please pay via eSewa/Khalti using QR code sent to your email. Order processes after payment.</div>';
@@ -231,7 +215,6 @@
             msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
         }
         
-        // Payment status
         const isPaid = ['paid', 'processing', 'shipped', 'delivered'].includes(status);
         
         document.getElementById('trackContent').innerHTML = `
@@ -258,11 +241,9 @@
         document.getElementById('loginEmail').value = '';
     }
     
-    // Enter key
     document.getElementById('loginEmail').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
     document.getElementById('loginOrderId').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
     
-    // Auto-fill from URL
     const params = new URLSearchParams(window.location.search);
     if(params.get('orderId')) {
         document.getElementById('loginOrderId').value = params.get('orderId');
