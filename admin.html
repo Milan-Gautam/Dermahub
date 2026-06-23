@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
   <title>DERMAKRAFT | Admin Dashboard | Manage Orders & Products</title>
-  <meta name="description" content="DERMAKRAFT admin panel - Manage customer orders, update order status, add or remove products, set discounts, and control your skincare store from one dashboard.">
+  <meta name="description" content="DERMAKRAFT admin panel - Manage customer orders, update order status, add or remove products, set discounts.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
@@ -189,8 +189,10 @@
   <script>
     (function() {
       const ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
-      const SHEETDB_PRODUCTS_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
-      const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
+      // NEW: Google Apps Script URL for orders (unlimited)
+      const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby9gXUJVqeEud0lNod9svz3g7_2BJMsHMGJXkFZFG_xcQI9eXbaSsaX5UAsjA-WgMWl/exec";
+      // Products still on SheetDB (you can migrate later)
+      const PRODUCTS_API_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
       const SESSION_KEY = "admin_session_secure";
       const SESSION_TIME = "admin_session_time";
       const STORAGE_PRODUCTS = "dermakraft_products_v3";
@@ -218,10 +220,12 @@
         if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
       }, 5000);
 
+      // ==================== ORDERS (using Apps Script) ====================
       async function loadOrders() {
-        try { const res = await fetch(SHEETDB_ORDERS_URL); if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } else throw new Error('Failed'); }
+        try { const res = await fetch(ORDERS_API_URL); if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } else throw new Error('Failed'); }
         catch(e) { document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline'; orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]'); }
         orders.forEach(o => { if(!o.status) o.status = 'ordered'; });
+        // Sync tracking to localStorage
         orders.forEach(o => {
           const existing = JSON.parse(localStorage.getItem('track_'+o.orderId) || '{}');
           localStorage.setItem('track_'+o.orderId, JSON.stringify({...o, ...existing}));
@@ -230,7 +234,8 @@
       }
 
       async function updateOrderStatus(orderId, newStatus) {
-        try { await fetch(`${SHEETDB_ORDERS_URL}/orderId/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { status: newStatus } }) }); } catch(e) {}
+        // PATCH to Apps Script
+        try { await fetch(`${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { status: newStatus } }) }); } catch(e) {}
         const idx = orders.findIndex(o => o.orderId === orderId); if(idx >= 0) orders[idx].status = newStatus;
         localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
         const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}');
@@ -264,16 +269,17 @@
       }
 
       window._updateStatus = async function(orderId, newStatus) { await updateOrderStatus(orderId, newStatus); };
-      window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await fetch(`${SHEETDB_ORDERS_URL}/orderId/${id}`,{method:'DELETE'}); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders)); localStorage.removeItem('track_'+id); renderOrders(); showToast('Order deleted'); };
+      window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await fetch(`${ORDERS_API_URL}?orderId=${id}`,{method:'DELETE'}); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders)); localStorage.removeItem('track_'+id); renderOrders(); showToast('Order deleted'); };
 
+      // ==================== PRODUCTS (still using SheetDB) ====================
       async function loadProducts() {
-        try { const res = await fetch(SHEETDB_PRODUCTS_URL); if(res.ok) { products = await res.json(); products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
+        try { const res = await fetch(PRODUCTS_API_URL); if(res.ok) { products = await res.json(); products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
         return products;
       }
 
       async function saveProductsToCloud() {
         const data = products.map(p => ({ id: p.id, name: p.name, category: p.category, desc: p.desc, images: JSON.stringify(p.images), variants: JSON.stringify(p.variants), discount: p.discount||0 }));
-        try { const existing = await fetch(SHEETDB_PRODUCTS_URL).then(r => r.json()); for (const item of existing) { await fetch(`${SHEETDB_PRODUCTS_URL}/id/${item.id}`, { method: 'DELETE' }).catch(()=>{}); } if(data.length > 0) { await fetch(SHEETDB_PRODUCTS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); } localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } catch(e) { console.log('Cloud save failed'); }
+        try { const existing = await fetch(PRODUCTS_API_URL).then(r => r.json()); for (const item of existing) { await fetch(`${PRODUCTS_API_URL}/id/${item.id}`, { method: 'DELETE' }).catch(()=>{}); } if(data.length > 0) { await fetch(PRODUCTS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); } localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } catch(e) { console.log('Cloud save failed'); }
       }
 
       function renderProductsList() {
