@@ -9,7 +9,7 @@
     <meta name="author" content="DERMAKRAFT">
     <meta name="robots" content="index, follow">
     <meta property="og:title" content="DERMAKRAFT | Handmade Chemist-Formulated Skincare Nepal">
-    <meta property="og:description" content="Shop pH-balanced, natural skincare handmade by a professional chemist in Kathmandu, Nepal. Soap bars, shampoo, face wash & more.">
+    <meta property="og:description" content="Shop pH-balanced, natural skincare handmade by a professional chemist in Kathmandu, Nepal.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://akraft.vercel.app">
     <link rel="canonical" href="https://akraft.vercel.app">
@@ -56,8 +56,7 @@
         .cart-icon:hover { background: var(--warm-brown); }
         .cart-count { background: white; color: var(--deep-olive); border-radius: 30px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; }
         
-        .hero { padding: 40px 0 50px }
-        @media (max-width: 480px) { .hero { padding: 30px 0 30px; margin-top:25px; } }
+        .hero { padding: 40px 0 50px; }
         .hero-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 40px; }
         .hero-text { flex: 1.2; }
         .hero-text .badge { background: var(--sand); display: inline-block; padding: 8px 18px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 20px; }
@@ -204,13 +203,15 @@
 <script>
 (function(){
     emailjs.init("2X9gef2Tudenoiugp");
-    const SHEETDB_ORDERS_URL = "https://sheetdb.io/api/v1/hrvxtv9eibmdf";
-    const SHEETDB_PRODUCTS_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
+    // NEW: Google Apps Script URL for orders (unlimited free requests)
+    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby9gXUJVqeEud0lNod9svz3g7_2BJMsHMGJXkFZFG_xcQI9eXbaSsaX5UAsjA-WgMWl/exec";
+    // Products still on SheetDB (you can later create a second Apps Script for products)
+    const PRODUCTS_API_URL = "https://sheetdb.io/api/v1/g7tow10q1q0xp";
     const STORAGE_PRODUCTS = "dermakraft_products_v3";
     const STORAGE_CART = "dermakraft_cart";
     
     async function loadProducts(){
-        try{const res=await fetch(SHEETDB_PRODUCTS_URL);if(res.ok){let data=await res.json();data.forEach(p=>{p.id=parseInt(p.id);p.discount=parseInt(p.discount)||0;if(typeof p.variants==='string')p.variants=JSON.parse(p.variants);if(typeof p.images==='string')p.images=JSON.parse(p.images);});if(data.length>0){localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(data));return data;}}}catch(e){}
+        try{const res=await fetch(PRODUCTS_API_URL);if(res.ok){let data=await res.json();data.forEach(p=>{p.id=parseInt(p.id);p.discount=parseInt(p.discount)||0;if(typeof p.variants==='string')p.variants=JSON.parse(p.variants);if(typeof p.images==='string')p.images=JSON.parse(p.images);});if(data.length>0){localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(data));return data;}}}catch(e){}
         const stored=localStorage.getItem(STORAGE_PRODUCTS);return stored?JSON.parse(stored):[];
     }
     function loadCart(){const s=localStorage.getItem(STORAGE_CART);return s?JSON.parse(s):[];}
@@ -278,7 +279,6 @@
     }
     window.closeProductModal=function(){document.getElementById('productModal').classList.remove('open');};
     
-    // Close all modals on outside click
     document.getElementById('productModal').addEventListener('click',function(e){if(e.target===this)closeProductModal();});
     document.getElementById('checkoutModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
     document.getElementById('successModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
@@ -291,7 +291,7 @@
         if(!name||!email||!addr||!phone){toast('Please fill all fields');return;}
         const subtotal=cart.reduce((s,i)=>s+i.price*i.quantity,0),total=subtotal+deliveryCharge,itemsStr=cart.map(i=>`${i.quantity}x ${i.name}`).join(', '),orderId='ORD-'+Date.now(),orderDate=new Date().toISOString(),location=selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley',trackingUrl=window.location.origin+window.location.pathname.replace('index.html','')+'track.html?orderId='+orderId;
         const orderData={orderId,customerName:name,email,phone,address:addr,location,deliveryCharge,items:itemsStr,subtotal,total,date:orderDate,status:'ordered'};
-        try{await fetch(SHEETDB_ORDERS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:[orderData]})});}catch(e){}
+        try{await fetch(ORDERS_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:[orderData]})});}catch(e){}
         localStorage.setItem('track_'+orderId,JSON.stringify({...orderData,trackingUrl}));
         try{await emailjs.send("service_ycj8myh","template_8sw10cu",{customerName:name,orderId,items:itemsStr,subtotal:subtotal.toLocaleString(),deliveryCharge:deliveryCharge.toString(),total:total.toLocaleString(),location,address:addr,trackingUrl,email});}catch(e){}
         document.getElementById('successMsg').innerHTML=`<strong>Thank you ${name}!</strong><br><br>Order Total: <strong>NPR ${total.toLocaleString()}</strong><br>Delivery: ${location}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;"><strong>Payment:</strong> Pay via eSewa/Khalti using QR code sent to ${email}<br><small>Order processes after payment confirmation</small></div><br>Tracking link sent to ${email}`;
@@ -315,11 +315,11 @@
     document.querySelectorAll('.footerCatLink').forEach(l=>l.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active');renderProducts();document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});}));
     
     document.getElementById('navShop').addEventListener('click',()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist in Kathmandu, Nepal. Every product is handcrafted in small batches using premium natural ingredients. We believe in transparent, science-backed skincare that's gentle on your skin and the environment."));
-    document.getElementById('navScience').addEventListener('click',()=>showInfo("Our Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin and plant-based actives. Every ingredient serves a purpose. Our chemist personally oversees each formulation."));
-    document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAKRAFT","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal\n\nWe'd love to hear from you! Reach out for custom orders or wholesale inquiries."));
-    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","Founded by a chemist. Handcrafted in Kathmandu, Nepal. Small batches, premium ingredients, zero compromise."));
-    document.getElementById('footerScience').addEventListener('click',()=>showInfo("Formula Science","pH-balanced. No sulfates. No parabens. Plant-based actives. Every ingredient has a purpose."));
+    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist in Kathmandu, Nepal. Every product is handcrafted in small batches using premium natural ingredients."));
+    document.getElementById('navScience').addEventListener('click',()=>showInfo("Our Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin and plant-based actives."));
+    document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAKRAFT","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
+    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","Founded by a chemist. Handcrafted in Kathmandu, Nepal. Small batches, premium ingredients."));
+    document.getElementById('footerScience').addEventListener('click',()=>showInfo("Formula Science","pH-balanced. No sulfates. No parabens. Plant-based actives."));
     document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable practices."));
     document.getElementById('footerShipping').addEventListener('click',()=>showInfo("Shipping","Inside Kathmandu: NPR 100 (3-5 days)\nOutside Valley: NPR 200 (5-7 days)\nFree shipping on orders above NPR 2000"));
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
