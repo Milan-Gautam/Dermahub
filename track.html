@@ -7,6 +7,7 @@
     <meta name="description" content="Track your DERMAKRAFT order status.">
     <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Inter',sans-serif;background:#f5f0eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
@@ -80,7 +81,10 @@
 </div>
 
 <script>
-    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby26tid8ZDO1C3RxVdt9JWdM6OKLkndrHAVHF5UT5CkoSb6TmhsqZ-hAW0Fl2t-bO-6/exec";
+    const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     let currentOrderId = null, currentEmail = null;
 
     async function loginToTrack() {
@@ -95,28 +99,29 @@
 
     async function searchOrder(orderId, email, errorEl, loginBtn) {
         try {
-            const res = await fetch(`${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`);
-            if (res.ok) {
-                const orders = await res.json();
-                const order = orders.find(o => (o.orderId === orderId) && (o.email||'').toLowerCase() === email);
-                if (order) {
+            let { data, error } = await supabase.from('orders').select('*').eq('orderId', orderId);
+            if (error) throw error;
+            if (data && data.length > 0) {
+                const order = data[0];
+                if ((order.email || '').toLowerCase() === email) {
                     localStorage.setItem('track_'+orderId, JSON.stringify(order));
                     showTracking(order, orderId, email);
                     if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
                     return;
                 }
             }
+            // Fallback to localStorage
             const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
             if (localData && (localData.email||'').toLowerCase() === email) {
                 showTracking(localData, orderId, email);
                 if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
                 return;
             }
-            if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ No order found.'; }
+            if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ No order found with that ID and email.'; }
         } catch(e) {
             const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
             if (localData && (localData.email||'').toLowerCase() === email) showTracking(localData, orderId, email);
-            else if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ Cannot connect.'; }
+            else if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ Cannot connect. Check your internet.'; }
         }
         if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
     }
