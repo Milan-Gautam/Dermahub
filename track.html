@@ -6,8 +6,6 @@
     <title>DERMAKRAFT | Track Your Order</title>
     <meta name="description" content="Track your DERMAKRAFT order status.">
     <meta name="robots" content="noindex, nofollow">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Inter',sans-serif;background:#f5f0eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
@@ -80,18 +78,18 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Supabase configuration
+    // Supabase credentials
     const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
-    
-    // Initialize Supabase client
-    const { createClient } = window.supabase;
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     let currentOrderId = null, currentEmail = null;
 
-    // Make functions globally accessible
+    // Simple test to ensure button works – you can remove later
+    console.log('Track page loaded. Supabase client ready.');
+
     window.loginToTrack = async function() {
         const orderId = document.getElementById('loginOrderId').value.trim();
         const email = document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -111,24 +109,27 @@
         console.log('Searching for order:', orderId, email);
         
         try {
-            // Search Supabase for the order
+            // Query Supabase with proper column name (orderId, not orderid)
             const { data, error } = await supabase
                 .from('orders')
                 .select('*')
-                .eq('orderId', orderId)
-                .maybeSingle();
+                .eq('orderId', orderId);
             
             if (error) {
                 console.error('Supabase error:', error);
                 throw error;
             }
             
-            if (data && (data.email || '').toLowerCase() === email) {
-                console.log('Order found:', data);
-                showTracking(data, orderId, email);
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '🔍 Track Order';
-                return;
+            console.log('Query result:', data);
+            
+            if (data && data.length > 0) {
+                const order = data[0];
+                if ((order.email || '').toLowerCase() === email) {
+                    showTracking(order, orderId, email);
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '🔍 Track Order';
+                    return;
+                }
             }
             
             // Fallback to localStorage
@@ -146,14 +147,8 @@
             errorEl.innerText = '❌ No order found with that ID and email.';
         } catch (e) {
             console.error('Search error:', e);
-            // Try localStorage
-            const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
-            if (localData && (localData.email || '').toLowerCase() === email) {
-                showTracking(localData, orderId, email);
-            } else {
-                errorEl.style.display = 'block';
-                errorEl.innerText = '❌ Cannot connect. Check your internet.';
-            }
+            errorEl.style.display = 'block';
+            errorEl.innerText = '❌ Connection error. Please try again.';
         }
         
         loginBtn.disabled = false;
@@ -163,29 +158,21 @@
     window.refreshTracking = async function() {
         if (!currentOrderId || !currentEmail) return;
         document.getElementById('trackContent').innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
-        // Call loginToTrack with stored credentials
-        const errorEl = document.getElementById('loginError');
-        const loginBtn = document.getElementById('loginBtn');
-        // We'll reuse the search logic directly
+        
         try {
             const { data, error } = await supabase
                 .from('orders')
                 .select('*')
-                .eq('orderId', currentOrderId)
-                .maybeSingle();
+                .eq('orderId', currentOrderId);
             
             if (error) throw error;
             
-            if (data && (data.email || '').toLowerCase() === currentEmail) {
-                showTracking(data, currentOrderId, currentEmail);
-                return;
-            }
-            
-            // Fallback to localStorage
-            const localData = JSON.parse(localStorage.getItem('track_'+currentOrderId) || 'null');
-            if (localData && (localData.email || '').toLowerCase() === currentEmail) {
-                showTracking(localData, currentOrderId, currentEmail);
-                return;
+            if (data && data.length > 0) {
+                const order = data[0];
+                if ((order.email || '').toLowerCase() === currentEmail) {
+                    showTracking(order, currentOrderId, currentEmail);
+                    return;
+                }
             }
             
             document.getElementById('trackContent').innerHTML = '<p class="not-found">❌ Order not found.</p>';
@@ -266,6 +253,11 @@
         document.getElementById('loginOrderId').value = params.get('orderId');
         document.getElementById('loginEmail').focus();
     }
+
+    // Quick test to confirm button is clickable
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        console.log('Button clicked!');
+    });
 </script>
 </body>
 </html>
