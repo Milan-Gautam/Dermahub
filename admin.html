@@ -162,9 +162,12 @@
           </div>
           <button type="button" class="btn-add-variant" onclick="addVariant()"><i class="fas fa-plus"></i> Add Another Variant</button>
         </div>
+        <div class="form-row">
+          <div class="form-field"><label>Initial Stock</label><input type="number" id="prodStock" placeholder="10" min="0" value="10"></div>
+        </div>
         <button class="btn-sm btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Product to Store</button>
         <div class="section-divider">
-          <div style="font-weight:600;margin-bottom:12px;">📦 Current Products <small style="color:#8b7b6e;">(set discount %)</small></div>
+          <div style="font-weight:600;margin-bottom:12px;">📦 Current Products <small style="color:#8b7b6e;">(stock / discount %)</small></div>
           <div id="productListContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
       </div>
@@ -194,7 +197,7 @@
       const ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
       const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       
       const SESSION_KEY = "admin_session_secure";
       const SESSION_TIME = "admin_session_time";
@@ -202,17 +205,10 @@
       
       let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0');
       let lockoutUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0');
-      const MAX_ATTEMPTS = 5;
-      const LOCKOUT_DURATION = 60000;
+      const MAX_ATTEMPTS = 5, LOCKOUT_DURATION = 60000;
       let orders = [], products = [], vouchers = [];
 
-      async function sha256(message) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-
+      async function sha256(message) { const msg = new TextEncoder().encode(message); const hash = await crypto.subtle.digest('SHA-256', msg); return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join(''); }
       function startSession() { localStorage.setItem(SESSION_KEY,'true'); localStorage.setItem(SESSION_TIME,Date.now().toString()); }
       function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_TIME); }
       function isSessionValid() { return localStorage.getItem(SESSION_KEY)==='true' && (Date.now()-parseInt(localStorage.getItem(SESSION_TIME)||0))/60000 < 30; }
@@ -225,28 +221,16 @@
 
       // Orders
       async function loadOrders() {
-        try {
-          let { data, error } = await supabase.from('orders').select('*').order('date', { ascending: false });
-          if (error) throw error;
-          orders = data || [];
-          localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
-        } catch(e) {
-          orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]');
-        }
+        try { let { data, error } = await db.from('orders').select('*').order('date',{ascending:false}); if(error) throw error; orders = data || []; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } catch(e) { orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]'); }
         orders.forEach(o => { if(!o.status) o.status = 'ordered'; });
-        document.getElementById('syncDot').className = 'sync-dot on';
-        document.getElementById('syncText').textContent = 'Cloud';
+        document.getElementById('syncDot').className = 'sync-dot on'; document.getElementById('syncText').textContent = 'Cloud';
         return orders;
       }
 
       async function updateOrderStatus(orderId, newStatus) {
-        try {
-          const { error } = await supabase.from('orders').update({ status: newStatus }).eq('orderId', orderId);
-          if (error) throw error;
-        } catch(e) {}
-        const idx = orders.findIndex(o => o.orderId === orderId);
-        if(idx >= 0) orders[idx].status = newStatus;
-        localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
+        try { await db.from('orders').update({status:newStatus}).eq('orderId',orderId); } catch(e) {}
+        const idx = orders.findIndex(o => o.orderId === orderId); if(idx>=0) orders[idx].status = newStatus;
+        localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders));
         renderOrders(); showToast(`Status → ${newStatus}`);
       }
 
@@ -268,166 +252,59 @@
       }
 
       window._updateStatus = async function(orderId, newStatus) { await updateOrderStatus(orderId, newStatus); };
-      window._delOrder = async function(id) {
-        if(!confirm('Delete order?')) return;
-        try { await supabase.from('orders').delete().eq('orderId', id); } catch(e) {}
-        orders = orders.filter(o => o.orderId !== id);
-        localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
-        renderOrders(); showToast('Order deleted');
-      };
+      window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await db.from('orders').delete().eq('orderId',id); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); renderOrders(); showToast('Order deleted'); };
 
       // Products
       async function loadProducts() {
-        try {
-          let { data, error } = await supabase.from('products').select('*');
-          if (error) throw error;
-          if (data) {
-            data.forEach(p => {
-              if (typeof p.variants === 'string') p.variants = JSON.parse(p.variants);
-              if (typeof p.images === 'string') p.images = JSON.parse(p.images);
-            });
-            products = data;
-            localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-          }
-        } catch(e) {
-          products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]');
-        }
+        try { let { data, error } = await db.from('products').select('*'); if(error) throw error; if(data) { data.forEach(p => { if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); products = data; localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
         return products;
       }
 
       async function saveProductToSupabase(product) {
-        const supabaseProduct = {
-          id: product.id,
-          name: product.name,
-          category: product.category,
-          description: product.description,
-          images: JSON.stringify(product.images),
-          variants: JSON.stringify(product.variants),
-          discount: product.discount || 0
-        };
-        try {
-          const { error } = await supabase.from('products').upsert([supabaseProduct]);
-          if (error) throw error;
-        } catch(e) {}
+        const supabaseProduct = { id: product.id, name: product.name, category: product.category, description: product.description, images: JSON.stringify(product.images), variants: JSON.stringify(product.variants), discount: product.discount||0, stock: product.stock||0 };
+        try { await db.from('products').upsert([supabaseProduct]); } catch(e) {}
       }
 
-      async function deleteProductFromSupabase(id) {
-        try { await supabase.from('products').delete().eq('id', id); } catch(e) {}
-      }
-
-      async function saveProductsToCloud() {
-        try {
-          let { data: existing } = await supabase.from('products').select('id');
-          if (existing) for (const item of existing) await supabase.from('products').delete().eq('id', item.id);
-          for (const p of products) await saveProductToSupabase(p);
-        } catch(e) {}
-        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-      }
+      async function deleteProductFromSupabase(id) { try { await db.from('products').delete().eq('id',id); } catch(e) {} }
 
       function renderProductsList() {
         const c = document.getElementById('productListContainer');
         if(!products.length) { c.innerHTML='<div class="empty-state">No products yet.</div>'; document.getElementById('statProductsCount').innerText='0'; return; }
         let html='';
         products.forEach(p => {
-          const d = p.discount || 0, variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
-          html += `<div class="product-item-row"><div class="prod-info"><strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br><small>${variantsStr}</small>${d>0?` <span style="color:#e74c3c;font-size:0.7rem;">(${d}% OFF)</span>`:''}</div><div class="prod-actions"><input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)"><button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button></div></div>`;
+          const d = p.discount||0, stock = p.stock||0, variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
+          html += `<div class="product-item-row"><div class="prod-info"><strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br><small>${variantsStr}</small> • Stock: ${stock} ${d>0?`<span style="color:#e74c3c;">(${d}% OFF)</span>`:''}</div><div class="prod-actions"><input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)"><button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button></div></div>`;
         });
         c.innerHTML = html;
         document.getElementById('statProductsCount').innerText = products.length;
       }
 
-      window._setDiscount = async function(prodId, discountVal) {
-        const d = Math.max(0, Math.min(99, parseInt(discountVal) || 0));
-        const prod = products.find(p => p.id === prodId);
-        if(prod) { prod.discount = d; await saveProductToSupabase(prod); renderProductsList(); showToast(`Discount: ${d}%`); }
-      };
+      window._setDiscount = async function(prodId, discountVal) { const d = Math.max(0, Math.min(99, parseInt(discountVal)||0)); const prod = products.find(p => p.id === prodId); if(prod) { prod.discount = d; await saveProductToSupabase(prod); renderProductsList(); showToast(`Discount: ${d}%`); } };
+      window._delProd = async function(id) { if(!confirm('Delete product?')) return; products = products.filter(p => p.id !== id); await deleteProductFromSupabase(id); renderProductsList(); showToast('Product deleted'); };
 
-      window._delProd = async function(id) {
-        if(!confirm('Delete product?')) return;
-        products = products.filter(p => p.id !== id);
-        await deleteProductFromSupabase(id);
-        renderProductsList();
-        showToast('Product deleted');
-      };
-
-      window.addVariant = function() {
-        const container = document.getElementById('variantsContainer');
-        const row = document.createElement('div');
-        row.className = 'variant-row';
-        row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`;
-        container.appendChild(row);
-      };
-
-      window.removeVariant = function(btn) {
-        const rows = document.querySelectorAll('#variantsContainer .variant-row');
-        if(rows.length > 1) btn.closest('.variant-row').remove();
-        else showToast('Need at least one variant');
-      };
+      window.addVariant = function() { const container = document.getElementById('variantsContainer'); const row = document.createElement('div'); row.className = 'variant-row'; row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`; container.appendChild(row); };
+      window.removeVariant = function(btn) { const rows = document.querySelectorAll('#variantsContainer .variant-row'); if(rows.length > 1) btn.closest('.variant-row').remove(); else showToast('Need at least one variant'); };
 
       async function addProduct() {
-        const name = document.getElementById('prodName').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
+        const name = document.getElementById('prodName').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s), stock = parseInt(document.getElementById('prodStock').value)||0;
         if(!name) { showToast('Enter product name'); return; }
-        const variantRows = document.querySelectorAll('#variantsContainer .variant-row');
-        const variants = [];
-        variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if(size && price > 0) variants.push({ size, price }); });
+        const variantRows = document.querySelectorAll('#variantsContainer .variant-row'); const variants = [];
+        variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if(size && price > 0) variants.push({size,price}); });
         if(variants.length === 0) { showToast('Add at least one variant'); return; }
-        const newProduct = { id: Date.now(), name, category: cat, description: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount: 0 };
+        const newProduct = { id: Date.now(), name, category: cat, description: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock };
         products.push(newProduct);
         await saveProductToSupabase(newProduct);
         renderProductsList();
-        document.getElementById('prodName').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = '';
+        document.getElementById('prodName').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = ''; document.getElementById('prodStock').value = '10';
         document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button></div>`;
         showToast(`✓ ${name} added!`);
       }
 
       // Vouchers
-      async function loadVouchers() {
-        try {
-          let { data, error } = await supabase.from('vouchers').select('*');
-          if (error) throw error;
-          vouchers = data || [];
-        } catch(e) { vouchers = []; }
-        return vouchers;
-      }
-
-      function renderVouchersList() {
-        const c = document.getElementById('voucherListContainer');
-        if(!vouchers.length) { c.innerHTML='<div class="empty-state">No vouchers yet.</div>'; return; }
-        let html='';
-        vouchers.forEach(v => {
-          html += `<div class="voucher-item-row">
-            <div class="voucher-info"><strong>${esc(v.code)}</strong> - ${v.discount}% off | Used: ${v.usedCount||0}/${v.maxUses>0?v.maxUses:'∞'} | ${v.active?'Active':'Inactive'}</div>
-            <div class="voucher-actions">
-              <button class="delete-btn" onclick="window._delVoucher('${v.code}')"><i class="fas fa-trash"></i></button>
-            </div></div>`;
-        });
-        c.innerHTML = html;
-      }
-
-      window._delVoucher = async function(code) {
-        if(!confirm('Delete voucher?')) return;
-        try { await supabase.from('vouchers').delete().eq('code', code); } catch(e) {}
-        vouchers = vouchers.filter(v => v.code !== code);
-        renderVouchersList();
-        showToast('Voucher deleted');
-      };
-
-      async function addVoucher() {
-        const code = document.getElementById('voucherCode').value.trim().toUpperCase();
-        const discount = parseInt(document.getElementById('voucherDiscount').value);
-        const maxUses = parseInt(document.getElementById('voucherMaxUses').value) || 0;
-        if(!code || !discount || discount<1 || discount>99) { showToast('Enter valid code and discount (1-99)'); return; }
-        try {
-          const { error } = await supabase.from('vouchers').insert([{ code, discount, maxUses, usedCount:0, active:true }]);
-          if (error) { showToast('Code already exists or error'); return; }
-        } catch(e) { showToast('Failed to add voucher'); return; }
-        vouchers.push({ code, discount, maxUses, usedCount:0, active:true });
-        renderVouchersList();
-        document.getElementById('voucherCode').value = '';
-        document.getElementById('voucherDiscount').value = '';
-        document.getElementById('voucherMaxUses').value = '';
-        showToast(`Voucher ${code} added`);
-      }
+      async function loadVouchers() { try { let { data, error } = await db.from('vouchers').select('*'); if(error) throw error; vouchers = data || []; } catch(e) { vouchers = []; } return vouchers; }
+      function renderVouchersList() { const c = document.getElementById('voucherListContainer'); if(!vouchers.length) { c.innerHTML='<div class="empty-state">No vouchers yet.</div>'; return; } let html=''; vouchers.forEach(v => { html += `<div class="voucher-item-row"><div class="voucher-info"><strong>${esc(v.code)}</strong> - ${v.discount}% off | Used: ${v.usedCount||0}/${v.maxUses>0?v.maxUses:'∞'} | ${v.active?'Active':'Inactive'}</div><div class="voucher-actions"><button class="delete-btn" onclick="window._delVoucher('${v.code}')"><i class="fas fa-trash"></i></button></div></div>`; }); c.innerHTML = html; }
+      window._delVoucher = async function(code) { if(!confirm('Delete voucher?')) return; try { await db.from('vouchers').delete().eq('code',code); } catch(e) {} vouchers = vouchers.filter(v => v.code !== code); renderVouchersList(); showToast('Voucher deleted'); };
+      async function addVoucher() { const code = document.getElementById('voucherCode').value.trim().toUpperCase(), discount = parseInt(document.getElementById('voucherDiscount').value), maxUses = parseInt(document.getElementById('voucherMaxUses').value)||0; if(!code || !discount || discount<1 || discount>99) { showToast('Enter valid code and discount (1-99)'); return; } try { await db.from('vouchers').insert([{code,discount,maxUses,usedCount:0,active:true}]); } catch(e) { showToast('Code already exists or error'); return; } vouchers.push({code,discount,maxUses,usedCount:0,active:true}); renderVouchersList(); document.getElementById('voucherCode').value = ''; document.getElementById('voucherDiscount').value = ''; document.getElementById('voucherMaxUses').value = ''; showToast(`Voucher ${code} added`); }
 
       function updateStats() { document.getElementById('statOrders').innerText = orders.length; document.getElementById('statProductsCount').innerText = products.length; }
       function esc(s) { if(!s) return ''; return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
@@ -439,26 +316,14 @@
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         const idx = s==='orders'?0 : s==='products'?1 : 2;
         document.querySelectorAll('.nav-tab')[idx].classList.add('active');
-        if(s==='orders') renderOrders();
-        else if(s==='products') renderProductsList();
-        else if(s==='vouchers') renderVouchersList();
+        if(s==='orders') renderOrders(); else if(s==='products') renderProductsList(); else if(s==='vouchers') renderVouchersList();
       };
 
-      async function refreshData() {
-        showToast('🔄 Syncing...');
-        await loadOrders();
-        await loadProducts();
-        await loadVouchers();
-        renderOrders();
-        renderProductsList();
-        renderVouchersList();
-        showToast('✅ Refreshed');
-      }
+      async function refreshData() { showToast('🔄 Syncing...'); await loadOrders(); await loadProducts(); await loadVouchers(); renderOrders(); renderProductsList(); renderVouchersList(); showToast('✅ Refreshed'); }
 
       async function login() {
         if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; return; }
-        const inputPassword = document.getElementById('passwordInput').value;
-        const hashedInput = await sha256(inputPassword);
+        const hashedInput = await sha256(document.getElementById('passwordInput').value);
         if(hashedInput === ADMIN_PASSWORD_HASH) {
           loginAttempts=0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until');
           document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false;
