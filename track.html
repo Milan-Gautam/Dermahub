@@ -81,65 +81,138 @@
 </div>
 
 <script>
+    // Supabase configuration
     const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Initialize Supabase client
+    const { createClient } = window.supabase;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     let currentOrderId = null, currentEmail = null;
 
-    async function loginToTrack() {
+    // Make functions globally accessible
+    window.loginToTrack = async function() {
         const orderId = document.getElementById('loginOrderId').value.trim();
         const email = document.getElementById('loginEmail').value.trim().toLowerCase();
         const errorEl = document.getElementById('loginError');
         const loginBtn = document.getElementById('loginBtn');
-        if (!orderId || !email) { errorEl.style.display='block'; errorEl.innerText='Please fill both fields.'; return; }
-        loginBtn.disabled = true; loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...'; errorEl.style.display = 'none';
-        await searchOrder(orderId, email, errorEl, loginBtn);
-    }
-
-    async function searchOrder(orderId, email, errorEl, loginBtn) {
+        
+        if (!orderId || !email) {
+            errorEl.style.display = 'block';
+            errorEl.innerText = 'Please fill both fields.';
+            return;
+        }
+        
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...';
+        errorEl.style.display = 'none';
+        
+        console.log('Searching for order:', orderId, email);
+        
         try {
-            let { data, error } = await supabase.from('orders').select('*').eq('orderId', orderId);
-            if (error) throw error;
-            if (data && data.length > 0) {
-                const order = data[0];
-                if ((order.email || '').toLowerCase() === email) {
-                    localStorage.setItem('track_'+orderId, JSON.stringify(order));
-                    showTracking(order, orderId, email);
-                    if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
-                    return;
-                }
+            // Search Supabase for the order
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('orderId', orderId)
+                .maybeSingle();
+            
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
             }
-            // Fallback to localStorage
-            const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
-            if (localData && (localData.email||'').toLowerCase() === email) {
-                showTracking(localData, orderId, email);
-                if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
+            
+            if (data && (data.email || '').toLowerCase() === email) {
+                console.log('Order found:', data);
+                showTracking(data, orderId, email);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '🔍 Track Order';
                 return;
             }
-            if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ No order found with that ID and email.'; }
-        } catch(e) {
+            
+            // Fallback to localStorage
             const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
-            if (localData && (localData.email||'').toLowerCase() === email) showTracking(localData, orderId, email);
-            else if(errorEl) { errorEl.style.display='block'; errorEl.innerText='❌ Cannot connect. Check your internet.'; }
+            if (localData && (localData.email || '').toLowerCase() === email) {
+                console.log('Order found in localStorage');
+                showTracking(localData, orderId, email);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '🔍 Track Order';
+                return;
+            }
+            
+            // Not found
+            errorEl.style.display = 'block';
+            errorEl.innerText = '❌ No order found with that ID and email.';
+        } catch (e) {
+            console.error('Search error:', e);
+            // Try localStorage
+            const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
+            if (localData && (localData.email || '').toLowerCase() === email) {
+                showTracking(localData, orderId, email);
+            } else {
+                errorEl.style.display = 'block';
+                errorEl.innerText = '❌ Cannot connect. Check your internet.';
+            }
         }
-        if(loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='🔍 Track Order'; }
-    }
+        
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '🔍 Track Order';
+    };
 
-    async function refreshTracking() {
+    window.refreshTracking = async function() {
         if (!currentOrderId || !currentEmail) return;
         document.getElementById('trackContent').innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
-        await searchOrder(currentOrderId, currentEmail, null, null);
-    }
+        // Call loginToTrack with stored credentials
+        const errorEl = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
+        // We'll reuse the search logic directly
+        try {
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('orderId', currentOrderId)
+                .maybeSingle();
+            
+            if (error) throw error;
+            
+            if (data && (data.email || '').toLowerCase() === currentEmail) {
+                showTracking(data, currentOrderId, currentEmail);
+                return;
+            }
+            
+            // Fallback to localStorage
+            const localData = JSON.parse(localStorage.getItem('track_'+currentOrderId) || 'null');
+            if (localData && (localData.email || '').toLowerCase() === currentEmail) {
+                showTracking(localData, currentOrderId, currentEmail);
+                return;
+            }
+            
+            document.getElementById('trackContent').innerHTML = '<p class="not-found">❌ Order not found.</p>';
+        } catch (e) {
+            document.getElementById('trackContent').innerHTML = '<p class="not-found">❌ Connection error.</p>';
+        }
+    };
 
     function showTracking(data, orderId, email) {
-        currentOrderId = orderId; currentEmail = email;
+        currentOrderId = orderId;
+        currentEmail = email;
+        
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('trackingView').style.display = 'block';
+        document.getElementById('loginError').style.display = 'none';
+        
         const status = (data.status || 'ordered').toLowerCase();
-        const steps = [{label:'Ordered',key:'ordered'},{label:'Paid',key:'paid'},{label:'Processing',key:'processing'},{label:'Shipped',key:'shipped'},{label:'Delivered',key:'delivered'}];
+        const steps = [
+            {label:'Ordered', key:'ordered'},
+            {label:'Paid', key:'paid'},
+            {label:'Processing', key:'processing'},
+            {label:'Shipped', key:'shipped'},
+            {label:'Delivered', key:'delivered'}
+        ];
         const statusOrder = ['ordered','paid','processing','shipped','delivered'];
         const currentIndex = statusOrder.indexOf(status);
+        
         let bar = '<div class="status-bar">';
         steps.forEach((s,i) => {
             const done = i <= currentIndex;
@@ -149,13 +222,16 @@
             bar += `<div class="status-step"><div class="step-circle ${cls.trim()}">${done ? '✓' : i+1}</div><div class="step-label ${done ? 'done' : ''}">${s.label}</div></div>`;
         });
         bar += '</div>';
+        
         let msgHtml = '';
-        if(status==='ordered') msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Pay via eSewa/Khalti using QR code sent to your email.</div>';
-        else if(status==='paid') msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>Your order is being prepared.</div>';
-        else if(status==='processing') msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>We\'re crafting your products.</div>';
-        else if(status==='shipped') msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Delivery in 3-7 business days.</div>';
-        else if(status==='delivered') msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
+        if(status === 'ordered') msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Pay via eSewa/Khalti using QR code sent to your email.</div>';
+        else if(status === 'paid') msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>Your order is being prepared.</div>';
+        else if(status === 'processing') msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>We\'re crafting your products.</div>';
+        else if(status === 'shipped') msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Delivery in 3-7 business days.</div>';
+        else if(status === 'delivered') msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
+        
         const isPaid = ['paid','processing','shipped','delivered'].includes(status);
+        
         document.getElementById('trackContent').innerHTML = `
             ${bar}
             ${msgHtml}
@@ -171,18 +247,25 @@
         `;
     }
 
-    function logoutTracking() {
-        currentOrderId = null; currentEmail = null;
+    window.logoutTracking = function() {
+        currentOrderId = null;
+        currentEmail = null;
         document.getElementById('loginView').style.display = 'block';
         document.getElementById('trackingView').style.display = 'none';
         document.getElementById('loginOrderId').value = '';
         document.getElementById('loginEmail').value = '';
-    }
+    };
 
+    // Enter key support
     document.getElementById('loginEmail').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
     document.getElementById('loginOrderId').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
+    
+    // Auto-fill order ID from URL
     const params = new URLSearchParams(window.location.search);
-    if(params.get('orderId')) { document.getElementById('loginOrderId').value = params.get('orderId'); document.getElementById('loginEmail').focus(); }
+    if(params.get('orderId')) {
+        document.getElementById('loginOrderId').value = params.get('orderId');
+        document.getElementById('loginEmail').focus();
+    }
 </script>
 </body>
-    </html>
+</html>
