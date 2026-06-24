@@ -15,6 +15,7 @@
     <link rel="canonical" href="https://akraft.vercel.app">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -184,128 +185,173 @@
 
 <script>
 (function(){
+    const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     emailjs.init("2X9gef2Tudenoiugp");
-    // Your API URLs
-    const PRODUCTS_API_URL = "https://script.google.com/macros/s/AKfycbwtuH5YMcUvsMX239ll6tW8ZXPXZhfLfdBobTkOn52tLenIIABu_FcYKQ6ci7hBINgZ/exec";
-    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby26tid8ZDO1C3RxVdt9JWdM6OKLkndrHAVHF5UT5CkoSb6TmhsqZ-hAW0Fl2t-bO-6/exec";
     
     const STORAGE_PRODUCTS = "dermakraft_products_v3";
     const STORAGE_CART = "dermakraft_cart";
     
     async function loadProducts(){
-        try{const res=await fetch(PRODUCTS_API_URL);if(res.ok){let data=await res.json();data.forEach(p=>{p.id=parseInt(p.id);p.discount=parseInt(p.discount)||0;if(typeof p.variants==='string')p.variants=JSON.parse(p.variants);if(typeof p.images==='string')p.images=JSON.parse(p.images);});if(data.length>0){localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(data));return data;}}}catch(e){}
-        const stored=localStorage.getItem(STORAGE_PRODUCTS);return stored?JSON.parse(stored):[];
+        try {
+            let { data, error } = await supabase.from('products').select('*');
+            if (error) throw error;
+            if (data && data.length > 0) {
+                data.forEach(p => {
+                    if (typeof p.variants === 'string') p.variants = JSON.parse(p.variants);
+                    if (typeof p.images === 'string') p.images = JSON.parse(p.images);
+                });
+                localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(data));
+                return data;
+            }
+        } catch(e) {
+            console.log('Supabase products load failed', e);
+        }
+        const stored = localStorage.getItem(STORAGE_PRODUCTS);
+        return stored ? JSON.parse(stored) : [];
     }
-    function loadCart(){const s=localStorage.getItem(STORAGE_CART);return s?JSON.parse(s):[];}
-    function saveCart(){localStorage.setItem(STORAGE_CART,JSON.stringify(cart));}
     
-    let products=[],cart=loadCart(),addedKeys=new Set(cart.map(i=>i.uniqueKey)),currentFilter="all",selectedLocation="inside",deliveryCharge=100;
+    function loadCart(){ const s = localStorage.getItem(STORAGE_CART); return s ? JSON.parse(s) : []; }
+    function saveCart(){ localStorage.setItem(STORAGE_CART, JSON.stringify(cart)); }
     
-    function toast(msg){const t=document.getElementById('toastMsg');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
-    function getKey(pid,v){return`${pid}-${v}`;}
-    function getDiscountedPrice(price,discount){return discount>0?Math.round(price*(1-discount/100)):price;}
+    let products = [], cart = loadCart(), addedKeys = new Set(cart.map(i => i.uniqueKey)), currentFilter = "all", selectedLocation = "inside", deliveryCharge = 100;
+    
+    function toast(msg){ const t = document.getElementById('toastMsg'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
+    function getKey(pid, v){ return `${pid}-${v}`; }
+    function getDiscountedPrice(price, discount){ return discount > 0 ? Math.round(price * (1 - discount/100)) : price; }
     
     function renderProducts(){
-        const g=document.getElementById('productGridContainer');g.innerHTML='';
-        const f=products.filter(p=>currentFilter==='all'||p.category===currentFilter);
-        if(f.length===0){g.innerHTML='<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">No products yet. Admin will add them soon!</div>';return;}
-        f.forEach(prod=>{
-            const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
-            let dots='';if(imgs.length>1)imgs.forEach((_,i)=>dots+=`<span class="img-dot${i===0?' active':''}"></span>`);
-            const dv=prod.variants[0],origPrice=dv.price,disPrice=getDiscountedPrice(dv.price,prod.discount||0);
-            let vh='';prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
-            const c=document.createElement('div');c.className='product-card';c.dataset.id=prod.id;
-            c.innerHTML=`<img src="${imgs[0]}" class="product-img" loading="lazy">${dots?`<div class="img-dots">${dots}</div>`:''}<div class="product-title">${prod.name}</div><div class="product-desc">${prod.desc}</div><div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</span><button class="add-to-cart"><i class="fas fa-plus"></i> Add</button></div>`;
-            c.addEventListener('click',function(e){if(!e.target.closest('.variant')&&!e.target.closest('.add-to-cart'))openProductModal(prod);});
+        const g = document.getElementById('productGridContainer'); g.innerHTML = '';
+        const f = products.filter(p => currentFilter === 'all' || p.category === currentFilter);
+        if(f.length === 0){ g.innerHTML = '<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">No products yet. Admin will add them soon!</div>'; return; }
+        f.forEach(prod => {
+            const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
+            let dots = ''; if(imgs.length > 1) imgs.forEach((_, i) => dots += `<span class="img-dot${i===0?' active':''}"></span>`);
+            const dv = prod.variants[0], origPrice = dv.price, disPrice = getDiscountedPrice(dv.price, prod.discount || 0);
+            let vh = ''; prod.variants.forEach((v, i) => vh += `<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
+            const c = document.createElement('div'); c.className = 'product-card'; c.dataset.id = prod.id;
+            const desc = prod.description || ''; // Use description column
+            c.innerHTML = `<img src="${imgs[0]}" class="product-img" loading="lazy">${dots ? `<div class="img-dots">${dots}</div>` : ''}<div class="product-title">${prod.name}</div><div class="product-desc">${desc}</div><div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount > 0 ? `<span class="original">NPR ${origPrice}</span> ` : ''}NPR ${disPrice}</span><button class="add-to-cart"><i class="fas fa-plus"></i> Add</button></div>`;
+            c.addEventListener('click', function(e){ if(!e.target.closest('.variant') && !e.target.closest('.add-to-cart')) openProductModal(prod); });
             g.appendChild(c);
         });
-        attachEvents();updateCartButtons();
+        attachEvents(); updateCartButtons();
     }
     
     function attachEvents(){
-        document.querySelectorAll('.variant').forEach(v=>v.addEventListener('click',function(e){e.stopPropagation();const g=this.closest('.variant-group');g.querySelectorAll('.variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');const c=this.closest('.product-card'),prod=products.find(p=>p.id===parseInt(c.dataset.id)),discount=prod?.discount||0,price=getDiscountedPrice(parseFloat(this.dataset.price),discount);c.querySelector('.price').innerHTML=`${discount>0?`<span class="original">NPR ${this.dataset.price}</span> `:''}NPR ${price}`;updateCartButtons();}));
-        document.querySelectorAll('.add-to-cart').forEach(b=>b.addEventListener('click',function(e){e.stopPropagation();const c=this.closest('.product-card'),pid=parseInt(c.dataset.id),prod=products.find(p=>p.id===pid),sv=c.querySelector('.variant.selected'),key=getKey(pid,sv.dataset.label),discount=prod?.discount||0,price=getDiscountedPrice(parseFloat(sv.dataset.price),discount);if(addedKeys.has(key)){toast('Already in cart');return;}cart.push({uniqueKey:key,productId:pid,variantLabel:sv.dataset.label,price,name:`${prod.name} (${sv.dataset.label})`,img:prod.images?.[0]||prod.img,quantity:1});addedKeys.add(key);this.disabled=true;this.innerHTML='<i class="fas fa-check"></i>';saveCart();updateCartUI();toast('Added to cart');}));
+        document.querySelectorAll('.variant').forEach(v => v.addEventListener('click', function(e){
+            e.stopPropagation();
+            const g = this.closest('.variant-group'); g.querySelectorAll('.variant').forEach(x => x.classList.remove('selected'));
+            this.classList.add('selected');
+            const c = this.closest('.product-card'), prod = products.find(p => p.id === parseInt(c.dataset.id)), discount = prod?.discount || 0, price = getDiscountedPrice(parseFloat(this.dataset.price), discount);
+            c.querySelector('.price').innerHTML = `${discount > 0 ? `<span class="original">NPR ${this.dataset.price}</span> ` : ''}NPR ${price}`;
+            updateCartButtons();
+        }));
+        document.querySelectorAll('.add-to-cart').forEach(b => b.addEventListener('click', function(e){
+            e.stopPropagation();
+            const c = this.closest('.product-card'), pid = parseInt(c.dataset.id), prod = products.find(p => p.id === pid), sv = c.querySelector('.variant.selected'), key = getKey(pid, sv.dataset.label), discount = prod?.discount || 0, price = getDiscountedPrice(parseFloat(sv.dataset.price), discount);
+            if(addedKeys.has(key)) { toast('Already in cart'); return; }
+            cart.push({ uniqueKey: key, productId: pid, variantLabel: sv.dataset.label, price, name: `${prod.name} (${sv.dataset.label})`, img: prod.images?.[0] || prod.img, quantity: 1 });
+            addedKeys.add(key); this.disabled = true; this.innerHTML = '<i class="fas fa-check"></i>'; saveCart(); updateCartUI(); toast('Added to cart');
+        }));
     }
     
-    function updateCartButtons(){document.querySelectorAll('.product-card').forEach(c=>{const pid=parseInt(c.dataset.id),sv=c.querySelector('.variant.selected');if(!sv)return;const key=getKey(pid,sv.dataset.label),btn=c.querySelector('.add-to-cart');if(addedKeys.has(key)){if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i>';}}else{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-plus"></i> Add';}}});}
+    function updateCartButtons(){ document.querySelectorAll('.product-card').forEach(c => { const pid = parseInt(c.dataset.id), sv = c.querySelector('.variant.selected'); if(!sv) return; const key = getKey(pid, sv.dataset.label), btn = c.querySelector('.add-to-cart'); if(addedKeys.has(key)){ if(btn){ btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i>'; } } else { if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; } } }); }
     
     function updateCartUI(){
-        const c=document.getElementById('cartList');
-        if(!cart.length){c.innerHTML='<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>';}
-        else{let h='';cart.forEach((i,idx)=>{h+=`<li class="cart-item"><img src="${i.img}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">&minus;</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;});c.innerHTML=h;
-        document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),-1)));
-        document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),1)));
-        document.querySelectorAll('.remove-item').forEach(b=>b.addEventListener('click',()=>removeItem(parseInt(b.dataset.idx))));}
-        const s=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('cartTotal').innerText='NPR '+s.toLocaleString();document.getElementById('cartCount').innerText=cart.reduce((s,i)=>s+i.quantity,0);
+        const c = document.getElementById('cartList');
+        if(!cart.length){ c.innerHTML = '<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>'; }
+        else {
+            let h = ''; cart.forEach((i, idx) => {
+                h += `<li class="cart-item"><img src="${i.img}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">&minus;</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;
+            });
+            c.innerHTML = h;
+            document.querySelectorAll('.dec').forEach(b => b.addEventListener('click', () => modQty(parseInt(b.dataset.idx), -1)));
+            document.querySelectorAll('.inc').forEach(b => b.addEventListener('click', () => modQty(parseInt(b.dataset.idx), 1)));
+            document.querySelectorAll('.remove-item').forEach(b => b.addEventListener('click', () => removeItem(parseInt(b.dataset.idx))));
+        }
+        const s = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+        document.getElementById('cartTotal').innerText = 'NPR ' + s.toLocaleString();
+        document.getElementById('cartCount').innerText = cart.reduce((s, i) => s + i.quantity, 0);
     }
-    function modQty(i,d){cart[i].quantity+=d;if(cart[i].quantity<=0)removeItem(i);else{saveCart();updateCartUI();}}
-    function removeItem(i){addedKeys.delete(cart[i].uniqueKey);cart.splice(i,1);saveCart();updateCartButtons();updateCartUI();}
+    function modQty(i, d){ cart[i].quantity += d; if(cart[i].quantity <= 0) removeItem(i); else { saveCart(); updateCartUI(); } }
+    function removeItem(i){ addedKeys.delete(cart[i].uniqueKey); cart.splice(i, 1); saveCart(); updateCartButtons(); updateCartUI(); }
     
-    window.selectLocation=function(l,el){selectedLocation=l;deliveryCharge=l==='inside'?100:200;document.querySelectorAll('#checkoutModal .radio-option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');updateCheckoutSummary();};
-    function updateCheckoutSummary(){const s=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('checkoutSubtotal').textContent='Subtotal: NPR '+s.toLocaleString();document.getElementById('checkoutDelivery').textContent='Delivery: NPR '+deliveryCharge;document.getElementById('checkoutTotal').textContent='Total: NPR '+(s+deliveryCharge).toLocaleString();}
+    window.selectLocation = function(l, el){ selectedLocation = l; deliveryCharge = l === 'inside' ? 100 : 200; document.querySelectorAll('#checkoutModal .radio-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); updateCheckoutSummary(); };
+    function updateCheckoutSummary(){ const s = cart.reduce((s, i) => s + i.price * i.quantity, 0); document.getElementById('checkoutSubtotal').textContent = 'Subtotal: NPR ' + s.toLocaleString(); document.getElementById('checkoutDelivery').textContent = 'Delivery: NPR ' + deliveryCharge; document.getElementById('checkoutTotal').textContent = 'Total: NPR ' + (s + deliveryCharge).toLocaleString(); }
     
     function openProductModal(prod){
-        const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
-        document.getElementById('modalMainImg').src=imgs[0];document.getElementById('modalProdName').textContent=prod.name;document.getElementById('modalProdDesc').textContent=prod.desc;
-        let th='';imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
-        document.getElementById('modalThumbs').innerHTML=th;
-        const discount=prod.discount||0,dv=prod.variants[0],dPrice=getDiscountedPrice(dv.price,discount);
-        let vh='';prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
-        document.getElementById('modalVariants').innerHTML=vh;
-        document.getElementById('modalPrice').innerHTML=`${discount>0?`<span class="original">NPR ${dv.price}</span> `:''}NPR ${dPrice}`;
-        document.querySelectorAll('#modalVariants .variant').forEach(v=>v.addEventListener('click',function(){document.querySelectorAll('#modalVariants .variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');const price=parseFloat(this.dataset.price),disPrice=getDiscountedPrice(price,discount);document.getElementById('modalPrice').innerHTML=`${discount>0?`<span class="original">NPR ${price}</span> `:''}NPR ${disPrice}`;}));
-        const btn=document.getElementById('modalAddBtn'),sv=document.querySelector('#modalVariants .variant.selected'),key=getKey(prod.id,sv.dataset.label);
-        if(addedKeys.has(key)){btn.disabled=true;btn.innerHTML='<i class="fas fa-check"></i>';}else{btn.disabled=false;btn.innerHTML='<i class="fas fa-plus"></i> Add';}
-        btn.onclick=function(){const sv=document.querySelector('#modalVariants .variant.selected'),key=getKey(prod.id,sv.dataset.label),discount=prod.discount||0,price=getDiscountedPrice(parseFloat(sv.dataset.price),discount);if(addedKeys.has(key)){toast('Already in cart');closeProductModal();return;}cart.push({uniqueKey:key,productId:prod.id,variantLabel:sv.dataset.label,price,name:`${prod.name} (${sv.dataset.label})`,img:imgs[0],quantity:1});addedKeys.add(key);saveCart();updateCartUI();updateCartButtons();toast('Added to cart');closeProductModal();};
+        const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
+        document.getElementById('modalMainImg').src = imgs[0]; document.getElementById('modalProdName').textContent = prod.name; document.getElementById('modalProdDesc').textContent = prod.description || '';
+        let th = ''; imgs.forEach((img, i) => th += `<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
+        document.getElementById('modalThumbs').innerHTML = th;
+        const discount = prod.discount || 0, dv = prod.variants[0], dPrice = getDiscountedPrice(dv.price, discount);
+        let vh = ''; prod.variants.forEach((v, i) => vh += `<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
+        document.getElementById('modalVariants').innerHTML = vh;
+        document.getElementById('modalPrice').innerHTML = `${discount > 0 ? `<span class="original">NPR ${dv.price}</span> ` : ''}NPR ${dPrice}`;
+        document.querySelectorAll('#modalVariants .variant').forEach(v => v.addEventListener('click', function(){ document.querySelectorAll('#modalVariants .variant').forEach(x => x.classList.remove('selected')); this.classList.add('selected'); const price = parseFloat(this.dataset.price), disPrice = getDiscountedPrice(price, discount); document.getElementById('modalPrice').innerHTML = `${discount > 0 ? `<span class="original">NPR ${price}</span> ` : ''}NPR ${disPrice}`; }));
+        const btn = document.getElementById('modalAddBtn'), sv = document.querySelector('#modalVariants .variant.selected'), key = getKey(prod.id, sv.dataset.label);
+        if(addedKeys.has(key)){ btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i>'; } else { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add'; }
+        btn.onclick = function(){ const sv = document.querySelector('#modalVariants .variant.selected'), key = getKey(prod.id, sv.dataset.label), discount = prod.discount || 0, price = getDiscountedPrice(parseFloat(sv.dataset.price), discount); if(addedKeys.has(key)){ toast('Already in cart'); closeProductModal(); return; } cart.push({ uniqueKey: key, productId: prod.id, variantLabel: sv.dataset.label, price, name: `${prod.name} (${sv.dataset.label})`, img: imgs[0], quantity: 1 }); addedKeys.add(key); saveCart(); updateCartUI(); updateCartButtons(); toast('Added to cart'); closeProductModal(); };
         document.getElementById('productModal').classList.add('open');
     }
-    window.closeProductModal=function(){document.getElementById('productModal').classList.remove('open');};
+    window.closeProductModal = function(){ document.getElementById('productModal').classList.remove('open'); };
     
-    document.getElementById('productModal').addEventListener('click',function(e){if(e.target===this)closeProductModal();});
-    document.getElementById('checkoutModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-    document.getElementById('successModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-    document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+    document.getElementById('productModal').addEventListener('click', function(e){ if(e.target === this) closeProductModal(); });
+    document.getElementById('checkoutModal').addEventListener('click', function(e){ if(e.target === this) this.classList.remove('open'); });
+    document.getElementById('successModal').addEventListener('click', function(e){ if(e.target === this) this.classList.remove('open'); });
+    document.getElementById('infoModal').addEventListener('click', function(e){ if(e.target === this) this.classList.remove('open'); });
     
-    function handleCheckout(){if(!cart.length){toast('Cart is empty');return;}updateCheckoutSummary();document.getElementById('checkoutModal').classList.add('open');}
+    function handleCheckout(){ if(!cart.length){ toast('Cart is empty'); return; } updateCheckoutSummary(); document.getElementById('checkoutModal').classList.add('open'); }
     
     async function submitOrder(){
-        const name=document.getElementById('custName').value.trim(),email=document.getElementById('custEmail').value.trim(),addr=document.getElementById('custAddress').value.trim(),phone=document.getElementById('custPhone').value.trim();
-        if(!name||!email||!addr||!phone){toast('Please fill all fields');return;}
-        const subtotal=cart.reduce((s,i)=>s+i.price*i.quantity,0),total=subtotal+deliveryCharge,itemsStr=cart.map(i=>`${i.quantity}x ${i.name}`).join(', '),orderId='ORD-'+Date.now(),orderDate=new Date().toISOString(),location=selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley',trackingUrl=window.location.origin+window.location.pathname.replace('index.html','')+'track.html?orderId='+orderId;
-        const orderData={orderId,customerName:name,email,phone,address:addr,location,deliveryCharge,items:itemsStr,subtotal,total,date:orderDate,status:'ordered'};
-        try{await fetch(ORDERS_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:[orderData]})});}catch(e){}
-        localStorage.setItem('track_'+orderId,JSON.stringify({...orderData,trackingUrl}));
-        try{await emailjs.send("service_ycj8myh","template_8sw10cu",{customerName:name,orderId,items:itemsStr,subtotal:subtotal.toLocaleString(),deliveryCharge:deliveryCharge.toString(),total:total.toLocaleString(),location,address:addr,trackingUrl,email});}catch(e){}
-        document.getElementById('successMsg').innerHTML=`<strong>Thank you ${name}!</strong><br><br>Order Total: <strong>NPR ${total.toLocaleString()}</strong><br>Delivery: ${location}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;"><strong>Payment:</strong> Pay via eSewa/Khalti using QR code sent to ${email}<br><small>Order processes after payment confirmation</small></div><br>Tracking link sent to ${email}`;
-        document.getElementById('checkoutModal').classList.remove('open');document.getElementById('successModal').classList.add('open');
-        document.getElementById('trackOrderBtn').onclick=function(){window.location.href=trackingUrl;};
-        cart=[];addedKeys.clear();saveCart();updateCartUI();updateCartButtons();
-        ['custName','custEmail','custAddress','custPhone'].forEach(id=>document.getElementById(id).value='');
+        const name = document.getElementById('custName').value.trim(), email = document.getElementById('custEmail').value.trim(), addr = document.getElementById('custAddress').value.trim(), phone = document.getElementById('custPhone').value.trim();
+        if(!name || !email || !addr || !phone){ toast('Please fill all fields'); return; }
+        const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0), total = subtotal + deliveryCharge, itemsStr = cart.map(i => `${i.quantity}x ${i.name}`).join(', '), orderId = 'ORD-' + Date.now(), orderDate = new Date().toISOString(), location = selectedLocation === 'inside' ? 'Inside Kathmandu Valley' : 'Outside Kathmandu Valley', trackingUrl = window.location.origin + window.location.pathname.replace('index.html','') + 'track.html?orderId=' + orderId;
+        const orderData = { orderId, customerName: name, email, phone, address: addr, location, deliveryCharge, items: itemsStr, subtotal, total, date: orderDate, status: 'ordered' };
+        
+        try {
+            const { error } = await supabase.from('orders').insert([orderData]);
+            if (error) throw error;
+        } catch(e) {
+            console.log('Supabase order save failed', e);
+        }
+        
+        localStorage.setItem('track_' + orderId, JSON.stringify({...orderData, trackingUrl}));
+        try { await emailjs.send("service_ycj8myh","template_8sw10cu",{ customerName: name, orderId, items: itemsStr, subtotal: subtotal.toLocaleString(), deliveryCharge: deliveryCharge.toString(), total: total.toLocaleString(), location, address: addr, trackingUrl, email }); } catch(e) {}
+        
+        document.getElementById('successMsg').innerHTML = `<strong>Thank you ${name}!</strong><br><br>Order Total: <strong>NPR ${total.toLocaleString()}</strong><br>Delivery: ${location}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;"><strong>Payment:</strong> Pay via eSewa/Khalti using QR code sent to ${email}<br><small>Order processes after payment confirmation</small></div><br>Tracking link sent to ${email}`;
+        document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('successModal').classList.add('open');
+        document.getElementById('trackOrderBtn').onclick = function(){ window.location.href = trackingUrl; };
+        cart = []; addedKeys.clear(); saveCart(); updateCartUI(); updateCartButtons();
+        ['custName','custEmail','custAddress','custPhone'].forEach(id => document.getElementById(id).value = '');
     }
     
-    function showInfo(title,msg){document.getElementById('infoTitle').innerText=title;document.getElementById('infoText').innerText=msg;document.getElementById('infoModal').classList.add('open');}
+    function showInfo(title, msg){ document.getElementById('infoTitle').innerText = title; document.getElementById('infoText').innerText = msg; document.getElementById('infoModal').classList.add('open'); }
     
-    let logoClicks=0;document.getElementById('logoClick').addEventListener('click',function(){logoClicks++;if(logoClicks>=5){document.getElementById('hiddenAdminLink').style.display='block';setTimeout(()=>logoClicks=0,30000);}});
-    document.getElementById('cartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').style.display='block';});
-    document.getElementById('closeCartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
-    document.getElementById('cartOverlay').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
-    document.getElementById('checkoutSideBtn').addEventListener('click',handleCheckout);
-    document.getElementById('submitOrderBtn').addEventListener('click',submitOrder);
-    document.getElementById('closeInfoBtn').addEventListener('click',()=>document.getElementById('infoModal').classList.remove('open'));
+    let logoClicks = 0; document.getElementById('logoClick').addEventListener('click', function(){ logoClicks++; if(logoClicks >= 5){ document.getElementById('hiddenAdminLink').style.display = 'block'; setTimeout(() => logoClicks = 0, 30000); } });
+    document.getElementById('cartBtn').addEventListener('click', () => { document.getElementById('cartSidebar').classList.add('open'); document.getElementById('cartOverlay').style.display = 'block'; });
+    document.getElementById('closeCartBtn').addEventListener('click', () => { document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display = 'none'; });
+    document.getElementById('cartOverlay').addEventListener('click', () => { document.getElementById('cartSidebar').classList.remove('open'); document.getElementById('cartOverlay').style.display = 'none'; });
+    document.getElementById('checkoutSideBtn').addEventListener('click', handleCheckout);
+    document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+    document.getElementById('closeInfoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.remove('open'));
     
-    document.querySelectorAll('.cat-btn').forEach(b=>b.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active');renderProducts();}));
-    document.querySelectorAll('.footerCatLink').forEach(l=>l.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active');renderProducts();document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});}));
+    document.querySelectorAll('.cat-btn').forEach(b => b.addEventListener('click', function(){ currentFilter = this.dataset.cat; document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); renderProducts(); }));
+    document.querySelectorAll('.footerCatLink').forEach(l => l.addEventListener('click', function(){ currentFilter = this.dataset.cat; document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active')); document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active'); renderProducts(); document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}); }));
     
-    document.getElementById('navShop').addEventListener('click',()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist in Kathmandu, Nepal. Every product is handcrafted in small batches using premium natural ingredients."));
-    document.getElementById('navScience').addEventListener('click',()=>showInfo("Our Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin and plant-based actives."));
-    document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAKRAFT","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","Founded by a chemist. Handcrafted in Kathmandu, Nepal. Small batches, premium ingredients."));
-    document.getElementById('footerScience').addEventListener('click',()=>showInfo("Formula Science","pH-balanced. No sulfates. No parabens. Plant-based actives."));
-    document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable practices."));
-    document.getElementById('footerShipping').addEventListener('click',()=>showInfo("Shipping","Inside Kathmandu: NPR 100 (3-5 days)\nOutside Valley: NPR 200 (5-7 days)\nFree shipping on orders above NPR 2000"));
-    document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
-    document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
+    document.getElementById('navShop').addEventListener('click', () => document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
+    document.getElementById('navStory').addEventListener('click', () => showInfo("Our Story","DERMAKRAFT was founded by a professional chemist in Kathmandu, Nepal. Every product is handcrafted in small batches using premium natural ingredients."));
+    document.getElementById('navScience').addEventListener('click', () => showInfo("Our Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin and plant-based actives."));
+    document.getElementById('navContact').addEventListener('click', () => showInfo("Contact DERMAKRAFT","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
+    document.getElementById('footerStory').addEventListener('click', () => showInfo("Our Story","Founded by a chemist. Handcrafted in Kathmandu, Nepal. Small batches, premium ingredients."));
+    document.getElementById('footerScience').addEventListener('click', () => showInfo("Formula Science","pH-balanced. No sulfates. No parabens. Plant-based actives."));
+    document.getElementById('footerNepal').addEventListener('click', () => showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable practices."));
+    document.getElementById('footerShipping').addEventListener('click', () => showInfo("Shipping","Inside Kathmandu: NPR 100 (3-5 days)\nOutside Valley: NPR 200 (5-7 days)\nFree shipping on orders above NPR 2000"));
+    document.getElementById('footerReturns').addEventListener('click', () => showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
+    document.getElementById('footerContact').addEventListener('click', () => showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
     
     const heroImages=["https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800","https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800"];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
