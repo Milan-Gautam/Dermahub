@@ -85,6 +85,7 @@
     .product-item-row .prod-info, .voucher-item-row .voucher-info { flex: 1; min-width: 200px; }
     .product-item-row .prod-actions, .voucher-item-row .voucher-actions { display: flex; gap: 8px; align-items: center; }
     .discount-input { width: 55px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
+    .restock-input { width: 60px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
     .section-divider { border-top: 1px solid #ece2d9; margin: 20px 0; padding-top: 20px; }
     @media (max-width: 576px) {
       .toast { bottom: 10px; right: 10px; left: 10px; text-align: center; }
@@ -167,7 +168,7 @@
         </div>
         <button class="btn-sm btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Product to Store</button>
         <div class="section-divider">
-          <div style="font-weight:600;margin-bottom:12px;">📦 Current Products <small style="color:#8b7b6e;">(stock / discount %)</small></div>
+          <div style="font-weight:600;margin-bottom:12px;">📦 Current Products <small style="color:#8b7b6e;">(stock / discount % / restock)</small></div>
           <div id="productListContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
       </div>
@@ -199,12 +200,8 @@
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
       const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       
-      const SESSION_KEY = "admin_session_secure";
-      const SESSION_TIME = "admin_session_time";
-      const STORAGE_PRODUCTS = "dermakraft_products_v3";
-      
-      let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0');
-      let lockoutUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0');
+      const SESSION_KEY = "admin_session_secure", SESSION_TIME = "admin_session_time", STORAGE_PRODUCTS = "dermakraft_products_v3";
+      let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0'), lockoutUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0');
       const MAX_ATTEMPTS = 5, LOCKOUT_DURATION = 60000;
       let orders = [], products = [], vouchers = [];
 
@@ -267,13 +264,33 @@
 
       async function deleteProductFromSupabase(id) { try { await db.from('products').delete().eq('id',id); } catch(e) {} }
 
+      async function addStockToProduct(productId, amount) {
+        const prod = products.find(p => p.id === productId);
+        if (!prod) return;
+        const newStock = Math.max(0, (prod.stock || 0) + amount);
+        prod.stock = newStock;
+        await saveProductToSupabase(prod);
+        renderProductsList();
+        showToast(`Stock updated to ${newStock}`);
+      }
+
       function renderProductsList() {
         const c = document.getElementById('productListContainer');
         if(!products.length) { c.innerHTML='<div class="empty-state">No products yet.</div>'; document.getElementById('statProductsCount').innerText='0'; return; }
         let html='';
         products.forEach(p => {
           const d = p.discount||0, stock = p.stock||0, variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
-          html += `<div class="product-item-row"><div class="prod-info"><strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br><small>${variantsStr}</small> • Stock: ${stock} ${d>0?`<span style="color:#e74c3c;">(${d}% OFF)</span>`:''}</div><div class="prod-actions"><input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)"><button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button></div></div>`;
+          html += `<div class="product-item-row">
+            <div class="prod-info">
+              <strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br>
+              <small>${variantsStr}</small> • Stock: <strong>${stock}</strong> ${d>0?`<span style="color:#e74c3c;">(${d}% OFF)</span>`:''}
+            </div>
+            <div class="prod-actions">
+              <input type="number" class="restock-input" id="restock-${p.id}" placeholder="Qty" min="1" value="1">
+              <button class="btn-sm btn-primary-sm" style="width:auto;padding:6px 12px;font-size:0.75rem;" onclick="addStockToProduct(${p.id}, parseInt(document.getElementById('restock-${p.id}').value)||0)">+ Restock</button>
+              <input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)">
+              <button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button>
+            </div></div>`;
         });
         c.innerHTML = html;
         document.getElementById('statProductsCount').innerText = products.length;
@@ -344,6 +361,7 @@
       document.getElementById('addVoucherBtn').addEventListener('click', addVoucher);
       document.getElementById('togglePasswordBtn').addEventListener('click', function() { const i=document.getElementById('passwordInput'),o=document.getElementById('eyeOpenIcon'),f=document.getElementById('eyeOffIcon'); if(i.type==='password'){i.type='text';o.style.display='none';f.style.display='block';}else{i.type='password';o.style.display='block';f.style.display='none';} });
 
+      window.addStockToProduct = addStockToProduct;
       window.refreshData = refreshData; window.logout = logout;
       if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; }
       if(isSessionValid()) { document.getElementById('loginPage').style.display='none'; document.getElementById('dashboard').style.display='block'; refreshData(); }
