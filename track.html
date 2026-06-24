@@ -2,262 +2,114 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>DERMAKRAFT | Track Your Order</title>
-    <meta name="description" content="Track your DERMAKRAFT order status.">
-    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DERMAKRAFT | Track Order</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Inter',sans-serif;background:#f5f0eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
-        .card{background:white;border-radius:20px;padding:24px 20px;max-width:500px;width:100%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.06);}
-        h1{font-family:'Playfair Display',serif;color:#9c6e4b;margin-bottom:4px;font-size:1.5rem;}
-        p.subtitle{color:#8b7b6e;font-size:0.8rem;margin-bottom:20px;}
-        .input-group{text-align:left;margin-bottom:12px;}
-        .input-group label{display:block;font-size:0.65rem;font-weight:600;margin-bottom:3px;color:#2c2b28;text-transform:uppercase;letter-spacing:0.5px;}
-        .input-group input{width:100%;padding:11px 14px;border:1px solid #ece2d9;border-radius:10px;font-size:0.85rem;font-family:inherit;background:#fefaf5;}
-        .input-group input:focus{outline:none;border-color:#9c6e4b;}
-        .btn{display:block;background:#2a4235;color:white;padding:12px;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;width:100%;font-family:inherit;text-align:center;margin-top:4px;}
-        .btn:hover{background:#9c6e4b;}
-        .btn:disabled{background:#999;cursor:not-allowed;}
-        .btn-sm{background:#3a5a45;font-size:0.8rem;padding:10px;}
-        .btn-outline{background:white;color:#2a4235;border:1px solid #2a4235;font-size:0.8rem;}
-        .error-msg{color:#c27c6e;font-size:0.75rem;margin-top:8px;display:none;}
-        .status-bar{display:flex;justify-content:space-between;margin:24px 0 20px;position:relative;gap:2px;}
-        .status-bar::before{content:'';position:absolute;top:15px;left:8%;width:84%;height:2px;background:#ece2d9;z-index:0;}
-        .status-step{z-index:1;text-align:center;flex:1;min-width:50px;}
-        .step-circle{width:30px;height:30px;border-radius:50%;background:#ece2d9;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;font-size:12px;color:white;font-weight:700;transition:all 0.3s;}
-        .step-circle.done{background:#3a5a45;}
-        .step-circle.current{background:#9c6e4b;box-shadow:0 0 0 4px rgba(156,110,75,0.25);transform:scale(1.15);}
-        .step-label{font-size:0.45rem;color:#8b7b6e;text-transform:uppercase;font-weight:600;line-height:1.2;letter-spacing:0.3px;}
-        .step-label.done{color:#2a4235;}
-        .info-section{background:#fefaf5;border-radius:12px;padding:12px 14px;margin-top:16px;text-align:left;}
-        .info-row{display:flex;justify-content:space-between;padding:7px 0;font-size:0.78rem;border-bottom:1px solid #f3ede7;}
-        .info-row:last-child{border-bottom:none;}
-        .info-label{color:#8b7b6e;font-weight:500;}
-        .info-value{font-weight:600;color:#2c2b28;text-align:right;}
-        .status-msg{padding:10px 12px;border-radius:10px;margin-top:12px;font-size:0.75rem;line-height:1.5;text-align:left;}
-        .msg-warning{background:#fff8e1;color:#856404;border-left:3px solid #ffc107;}
-        .msg-info{background:#e8f0fe;color:#004085;border-left:3px solid #2196F3;}
-        .msg-success{background:#e8f5e9;color:#155724;border-left:3px solid #4caf50;}
-        .not-found{color:#c27c6e;padding:20px;font-size:0.9rem;}
-        .logout-link{color:#8b7b6e;font-size:0.75rem;margin-top:14px;cursor:pointer;text-decoration:underline;display:inline-block;}
-        #trackingView{display:none;}
-        #loginView{display:block;}
-        .loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle;}
-        @keyframes spin{to{transform:rotate(360deg);}}
-        @media (max-width: 420px) {
-            .card{padding:20px 14px;border-radius:16px;}
-            h1{font-size:1.3rem;}
-            .status-bar{gap:1px;margin:20px 0 16px;}
-            .status-bar::before{top:13px;left:5%;width:90%;}
-            .step-circle{width:26px;height:26px;font-size:10px;}
-            .step-label{font-size:0.4rem;}
-            .info-row{font-size:0.72rem;flex-direction:column;gap:2px;}
-            .info-value{text-align:left;}
-            .btn{font-size:0.8rem;padding:10px;}
-        }
+        body { font-family: Arial, sans-serif; background: #f5f0eb; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #2a4235; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:disabled { background: #999; }
+        #result { margin-top: 20px; text-align: left; font-size: 14px; }
+        .error { color: red; }
+        .success { color: green; }
     </style>
 </head>
 <body>
 <div class="card">
-    <h1>📦 Track Your Order</h1>
-    
-    <div id="loginView">
-        <p class="subtitle">Enter Order ID & Email to track</p>
-        <div class="input-group"><label>Order ID</label><input type="text" id="loginOrderId" placeholder="e.g. ORD-1715000000"></div>
-        <div class="input-group"><label>Email Address</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
-        <button class="btn" id="loginBtn" onclick="loginToTrack()">🔍 Track Order</button>
-        <div class="error-msg" id="loginError"></div>
-    </div>
-    
-    <div id="trackingView">
-        <div id="trackContent"></div>
-        <button class="btn btn-sm" onclick="refreshTracking()" style="margin-top:10px;">🔄 Refresh Status</button>
-        <a href="index.html" class="btn btn-outline" style="margin-top:6px;">← Back to Store</a>
-        <div class="logout-link" onclick="logoutTracking()">Track different order</div>
-    </div>
+    <h1>📦 Track Order</h1>
+    <input type="text" id="orderIdInput" placeholder="Order ID (e.g. ORD-1234567890)">
+    <input type="email" id="emailInput" placeholder="Email address">
+    <button id="trackBtn" onclick="trackOrder()">🔍 Track Order</button>
+    <div id="result"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Supabase credentials
+    // Supabase setup
     const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let supabase;
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase client ready');
+    } catch(e) {
+        console.error('Supabase init error:', e);
+        document.getElementById('result').innerHTML = '<p class="error">Failed to connect to database. Check console.</p>';
+    }
 
-    let currentOrderId = null, currentEmail = null;
-
-    // Simple test to ensure button works – you can remove later
-    console.log('Track page loaded. Supabase client ready.');
-
-    window.loginToTrack = async function() {
-        const orderId = document.getElementById('loginOrderId').value.trim();
-        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-        const errorEl = document.getElementById('loginError');
-        const loginBtn = document.getElementById('loginBtn');
+    window.trackOrder = async function() {
+        alert('Button clicked! Check console for details.');
+        
+        const orderId = document.getElementById('orderIdInput').value.trim();
+        const email = document.getElementById('emailInput').value.trim().toLowerCase();
+        const resultDiv = document.getElementById('result');
+        const btn = document.getElementById('trackBtn');
         
         if (!orderId || !email) {
-            errorEl.style.display = 'block';
-            errorEl.innerText = 'Please fill both fields.';
+            resultDiv.innerHTML = '<p class="error">Please fill both fields.</p>';
             return;
         }
         
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...';
-        errorEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Searching...';
+        resultDiv.innerHTML = '';
         
-        console.log('Searching for order:', orderId, email);
+        console.log('Searching for orderId:', orderId, 'email:', email);
         
         try {
-            // Query Supabase with proper column name (orderId, not orderid)
             const { data, error } = await supabase
                 .from('orders')
                 .select('*')
                 .eq('orderId', orderId);
             
+            console.log('Supabase response:', { data, error });
+            
             if (error) {
-                console.error('Supabase error:', error);
-                throw error;
-            }
-            
-            console.log('Query result:', data);
-            
-            if (data && data.length > 0) {
-                const order = data[0];
-                if ((order.email || '').toLowerCase() === email) {
-                    showTracking(order, orderId, email);
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '🔍 Track Order';
-                    return;
-                }
-            }
-            
-            // Fallback to localStorage
-            const localData = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
-            if (localData && (localData.email || '').toLowerCase() === email) {
-                console.log('Order found in localStorage');
-                showTracking(localData, orderId, email);
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '🔍 Track Order';
+                resultDiv.innerHTML = `<p class="error">Database error: ${error.message}</p>`;
+                btn.disabled = false;
+                btn.textContent = '🔍 Track Order';
                 return;
             }
             
-            // Not found
-            errorEl.style.display = 'block';
-            errorEl.innerText = '❌ No order found with that ID and email.';
-        } catch (e) {
-            console.error('Search error:', e);
-            errorEl.style.display = 'block';
-            errorEl.innerText = '❌ Connection error. Please try again.';
-        }
-        
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '🔍 Track Order';
-    };
-
-    window.refreshTracking = async function() {
-        if (!currentOrderId || !currentEmail) return;
-        document.getElementById('trackContent').innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
-        
-        try {
-            const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .eq('orderId', currentOrderId);
-            
-            if (error) throw error;
-            
-            if (data && data.length > 0) {
-                const order = data[0];
-                if ((order.email || '').toLowerCase() === currentEmail) {
-                    showTracking(order, currentOrderId, currentEmail);
-                    return;
-                }
+            if (!data || data.length === 0) {
+                resultDiv.innerHTML = '<p class="error">No order found with that ID.</p>';
+                btn.disabled = false;
+                btn.textContent = '🔍 Track Order';
+                return;
             }
             
-            document.getElementById('trackContent').innerHTML = '<p class="not-found">❌ Order not found.</p>';
-        } catch (e) {
-            document.getElementById('trackContent').innerHTML = '<p class="not-found">❌ Connection error.</p>';
+            const order = data[0];
+            if ((order.email || '').toLowerCase() !== email) {
+                resultDiv.innerHTML = '<p class="error">Email does not match this order.</p>';
+                btn.disabled = false;
+                btn.textContent = '🔍 Track Order';
+                return;
+            }
+            
+            // Success – show order details
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h3>Order #${order.orderId.slice(-8)}</h3>
+                    <p><strong>Customer:</strong> ${order.customerName}</p>
+                    <p><strong>Items:</strong> ${order.items}</p>
+                    <p><strong>Total:</strong> NPR ${parseFloat(order.total).toLocaleString()}</p>
+                    <p><strong>Status:</strong> ${order.status || 'ordered'}</p>
+                    <p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+                </div>
+            `;
+            
+            btn.disabled = false;
+            btn.textContent = '🔍 Track Order';
+            
+        } catch(e) {
+            console.error('Track error:', e);
+            resultDiv.innerHTML = '<p class="error">Connection failed. See console.</p>';
+            btn.disabled = false;
+            btn.textContent = '🔍 Track Order';
         }
     };
-
-    function showTracking(data, orderId, email) {
-        currentOrderId = orderId;
-        currentEmail = email;
-        
-        document.getElementById('loginView').style.display = 'none';
-        document.getElementById('trackingView').style.display = 'block';
-        document.getElementById('loginError').style.display = 'none';
-        
-        const status = (data.status || 'ordered').toLowerCase();
-        const steps = [
-            {label:'Ordered', key:'ordered'},
-            {label:'Paid', key:'paid'},
-            {label:'Processing', key:'processing'},
-            {label:'Shipped', key:'shipped'},
-            {label:'Delivered', key:'delivered'}
-        ];
-        const statusOrder = ['ordered','paid','processing','shipped','delivered'];
-        const currentIndex = statusOrder.indexOf(status);
-        
-        let bar = '<div class="status-bar">';
-        steps.forEach((s,i) => {
-            const done = i <= currentIndex;
-            const isCurrent = i === currentIndex;
-            let cls = done ? 'done' : '';
-            if(isCurrent) cls += ' current';
-            bar += `<div class="status-step"><div class="step-circle ${cls.trim()}">${done ? '✓' : i+1}</div><div class="step-label ${done ? 'done' : ''}">${s.label}</div></div>`;
-        });
-        bar += '</div>';
-        
-        let msgHtml = '';
-        if(status === 'ordered') msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Pay via eSewa/Khalti using QR code sent to your email.</div>';
-        else if(status === 'paid') msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>Your order is being prepared.</div>';
-        else if(status === 'processing') msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>We\'re crafting your products.</div>';
-        else if(status === 'shipped') msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Delivery in 3-7 business days.</div>';
-        else if(status === 'delivered') msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for choosing DERMAKRAFT!</div>';
-        
-        const isPaid = ['paid','processing','shipped','delivered'].includes(status);
-        
-        document.getElementById('trackContent').innerHTML = `
-            ${bar}
-            ${msgHtml}
-            <div class="info-section">
-                <div class="info-row"><span class="info-label">Order ID</span><span class="info-value">#${(data.orderId||'').slice(-8)}</span></div>
-                <div class="info-row"><span class="info-label">Customer</span><span class="info-value">${data.customerName||'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Items</span><span class="info-value">${data.items||'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Total</span><span class="info-value">NPR ${parseFloat(data.total||0).toLocaleString()}</span></div>
-                <div class="info-row"><span class="info-label">Payment</span><span class="info-value" style="color:${isPaid?'#155724':'#856404'};">${isPaid?'✅ Paid':'⏳ Pending'}</span></div>
-                <div class="info-row"><span class="info-label">Delivery</span><span class="info-value">${data.location||'N/A'}</span></div>
-                <div class="info-row"><span class="info-label">Date</span><span class="info-value">${data.date?new Date(data.date).toLocaleDateString():'N/A'}</span></div>
-            </div>
-        `;
-    }
-
-    window.logoutTracking = function() {
-        currentOrderId = null;
-        currentEmail = null;
-        document.getElementById('loginView').style.display = 'block';
-        document.getElementById('trackingView').style.display = 'none';
-        document.getElementById('loginOrderId').value = '';
-        document.getElementById('loginEmail').value = '';
-    };
-
-    // Enter key support
-    document.getElementById('loginEmail').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
-    document.getElementById('loginOrderId').addEventListener('keypress', e => { if(e.key==='Enter') loginToTrack(); });
-    
-    // Auto-fill order ID from URL
-    const params = new URLSearchParams(window.location.search);
-    if(params.get('orderId')) {
-        document.getElementById('loginOrderId').value = params.get('orderId');
-        document.getElementById('loginEmail').focus();
-    }
-
-    // Quick test to confirm button is clickable
-    document.getElementById('loginBtn').addEventListener('click', function() {
-        console.log('Button clicked!');
-    });
 </script>
 </body>
 </html>
