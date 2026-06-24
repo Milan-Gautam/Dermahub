@@ -8,6 +8,7 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #f5f0eb; min-height: 100vh; }
@@ -174,9 +175,10 @@
   <script>
     (function() {
       const ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
-      // Your separate API URLs
-      const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycby26tid8ZDO1C3RxVdt9JWdM6OKLkndrHAVHF5UT5CkoSb6TmhsqZ-hAW0Fl2t-bO-6/exec";
-      const PRODUCTS_API_URL = "https://script.google.com/macros/s/AKfycbwtuH5YMcUvsMX239ll6tW8ZXPXZhfLfdBobTkOn52tLenIIABu_FcYKQ6ci7hBINgZ/exec";
+      const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
       const SESSION_KEY = "admin_session_secure";
       const SESSION_TIME = "admin_session_time";
       const STORAGE_PRODUCTS = "dermakraft_products_v3";
@@ -206,25 +208,34 @@
 
       // Orders
       async function loadOrders() {
-        try { const res = await fetch(ORDERS_API_URL); if(res.ok) { orders = await res.json(); document.getElementById('syncDot').className='sync-dot on'; document.getElementById('syncText').textContent='Cloud'; localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); } else throw new Error('Failed'); }
-        catch(e) { document.getElementById('syncDot').className='sync-dot off'; document.getElementById('syncText').textContent='Offline'; orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]'); }
+        try {
+          let { data, error } = await supabase.from('orders').select('*').order('date', { ascending: false });
+          if (error) throw error;
+          orders = data || [];
+          localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
+        } catch(e) {
+          orders = JSON.parse(localStorage.getItem('dermakraft_cached_orders')||'[]');
+        }
         orders.forEach(o => { if(!o.status) o.status = 'ordered'; });
         orders.forEach(o => {
           const existing = JSON.parse(localStorage.getItem('track_'+o.orderId) || '{}');
           localStorage.setItem('track_'+o.orderId, JSON.stringify({...o, ...existing}));
         });
+        document.getElementById('syncDot').className = 'sync-dot on';
+        document.getElementById('syncText').textContent = 'Cloud';
         return orders;
       }
 
       async function updateOrderStatus(orderId, newStatus) {
-        try { await fetch(`${ORDERS_API_URL}?orderId=${encodeURIComponent(orderId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { status: newStatus } }) }); } catch(e) {}
-        const idx = orders.findIndex(o => o.orderId === orderId); if(idx >= 0) orders[idx].status = newStatus;
+        try {
+          const { error } = await supabase.from('orders').update({ status: newStatus }).eq('orderId', orderId);
+          if (error) throw error;
+        } catch(e) {}
+        const idx = orders.findIndex(o => o.orderId === orderId);
+        if(idx >= 0) orders[idx].status = newStatus;
         localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
         const trackData = JSON.parse(localStorage.getItem('track_'+orderId) || '{}');
         trackData.status = newStatus; trackData.orderId = trackData.orderId || orderId;
-        trackData.email = trackData.email || (orders[idx]?.email || ''); trackData.customerName = trackData.customerName || (orders[idx]?.customerName || '');
-        trackData.items = trackData.items || (orders[idx]?.items || ''); trackData.total = trackData.total || (orders[idx]?.total || 0);
-        trackData.location = trackData.location || (orders[idx]?.location || ''); trackData.date = trackData.date || (orders[idx]?.date || '');
         localStorage.setItem('track_'+orderId, JSON.stringify(trackData));
         renderOrders(); showToast(`Status → ${newStatus}`);
       }
@@ -247,17 +258,73 @@
       }
 
       window._updateStatus = async function(orderId, newStatus) { await updateOrderStatus(orderId, newStatus); };
-      window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await fetch(`${ORDERS_API_URL}?orderId=${id}`,{method:'DELETE'}); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders)); localStorage.removeItem('track_'+id); renderOrders(); showToast('Order deleted'); };
+      window._delOrder = async function(id) {
+        if(!confirm('Delete order?')) return;
+        try { await supabase.from('orders').delete().eq('orderId', id); } catch(e) {}
+        orders = orders.filter(o => o.orderId !== id);
+        localStorage.setItem('dermakraft_cached_orders', JSON.stringify(orders));
+        localStorage.removeItem('track_'+id);
+        renderOrders(); showToast('Order deleted');
+      };
 
       // Products
       async function loadProducts() {
-        try { const res = await fetch(PRODUCTS_API_URL); if(res.ok) { products = await res.json(); products.forEach(p => { p.id = parseInt(p.id); p.discount = parseInt(p.discount)||0; if(typeof p.variants === 'string') p.variants = JSON.parse(p.variants); if(typeof p.images === 'string') p.images = JSON.parse(p.images); }); if(products.length > 0) localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } } catch(e) { products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]'); }
+        try {
+          let { data, error } = await supabase.from('products').select('*');
+          if (error) throw error;
+          if (data) {
+            data.forEach(p => {
+              if (typeof p.variants === 'string') p.variants = JSON.parse(p.variants);
+              if (typeof p.images === 'string') p.images = JSON.parse(p.images);
+            });
+            products = data;
+            localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+          }
+        } catch(e) {
+          products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'[]');
+        }
         return products;
       }
 
+      async function saveProductToSupabase(product) {
+        const supabaseProduct = {
+          id: product.id,
+          name: product.name,
+          category: product.category,
+          description: product.description,
+          images: JSON.stringify(product.images),
+          variants: JSON.stringify(product.variants),
+          discount: product.discount || 0
+        };
+        try {
+          const { error } = await supabase.from('products').upsert([supabaseProduct]);
+          if (error) throw error;
+        } catch(e) {
+          console.log('Product save failed', e);
+        }
+      }
+
+      async function deleteProductFromSupabase(id) {
+        try {
+          const { error } = await supabase.from('products').delete().eq('id', id);
+          if (error) throw error;
+        } catch(e) {}
+      }
+
       async function saveProductsToCloud() {
-        const data = products.map(p => ({ id: p.id, name: p.name, category: p.category, desc: p.desc, images: JSON.stringify(p.images), variants: JSON.stringify(p.variants), discount: p.discount||0 }));
-        try { const existing = await fetch(PRODUCTS_API_URL).then(r => r.json()); for (const item of existing) { await fetch(`${PRODUCTS_API_URL}?id=${item.id}`, { method: 'DELETE' }).catch(()=>{}); } if(data.length > 0) { await fetch(PRODUCTS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }); } localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products)); } catch(e) { console.log('Cloud save failed'); }
+        // Clear all and re-add (simplified)
+        try {
+          let { data: existing } = await supabase.from('products').select('id');
+          if (existing) {
+            for (const item of existing) {
+              await supabase.from('products').delete().eq('id', item.id);
+            }
+          }
+          for (const p of products) {
+            await saveProductToSupabase(p);
+          }
+        } catch(e) {}
+        localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
       }
 
       function renderProductsList() {
@@ -272,21 +339,68 @@
         document.getElementById('statProductsCount').innerText = products.length;
       }
 
-      window._setDiscount = async function(prodId, discountVal) { const d = Math.max(0, Math.min(99, parseInt(discountVal) || 0)); const prod = products.find(p => p.id === prodId); if(prod) { prod.discount = d; await saveProductsToCloud(); renderProductsList(); showToast(`Discount: ${d}%`); } };
-      window._delProd = async function(id) { if(!confirm('Delete product?')) return; products = products.filter(p => p.id !== id); await saveProductsToCloud(); renderProductsList(); showToast('Product deleted'); };
+      window._setDiscount = async function(prodId, discountVal) {
+        const d = Math.max(0, Math.min(99, parseInt(discountVal) || 0));
+        const prod = products.find(p => p.id === prodId);
+        if(prod) {
+          prod.discount = d;
+          await saveProductToSupabase(prod);
+          renderProductsList();
+          showToast(`Discount: ${d}%`);
+        }
+      };
 
-      window.addVariant = function() { const container = document.getElementById('variantsContainer'); const row = document.createElement('div'); row.className = 'variant-row'; row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`; container.appendChild(row); };
-      window.removeVariant = function(btn) { const rows = document.querySelectorAll('#variantsContainer .variant-row'); if(rows.length > 1) btn.closest('.variant-row').remove(); else showToast('Need at least one variant'); };
+      window._delProd = async function(id) {
+        if(!confirm('Delete product?')) return;
+        products = products.filter(p => p.id !== id);
+        await deleteProductFromSupabase(id);
+        renderProductsList();
+        showToast('Product deleted');
+      };
+
+      window.addVariant = function() {
+        const container = document.getElementById('variantsContainer');
+        const row = document.createElement('div');
+        row.className = 'variant-row';
+        row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`;
+        container.appendChild(row);
+      };
+
+      window.removeVariant = function(btn) {
+        const rows = document.querySelectorAll('#variantsContainer .variant-row');
+        if(rows.length > 1) btn.closest('.variant-row').remove();
+        else showToast('Need at least one variant');
+      };
 
       async function addProduct() {
-        const name = document.getElementById('prodName').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
+        const name = document.getElementById('prodName').value.trim(),
+              cat = document.getElementById('prodCat').value,
+              desc = document.getElementById('prodDesc').value.trim(),
+              imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s);
         if(!name) { showToast('Enter product name'); return; }
-        const variantRows = document.querySelectorAll('#variantsContainer .variant-row'); const variants = [];
-        variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if(size && price > 0) variants.push({ size, price }); });
+        const variantRows = document.querySelectorAll('#variantsContainer .variant-row');
+        const variants = [];
+        variantRows.forEach(row => {
+          const size = row.querySelector('.variant-size').value.trim(),
+                price = parseFloat(row.querySelector('.variant-price').value);
+          if(size && price > 0) variants.push({ size, price });
+        });
         if(variants.length === 0) { showToast('Add at least one variant'); return; }
-        products.push({ id: Date.now(), name, category: cat, desc: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount: 0 });
-        await saveProductsToCloud(); renderProductsList();
-        document.getElementById('prodName').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = '';
+        const newProduct = {
+          id: Date.now(),
+          name,
+          category: cat,
+          description: desc || 'Premium',
+          images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'],
+          variants,
+          discount: 0
+        };
+        products.push(newProduct);
+        await saveProductToSupabase(newProduct);
+        renderProductsList();
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodImages').value = '';
         document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button></div>`;
         showToast(`✓ ${name} added!`);
       }
@@ -302,7 +416,14 @@
         if(s==='orders') renderOrders(); else renderProductsList();
       };
 
-      async function refreshData() { showToast('🔄 Syncing...'); await loadOrders(); await loadProducts(); renderOrders(); renderProductsList(); showToast('✅ Refreshed'); }
+      async function refreshData() {
+        showToast('🔄 Syncing...');
+        await loadOrders();
+        await loadProducts();
+        renderOrders();
+        renderProductsList();
+        showToast('✅ Refreshed');
+      }
 
       async function login() {
         if(Date.now() < lockoutUntil) { document.getElementById('rateLimitMsg').style.display='block'; document.getElementById('loginBtn').disabled=true; return; }
