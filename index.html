@@ -30,7 +30,7 @@
         header { background: white; position: fixed; top: 30px; left: 0; width: 100%; z-index: 1000; border-bottom: 1px solid var(--border-light); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         @media (max-width: 768px) { header { top: 28px; } }
         .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-        @media (max-width: 768px) { .container { padding: 0 18px; } }
+        @media (max-width: 768px) { .container { padding: 0 20px; } }
         @media (max-width: 480px) { .container { padding: 0 12px; } }
         body { padding-top: 100px; }
         @media (max-width: 768px) { body { padding-top: 123px; } }
@@ -361,7 +361,13 @@
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
     document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
 
-    const heroImages=["https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800","https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800","https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800","https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=800","https://images.unsplash.com/photo-1570194065650-d99fb4ee8e39?w=800"];
+    const heroImages = [
+    "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800",
+    "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800",
+    "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800",
+    "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800",
+    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
+];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
 
     loadProducts().then(data=>{products=data;renderProducts();updateCartUI();});
