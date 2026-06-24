@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DERMAKRAFT | Track Order</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f0eb; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        body { font-family: system-ui, sans-serif; background: #f5f0eb; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .card { background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
         button { width: 100%; padding: 12px; background: #2a4235; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
@@ -20,96 +20,88 @@
     <h1>📦 Track Order</h1>
     <input type="text" id="orderIdInput" placeholder="Order ID (e.g. ORD-1234567890)">
     <input type="email" id="emailInput" placeholder="Email address">
-    <button id="trackBtn" onclick="trackOrder()">🔍 Track Order</button>
+    <button id="trackBtn">🔍 Track Order</button>
     <div id="result"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Supabase setup
-    const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
-    
-    let supabase;
-    try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase client ready');
-    } catch(e) {
-        console.error('Supabase init error:', e);
-        document.getElementById('result').innerHTML = '<p class="error">Failed to connect to database. Check console.</p>';
-    }
+    (function() {
+        const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
 
-    window.trackOrder = async function() {
-        alert('Button clicked! Check console for details.');
-        
-        const orderId = document.getElementById('orderIdInput').value.trim();
-        const email = document.getElementById('emailInput').value.trim().toLowerCase();
-        const resultDiv = document.getElementById('result');
-        const btn = document.getElementById('trackBtn');
-        
-        if (!orderId || !email) {
-            resultDiv.innerHTML = '<p class="error">Please fill both fields.</p>';
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.textContent = 'Searching...';
-        resultDiv.innerHTML = '';
-        
-        console.log('Searching for orderId:', orderId, 'email:', email);
-        
-        try {
-            const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .eq('orderId', orderId);
-            
-            console.log('Supabase response:', { data, error });
-            
-            if (error) {
-                resultDiv.innerHTML = `<p class="error">Database error: ${error.message}</p>`;
-                btn.disabled = false;
-                btn.textContent = '🔍 Track Order';
+        // Use a different variable name to avoid conflict with the CDN global
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.getElementById('trackBtn').addEventListener('click', async function() {
+            const orderId = document.getElementById('orderIdInput').value.trim();
+            const email = document.getElementById('emailInput').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('result');
+            const btn = this;
+
+            if (!orderId || !email) {
+                resultDiv.innerHTML = '<p class="error">Please fill both fields.</p>';
                 return;
             }
-            
-            if (!data || data.length === 0) {
-                resultDiv.innerHTML = '<p class="error">No order found with that ID.</p>';
+
+            btn.disabled = true;
+            btn.textContent = 'Searching...';
+            resultDiv.innerHTML = '';
+
+            console.log('Searching for:', orderId, email);
+
+            try {
+                const { data, error } = await db
+                    .from('orders')
+                    .select('*')
+                    .eq('orderId', orderId);
+
+                console.log('Response:', { data, error });
+
+                if (error) {
+                    resultDiv.innerHTML = `<p class="error">Database error: ${error.message}</p>`;
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Track Order';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    resultDiv.innerHTML = '<p class="error">No order found with that ID.</p>';
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Track Order';
+                    return;
+                }
+
+                const order = data[0];
+                if ((order.email || '').toLowerCase() !== email) {
+                    resultDiv.innerHTML = '<p class="error">Email does not match this order.</p>';
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Track Order';
+                    return;
+                }
+
+                // Success
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>Order #${order.orderId.slice(-8)}</h3>
+                        <p><strong>Customer:</strong> ${order.customerName}</p>
+                        <p><strong>Items:</strong> ${order.items}</p>
+                        <p><strong>Total:</strong> NPR ${parseFloat(order.total).toLocaleString()}</p>
+                        <p><strong>Status:</strong> ${order.status || 'ordered'}</p>
+                        <p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+                    </div>
+                `;
+
                 btn.disabled = false;
                 btn.textContent = '🔍 Track Order';
-                return;
-            }
-            
-            const order = data[0];
-            if ((order.email || '').toLowerCase() !== email) {
-                resultDiv.innerHTML = '<p class="error">Email does not match this order.</p>';
+            } catch (e) {
+                console.error(e);
+                resultDiv.innerHTML = '<p class="error">Connection failed. Check console.</p>';
                 btn.disabled = false;
                 btn.textContent = '🔍 Track Order';
-                return;
             }
-            
-            // Success – show order details
-            resultDiv.innerHTML = `
-                <div class="success">
-                    <h3>Order #${order.orderId.slice(-8)}</h3>
-                    <p><strong>Customer:</strong> ${order.customerName}</p>
-                    <p><strong>Items:</strong> ${order.items}</p>
-                    <p><strong>Total:</strong> NPR ${parseFloat(order.total).toLocaleString()}</p>
-                    <p><strong>Status:</strong> ${order.status || 'ordered'}</p>
-                    <p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
-                </div>
-            `;
-            
-            btn.disabled = false;
-            btn.textContent = '🔍 Track Order';
-            
-        } catch(e) {
-            console.error('Track error:', e);
-            resultDiv.innerHTML = '<p class="error">Connection failed. See console.</p>';
-            btn.disabled = false;
-            btn.textContent = '🔍 Track Order';
-        }
-    };
+        });
+    })();
 </script>
 </body>
 </html>
