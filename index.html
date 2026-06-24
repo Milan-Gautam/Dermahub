@@ -348,15 +348,23 @@
         const orderDate = new Date().toISOString();
         const location = selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley';
         const trackingUrl = window.location.origin + window.location.pathname.replace('index.html','') + 'track.html?orderId='+orderId;
-        const orderData = {orderId, customerName:name, email, phone, address:addr, location, deliveryCharge, items:itemsStr, subtotal, discount:discountAmount, total, date:orderDate, status:'ordered'};
+        const orderData = {
+            orderId, customerName:name, email, phone, address:addr, location,
+            deliveryCharge, items:itemsStr, subtotal, discount:discountAmount, total,
+            date:orderDate, status:'ordered'
+        };
 
         try {
             const {error} = await supabase.from('orders').insert([orderData]);
-            if(error) throw error;
+            if(error) {
+                console.error('Supabase insert error:', error);
+                toast('Order could not be saved. Please try again.');
+                return;
+            }
             if(appliedVoucher) await incrementVoucherUsage(appliedVoucher);
         } catch(e) {
-            console.log('Order save failed', e);
-            toast('Order could not be saved, please try again');
+            console.error('Order save exception:', e);
+            toast('Order could not be saved. Please try again.');
             return;
         }
         localStorage.setItem('track_'+orderId, JSON.stringify({...orderData, trackingUrl}));
@@ -398,12 +406,13 @@
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
     document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
 
+    // New hero images
     const heroImages = [
+        "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800",
+        "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800",
+        "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800",
         "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800",
-        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800",
-        "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800",
-        "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=800",
-        "https://images.unsplash.com/photo-1570194065650-d99fb4ee8e39?w=800"
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
     ];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
 
