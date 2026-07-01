@@ -385,6 +385,8 @@
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
     document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
 
+    setInterval(() => { document.querySelectorAll('.product-card .product-desc').forEach(el => el.remove()); }, 500);
+    
     const heroImages = [
         "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800",
         "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800",
