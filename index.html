@@ -261,12 +261,14 @@
             if(stock>0 && stock<=5) stockHtml=`<div class="stock-info stock-low">Only ${stock} left!</div>`;
             else if(stock===0) stockHtml=`<div class="stock-info stock-out">Out of stock</div>`;
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            // NO DESCRIPTION IN CARD
+            // NO DESCRIPTION IN CARD – removed completely
             c.innerHTML=`<img src="${imgs[0]}" class="product-img" loading="lazy">${dots?`<div class="img-dots">${dots}</div>`:''}<div class="product-title">${prod.name}</div>${stockHtml}<div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</span><button class="add-to-cart"${stock===0?' disabled':''}>${stock===0?'Sold out':'<i class="fas fa-plus"></i> Add'}</button></div>`;
             c.addEventListener('click',function(e){ if(!e.target.closest('.variant')&&!e.target.closest('.add-to-cart')) openProductModal(prod); });
             g.appendChild(c);
         });
         attachEvents(); updateCartButtons();
+        // 👇 FORCEFULLY REMOVE ANY DESCRIPTION ELEMENT THAT MIGHT LINGER
+        document.querySelectorAll('.product-card .product-desc').forEach(el => el.remove());
     }
 
     function attachEvents(){
@@ -385,8 +387,6 @@
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
     document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
 
-    setInterval(() => { document.querySelectorAll('.product-card .product-desc').forEach(el => el.remove()); }, 500);
-    
     const heroImages = [
         "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800",
         "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800",
