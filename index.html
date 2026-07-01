@@ -244,7 +244,7 @@
             }
         } catch(e){ msgEl.innerHTML='<span style="color:#c27c6e;">Error checking code</span>'; }
     }
-    window.applyVoucher = applyVoucher;  // 👈 EXPOSED GLOBALLY
+    window.applyVoucher = applyVoucher;
 
     async function incrementVoucherUsage(code){ try { let {data}=await db.from('vouchers').select('usedCount').eq('code',code); if(data && data.length>0){ const nc=(data[0].usedCount||0)+1; await db.from('vouchers').update({usedCount:nc}).eq('code',code); } } catch(e){} }
 
@@ -260,7 +260,7 @@
             if(stock>0 && stock<=5) stockHtml=`<div class="stock-info stock-low">Only ${stock} left!</div>`;
             else if(stock===0) stockHtml=`<div class="stock-info stock-out">Out of stock</div>`;
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            // Description removed from card – only shown in modal
+            // ✅ DESCRIPTION COMPLETELY REMOVED FROM CARD
             c.innerHTML=`<img src="${imgs[0]}" class="product-img" loading="lazy">${dots?`<div class="img-dots">${dots}</div>`:''}<div class="product-title">${prod.name}</div>${stockHtml}<div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</span><button class="add-to-cart"${stock===0?' disabled':''}>${stock===0?'Sold out':'<i class="fas fa-plus"></i> Add'}</button></div>`;
             c.addEventListener('click',function(e){ if(!e.target.closest('.variant')&&!e.target.closest('.add-to-cart')) openProductModal(prod); });
             g.appendChild(c);
