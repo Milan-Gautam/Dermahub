@@ -79,10 +79,6 @@
         .img-dot { width: 5px; height: 5px; border-radius: 50%; background: #ddd; }
         .img-dot.active { background: var(--olive); width: 14px; border-radius: 8px; }
         .product-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; color: var(--deep-olive); }
-        /* Force-hide any description that might appear on product cards */
-        .product-card .product-desc,
-        .product-card > .product-desc,
-        .product-desc { display: none !important; }
         .variant-group { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
         .variant { border: 1px solid var(--border-light); padding: 4px 9px; border-radius: 40px; font-size: 0.6rem; font-weight: 500; background: white; cursor: pointer; }
         .variant.selected { background: var(--olive); color: white; border-color: var(--olive); }
@@ -264,14 +260,11 @@
             if(stock>0 && stock<=5) stockHtml=`<div class="stock-info stock-low">Only ${stock} left!</div>`;
             else if(stock===0) stockHtml=`<div class="stock-info stock-out">Out of stock</div>`;
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            // NO DESCRIPTION IN CARD – removed completely
             c.innerHTML=`<img src="${imgs[0]}" class="product-img" loading="lazy">${dots?`<div class="img-dots">${dots}</div>`:''}<div class="product-title">${prod.name}</div>${stockHtml}<div class="variant-group">${vh}</div><div class="price-cart"><span class="price">${prod.discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</span><button class="add-to-cart"${stock===0?' disabled':''}>${stock===0?'Sold out':'<i class="fas fa-plus"></i> Add'}</button></div>`;
             c.addEventListener('click',function(e){ if(!e.target.closest('.variant')&&!e.target.closest('.add-to-cart')) openProductModal(prod); });
             g.appendChild(c);
         });
         attachEvents(); updateCartButtons();
-        // Aggressive cleanup – removes any stray descriptions every 300ms
-        setInterval(() => { document.querySelectorAll('.product-card .product-desc').forEach(el => el.remove()); }, 300);
     }
 
     function attachEvents(){
@@ -399,7 +392,6 @@
     ];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
 
-    // Maintenance banner – shows if Supabase project is paused / unreachable
     async function checkSupabaseStatus() {
         try {
             const { error } = await db.from('products').select('id').limit(1);
@@ -411,13 +403,13 @@
                 const banner = document.createElement('div');
                 banner.id = 'maintenanceBanner';
                 banner.style.cssText = 'background:#fff3cd;color:#856404;text-align:center;padding:10px;position:fixed;top:0;left:0;width:100%;z-index:9999;font-family:Inter,sans-serif;';
-                banner.innerText = '🛠️ We\'re performing maintenance. Some features may be unavailable. Please check back soon.';
+                banner.innerText = "We're performing maintenance. Some features may be unavailable. Please check back soon.";
                 document.body.prepend(banner);
             }
         }
     }
     checkSupabaseStatus();
-    setInterval(checkSupabaseStatus, 60000); // recheck every 60 seconds
+    setInterval(checkSupabaseStatus, 60000);
 
     loadProducts().then(data=>{products=data;renderProducts();updateCartUI();});
     window.addEventListener('storage',(e)=>{if(e.key===STORAGE_PRODUCTS){products=JSON.parse(e.newValue||'[]');renderProducts();updateCartUI();}});
