@@ -63,15 +63,9 @@
         .cat-btn { background: transparent; border: 1px solid var(--border-light); padding: 8px 16px; font-size: 0.75rem; font-weight: 500; cursor: pointer; border-radius: 50px; color: var(--stone); transition: all 0.2s; }
         .cat-btn.active { background: var(--olive); color: white; border-color: var(--olive); }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin: 20px 0 50px; }
-        @media (max-width: 600px) {
-            .product-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .product-card { padding: 10px; }
-            .product-title { font-size: 0.8rem; }
-            .variant { font-size: 0.55rem; padding: 3px 7px; }
-            .price { font-size: 0.85rem; }
-            .add-to-cart { font-size: 0.65rem; padding: 5px 10px; }
-            .stock-info { font-size: 0.65rem; }
-        }
+        @media (max-width: 480px) { .product-grid { grid-template-columns: 1fr 1fr; gap: 12px; } }
+        @media (max-width: 360px) { .product-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .product-grid { grid-template-columns: 1fr 1fr;  gap: 10px; }}
         .product-card { background: white; border-radius: 18px; padding: 14px; transition: all 0.3s; border: 1px solid var(--border-light); cursor: pointer; }
         .product-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.1); }
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; background: var(--sand); margin-bottom: 10px; }
@@ -87,7 +81,7 @@
         .price .original { text-decoration: line-through; color: #c27c6e; font-size: 0.7rem; margin-right: 4px; }
         .add-to-cart { background: var(--deep-olive); border: none; padding: 6px 12px; border-radius: 50px; color: white; font-weight: 500; font-size: 0.7rem; display: flex; align-items: center; gap: 4px; cursor: pointer; }
         .add-to-cart:disabled { background: #cbbcac; cursor: not-allowed; }
-        .stock-info { font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; }
+        .stock-info { font-size: 0.7rem; font-weight: 600; }
         .stock-low { color: #e67e22; }
         .stock-out { color: #e74c3c; }
         .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 2000; display: none; }
@@ -253,7 +247,7 @@
         const f=products.filter(p=>currentFilter==='all'||p.category===currentFilter);
         if(f.length===0){ g.innerHTML='<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">No products yet. Admin will add them soon!</div>'; return; }
         f.forEach(prod=>{
-            const imgs=prod.images||[prod.img||'https://placehold.co/400x400/f3ede7/9c6e4b?text=DERMAKRAFT'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0;
+            const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0;
             let dots=''; if(imgs.length>1) imgs.forEach((_,i)=>dots+=`<span class="img-dot${i===0?' active':''}"></span>`);
             let vh=''; prod.variants.forEach((v,i)=>vh+=`<span class="variant${i===0?' selected':''}" data-price="${v.price}" data-label="${v.size}">${v.size}</span>`);
             let stockHtml='';
@@ -298,7 +292,7 @@
     }
 
     function openProductModal(prod){
-        const imgs=prod.images||[prod.img||'https://placehold.co/400x400/f3ede7/9c6e4b?text=DERMAKRAFT'];
+        const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
         document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name; document.getElementById('modalProdDesc').textContent=prod.description||'';
         let th=''; imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
         document.getElementById('modalThumbs').innerHTML=th;
@@ -391,25 +385,6 @@
         "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
     ];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
-
-    async function checkSupabaseStatus() {
-        try {
-            const { error } = await db.from('products').select('id').limit(1);
-            if (error) throw error;
-            const banner = document.getElementById('maintenanceBanner');
-            if (banner) banner.remove();
-        } catch(e) {
-            if (!document.getElementById('maintenanceBanner')) {
-                const banner = document.createElement('div');
-                banner.id = 'maintenanceBanner';
-                banner.style.cssText = 'background:#fff3cd;color:#856404;text-align:center;padding:10px;position:fixed;top:0;left:0;width:100%;z-index:9999;font-family:Inter,sans-serif;';
-                banner.innerText = "We're performing maintenance. Some features may be unavailable. Please check back soon.";
-                document.body.prepend(banner);
-            }
-        }
-    }
-    checkSupabaseStatus();
-    setInterval(checkSupabaseStatus, 60000);
 
     loadProducts().then(data=>{products=data;renderProducts();updateCartUI();});
     window.addEventListener('storage',(e)=>{if(e.key===STORAGE_PRODUCTS){products=JSON.parse(e.newValue||'[]');renderProducts();updateCartUI();}});
