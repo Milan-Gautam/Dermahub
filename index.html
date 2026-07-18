@@ -79,7 +79,10 @@
         .img-dot { width: 5px; height: 5px; border-radius: 50%; background: #ddd; }
         .img-dot.active { background: var(--olive); width: 14px; border-radius: 8px; }
         .product-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; color: var(--deep-olive); }
-        .product-desc { display: none; }  /* force hide any description that might appear on cards */
+        /* Force-hide any description that might appear on product cards */
+        .product-card .product-desc,
+        .product-card > .product-desc,
+        .product-desc { display: none !important; }
         .variant-group { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
         .variant { border: 1px solid var(--border-light); padding: 4px 9px; border-radius: 40px; font-size: 0.6rem; font-weight: 500; background: white; cursor: pointer; }
         .variant.selected { background: var(--olive); color: white; border-color: var(--olive); }
@@ -267,8 +270,8 @@
             g.appendChild(c);
         });
         attachEvents(); updateCartButtons();
-        // 👇 FORCEFULLY REMOVE ANY DESCRIPTION ELEMENT THAT MIGHT LINGER
-        document.querySelectorAll('.product-card .product-desc').forEach(el => el.remove());
+        // Aggressive cleanup – removes any stray descriptions every 300ms
+        setInterval(() => { document.querySelectorAll('.product-card .product-desc').forEach(el => el.remove()); }, 300);
     }
 
     function attachEvents(){
@@ -395,6 +398,26 @@
         "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
     ];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
+
+    // Maintenance banner – shows if Supabase project is paused / unreachable
+    async function checkSupabaseStatus() {
+        try {
+            const { error } = await db.from('products').select('id').limit(1);
+            if (error) throw error;
+            const banner = document.getElementById('maintenanceBanner');
+            if (banner) banner.remove();
+        } catch(e) {
+            if (!document.getElementById('maintenanceBanner')) {
+                const banner = document.createElement('div');
+                banner.id = 'maintenanceBanner';
+                banner.style.cssText = 'background:#fff3cd;color:#856404;text-align:center;padding:10px;position:fixed;top:0;left:0;width:100%;z-index:9999;font-family:Inter,sans-serif;';
+                banner.innerText = '🛠️ We\'re performing maintenance. Some features may be unavailable. Please check back soon.';
+                document.body.prepend(banner);
+            }
+        }
+    }
+    checkSupabaseStatus();
+    setInterval(checkSupabaseStatus, 60000); // recheck every 60 seconds
 
     loadProducts().then(data=>{products=data;renderProducts();updateCartUI();});
     window.addEventListener('storage',(e)=>{if(e.key===STORAGE_PRODUCTS){products=JSON.parse(e.newValue||'[]');renderProducts();updateCartUI();}});
