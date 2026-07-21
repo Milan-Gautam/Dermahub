@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-    <title>DERMAKRAFT | Handmade Skincare Inspired by Nature</title>
-    <meta name="description" content="Handmade, pH-balanced skincare crafted in Nepal for healthy, radiant skin.">
-    <meta name="keywords" content="skincare nepal, skin, glow, handmade soap kathmandu, natural shampoo bar, organic face wash nepal, chemist formulated skincare, pH balanced soap, sunscreen nepal, lip balm, moisturizer, dermakraft">
+    <title>DERMAKRAFT | Genuine Skincare, Handpicked for You</title>
+    <meta name="description" content="DERMAKRAFT is a curated skincare store in Kathmandu, Nepal, bringing you genuine products from trusted brands.">
+    <meta name="keywords" content="skincare nepal, skin, glow, soap kathmandu, shampoo bar nepal, face wash nepal, authentic skincare nepal, sunscreen nepal, lip balm, moisturizer, dermakraft">
     <meta name="author" content="DERMAKRAFT">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="DERMAKRAFT | Handmade Skincare Inspired by Nature">
-    <meta property="og:description" content="pH-balanced, natural skincare handmade by professionals in Kathmandu, Nepal.">
+    <meta property="og:title" content="DERMAKRAFT | Genuine Skincare, Handpicked for You">
+    <meta property="og:description" content="A curated skincare store in Kathmandu, Nepal — genuine products from trusted brands, all in one place.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://akraft.vercel.app">
     <link rel="canonical" href="https://akraft.vercel.app">
@@ -72,6 +72,7 @@
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; background: var(--sand); display: block; }
         .sold-out-tag { position: absolute; top: 8px; left: 8px; background: rgba(44,43,40,0.85); color: white; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 40px; }
         .discount-tag { position: absolute; top: 8px; right: 8px; background: var(--warm-brown); color: white; font-size: 0.6rem; font-weight: 700; padding: 4px 9px; border-radius: 40px; }
+        .product-brand { font-size: 0.68rem; font-weight: 600; color: var(--stone); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
         .product-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 6px; color: var(--deep-olive); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .product-card .price { font-weight: 700; font-size: 1rem; color: var(--warm-brown); margin-top: auto; }
         .product-card .price .original { text-decoration: line-through; color: #c27c6e; font-size: 0.7rem; margin-right: 4px; font-weight: 500; }
@@ -140,11 +141,11 @@
 </head>
 <body>
 
-<div class="top-banner"><i class="fas fa-flask"></i> chemist-formulated · handmade in nepal · pH-balanced skincare <i class="fas fa-leaf"></i></div>
+<div class="top-banner"><i class="fas fa-check-circle"></i> 100% authentic products · curated from trusted brands · delivered across nepal <i class="fas fa-leaf"></i></div>
 
 <header>
     <div class="container header-inner">
-        <div class="logo" id="logoClick" title="DERMAKRAFT - Natural Skincare Nepal"><h1>DERMAKRAFT</h1><p>by a chemist, for your skin</p></div>
+        <div class="logo" id="logoClick" title="DERMAKRAFT - Skincare Store Nepal"><h1>DERMAKRAFT</h1><p>curated skincare, kathmandu</p></div>
         <nav class="nav-links">
             <a id="navShop">Shop All</a>
             <a id="navStory">Our Story</a>
@@ -174,17 +175,17 @@
 
 <div class="modal" id="infoModal"><div class="modal-card"><i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i><h3 id="infoTitle">Message</h3><p id="infoText" style="margin:16px 0;line-height:1.6;"></p><button class="btn-primary" id="closeInfoBtn">OK</button></div></div>
 
-<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><h3 id="modalProdName"></h3><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div></div></div>
+<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><h3 id="modalProdName"></h3><p id="modalProdBrand" style="color:var(--warm-brown);font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;"></p><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div></div></div>
 
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;"><a href="admin_007.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a></div>
 
 <div id="toastMsg" class="toast"></div>
 
 <main>
-    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-mortar-pestle"></i> chemist-crafted since 2024</div><h1>Gentle Formulas, Science-Backed Rituals</h1><p>Skincare and bath essentials crafted for your daily routine. Balanced pH, natural ingredients, and zero compromise.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
-    <div class="container"><div class="section-title">Our Collection</div><p class="section-subtitle">Chemist-formulated essentials for your daily skincare ritual</p>
+    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-check-circle"></i> trusted brands, genuine products</div><h1>Genuine Skincare, Handpicked for You</h1><p>We source and curate skincare and bath essentials from trusted brands, so you can shop with confidence. Our own DERMAKRAFT formulas are in the works — launching soon.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
+    <div class="container"><div class="section-title">Our Collection</div><p class="section-subtitle">Genuine products from trusted brands, curated for your daily skincare ritual</p>
         <div class="category-tabs" id="categoryTabs">
-            <button class="cat-btn active" data-cat="all">All</button>
+            <button class="cat-btn active" data-cat="new">New</button>
             <button class="cat-btn" data-cat="soap">Soap Bars</button>
             <button class="cat-btn" data-cat="handwash">Hand Wash</button>
             <button class="cat-btn" data-cat="shampoo">Hair Care</button>
@@ -197,7 +198,7 @@
     </div>
 </main>
 
-<footer><div class="container"><div class="footer-grid"><div class="footer-col"><h4>DERMAKRAFT Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Formula Science</a></li><li><a id="footerNepal">Made in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div></div><div class="copyright">2025 DERMAKRAFT | Chemist-Formulated Skincare | Handmade in Kathmandu, Nepal | pH-Balanced | Natural Ingredients</div></div></footer>
+<footer><div class="container"><div class="footer-grid"><div class="footer-col"><h4>DERMAKRAFT Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Quality Promise</a></li><li><a id="footerNepal">Based in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div></div><div class="copyright">2025 DERMAKRAFT | Multi-Brand Skincare Store | Kathmandu, Nepal | 100% Authentic Products | Our Own Brand — Launching Soon</div></div></footer>
 
 <script>
 (function(){
@@ -208,7 +209,7 @@
 
     const STORAGE_PRODUCTS = "dermakraft_products_v3", STORAGE_CART = "dermakraft_cart";
 
-    let products = [], cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), currentFilter = "all", selectedLocation = "inside", deliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
+    let products = [], cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), currentFilter = "new", selectedLocation = "inside", deliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
 
     function toast(msg){ const t=document.getElementById('toastMsg'); t.innerText=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2500); }
     function getKey(pid,v){ return `${pid}-${v}`; }
@@ -248,12 +249,14 @@
 
     function renderProducts(){
         const g=document.getElementById('productGridContainer'); g.innerHTML='';
-        const f=products.filter(p=>currentFilter==='all'||p.category===currentFilter);
-        if(f.length===0){ g.innerHTML='<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">No products yet. Admin will add them soon!</div>'; return; }
+        let f;
+        if(currentFilter==='new'){ f=[...products].sort((a,b)=>(b.id||0)-(a.id||0)).slice(0,10); }
+        else { f=products.filter(p=>p.category===currentFilter); }
+        if(f.length===0){ g.innerHTML='<div style="text-align:center;padding:60px;color:#8b7b6e;grid-column:1/-1;">No products yet. Check back soon!</div>'; return; }
         f.forEach(prod=>{
             const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0, discount=prod.discount||0;
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            c.innerHTML=`<div class="product-img-wrap"><img src="${imgs[0]}" class="product-img" loading="lazy" alt="${prod.name}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div><div class="product-title">${prod.name}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
+            c.innerHTML=`<div class="product-img-wrap"><img src="${imgs[0]}" class="product-img" loading="lazy" alt="${prod.name}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div>${prod.brand?`<div class="product-brand">${prod.brand}</div>`:''}<div class="product-title">${prod.name}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
             c.addEventListener('click',function(){ openProductModal(prod); });
             g.appendChild(c);
         });
@@ -284,7 +287,7 @@
 
     function openProductModal(prod){
         const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], stock=prod.stock||0;
-        document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name; document.getElementById('modalProdDesc').textContent=prod.description||'';
+        document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name; document.getElementById('modalProdBrand').textContent=prod.brand?`by ${prod.brand}`:''; document.getElementById('modalProdDesc').textContent=prod.description||'';
         let th=''; imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
         document.getElementById('modalThumbs').innerHTML=th;
         const stockEl=document.getElementById('modalStockInfo');
@@ -366,12 +369,12 @@
     document.querySelectorAll('.footerCatLink').forEach(l=>l.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active');renderProducts();document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});}));
 
     document.getElementById('navShop').addEventListener('click',()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT was founded by a professional chemist in Kathmandu, Nepal. Every product is handcrafted in small batches using premium natural ingredients."));
-    document.getElementById('navScience').addEventListener('click',()=>showInfo("Our Science","pH-optimized formulas. No sulfates, parabens, or synthetic dyes. Enriched with glycerin and plant-based actives."));
+    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT started in Kathmandu as a curated skincare store, bringing together genuine products from trusted brands in one place. We're also developing our own in-house DERMAKRAFT skincare line — launching soon."));
+    document.getElementById('navScience').addEventListener('click',()=>showInfo("Quality Promise","Every product we list is sourced directly from authorized suppliers or the brands themselves. We check packaging, batch details, and freshness before anything goes up for sale."));
     document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAKRAFT","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","Founded by a chemist. Handcrafted in Kathmandu, Nepal. Small batches, premium ingredients."));
-    document.getElementById('footerScience').addEventListener('click',()=>showInfo("Formula Science","pH-balanced. No sulfates. No parabens. Plant-based actives."));
-    document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Made in Nepal","Proudly produced in Kathmandu Valley, supporting local communities and sustainable practices."));
+    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","A curated skincare store based in Kathmandu, Nepal, bringing together genuine products from trusted brands. Our own DERMAKRAFT skincare line is launching soon."));
+    document.getElementById('footerScience').addEventListener('click',()=>showInfo("Quality Promise","Sourced from authorized suppliers. Checked for authenticity, batch details, and freshness before listing."));
+    document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Based in Nepal","Proudly operating out of Kathmandu Valley, delivering genuine skincare across Nepal."));
     document.getElementById('footerShipping').addEventListener('click',()=>showInfo("Shipping","Inside Kathmandu: NPR 100 (3-5 days)\nOutside Valley: NPR 200 (5-7 days)\nFree shipping on orders above NPR 2000"));
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
     document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
