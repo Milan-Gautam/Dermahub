@@ -87,6 +87,20 @@
     .discount-input { width: 55px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
     .restock-input { width: 60px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.75rem; text-align: center; }
     .section-divider { border-top: 1px solid #ece2d9; margin: 20px 0; padding-top: 20px; }
+    .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44,43,40,0.45); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
+    .popup-overlay.open { display: flex; }
+    .popup-card { background: white; border-radius: 22px; max-width: 360px; width: 100%; padding: 26px 24px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+    .popup-icon { font-size: 2.3rem; margin-bottom: 10px; }
+    .popup-icon.info { color: #3a5a45; }
+    .popup-icon.warn { color: #c27c6e; }
+    .popup-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #2a4235; margin-bottom: 8px; font-weight: 600; }
+    .popup-message { font-size: 0.85rem; color: #8b7b6e; line-height: 1.6; margin-bottom: 20px; }
+    .popup-actions { display: flex; gap: 10px; }
+    .popup-btn { flex: 1; padding: 11px; border-radius: 40px; border: none; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; min-height: 42px; }
+    .popup-btn-confirm { background: #c0392b; color: white; }
+    .popup-btn-confirm.neutral { background: #2a4235; }
+    .popup-btn-cancel { background: #f3ede7; color: #2a4235; }
+    @media (max-width: 480px) { .popup-card { padding: 22px 18px; } }
     @media (max-width: 576px) {
       .toast { bottom: 10px; right: 10px; left: 10px; text-align: center; }
       .product-item-row, .voucher-item-row { flex-direction: column; align-items: flex-start; }
@@ -146,7 +160,6 @@
       <div class="product-manager">
         <div class="form-row">
           <div class="form-field"><label>Product Name</label><input type="text" id="prodName" placeholder="e.g. Gentle Soap"></div>
-          <div class="form-field"><label>Brand</label><input type="text" id="prodBrand" placeholder="e.g. Cetaphil, Nivea, DERMAKRAFT"></div>
           <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="facewash">Face Wash</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option></select></div>
         </div>
         <div class="form-row">
@@ -192,6 +205,18 @@
     </div>
   </div>
 
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-card">
+      <div class="popup-icon" id="popupIcon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="popup-title" id="popupTitle">Are you sure?</div>
+      <div class="popup-message" id="popupMessage"></div>
+      <div class="popup-actions" id="popupActions">
+        <button class="popup-btn popup-btn-cancel" id="popupCancelBtn">Cancel</button>
+        <button class="popup-btn popup-btn-confirm" id="popupConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toastMsg" class="toast"></div>
 
   <script>
@@ -213,7 +238,7 @@
       function refreshSession() { if(localStorage.getItem(SESSION_KEY)==='true') localStorage.setItem(SESSION_TIME,Date.now().toString()); }
       ['click','keypress','scroll','mousemove'].forEach(e => document.addEventListener(e, refreshSession));
       setInterval(() => {
-        if(localStorage.getItem(SESSION_KEY)==='true' && !isSessionValid()) { clearSession(); if(document.getElementById('dashboard').style.display==='block') { alert('Session expired.'); logout(); } }
+        if(localStorage.getItem(SESSION_KEY)==='true' && !isSessionValid()) { clearSession(); if(document.getElementById('dashboard').style.display==='block') { showAlertPopup('Session Expired','Your session has expired for security. Please log in again.').then(()=>logout()); } }
         if(Date.now() > lockoutUntil && loginAttempts > 0) { loginAttempts = 0; localStorage.setItem('admin_login_attempts','0'); localStorage.removeItem('admin_lockout_until'); document.getElementById('rateLimitMsg').style.display='none'; document.getElementById('loginBtn').disabled=false; }
       }, 5000);
 
@@ -250,7 +275,7 @@
       }
 
       window._updateStatus = async function(orderId, newStatus) { await updateOrderStatus(orderId, newStatus); };
-      window._delOrder = async function(id) { if(!confirm('Delete order?')) return; try { await db.from('orders').delete().eq('orderId',id); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); renderOrders(); showToast('Order deleted'); };
+      window._delOrder = async function(id) { const ok = await showConfirmPopup('Delete Order?','This will permanently remove this order. This action cannot be undone.'); if(!ok) return; try { await db.from('orders').delete().eq('orderId',id); } catch(e) {} orders = orders.filter(o => o.orderId !== id); localStorage.setItem('dermakraft_cached_orders',JSON.stringify(orders)); renderOrders(); showToast('Order deleted'); };
 
       // Products
       async function loadProducts() {
@@ -259,7 +284,7 @@
       }
 
       async function saveProductToSupabase(product) {
-        const supabaseProduct = { id: product.id, name: product.name, brand: product.brand||'', category: product.category, description: product.description, images: JSON.stringify(product.images), variants: JSON.stringify(product.variants), discount: product.discount||0, stock: product.stock||0 };
+        const supabaseProduct = { id: product.id, name: product.name, category: product.category, description: product.description, images: JSON.stringify(product.images), variants: JSON.stringify(product.variants), discount: product.discount||0, stock: product.stock||0 };
         try { await db.from('products').upsert([supabaseProduct]); } catch(e) {}
       }
 
@@ -283,13 +308,14 @@
           const d = p.discount||0, stock = p.stock||0, variantsStr = p.variants ? p.variants.map(v => `${v.size} - NPR ${v.price}`).join(' | ') : 'No variants';
           html += `<div class="product-item-row">
             <div class="prod-info">
-              <strong>${esc(p.name)}</strong> <small>[${p.category}]</small>${p.brand?` <small style="color:#9c6e4b;">by ${esc(p.brand)}</small>`:''}<br>
+              <strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br>
               <small>${variantsStr}</small> • Stock: <strong>${stock}</strong> ${d>0?`<span style="color:#e74c3c;">(${d}% OFF)</span>`:''}
             </div>
             <div class="prod-actions">
               <input type="number" class="restock-input" id="restock-${p.id}" placeholder="Qty" min="1" value="1">
               <button class="btn-sm btn-primary-sm" style="width:auto;padding:6px 12px;font-size:0.75rem;" onclick="addStockToProduct(${p.id}, parseInt(document.getElementById('restock-${p.id}').value)||0)">+ Restock</button>
-              <input type="number" class="discount-input" value="${d}" placeholder="%" min="0" max="99" onchange="window._setDiscount(${p.id}, this.value)">
+              <input type="number" class="discount-input" id="discount-${p.id}" value="${d}" placeholder="%" min="0" max="99">
+              <button class="btn-sm btn-primary-sm" style="width:auto;padding:6px 10px;font-size:0.7rem;background:#9c6e4b;" onclick="window._setDiscount(${p.id}, document.getElementById('discount-${p.id}').value)">Apply</button>
               <button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button>
             </div></div>`;
         });
@@ -298,22 +324,22 @@
       }
 
       window._setDiscount = async function(prodId, discountVal) { const d = Math.max(0, Math.min(99, parseInt(discountVal)||0)); const prod = products.find(p => p.id === prodId); if(prod) { prod.discount = d; await saveProductToSupabase(prod); renderProductsList(); showToast(`Discount: ${d}%`); } };
-      window._delProd = async function(id) { if(!confirm('Delete product?')) return; products = products.filter(p => p.id !== id); await deleteProductFromSupabase(id); renderProductsList(); showToast('Product deleted'); };
+      window._delProd = async function(id) { const ok = await showConfirmPopup('Delete Product?','This will remove the product from your store. This action cannot be undone.'); if(!ok) return; products = products.filter(p => p.id !== id); await deleteProductFromSupabase(id); renderProductsList(); showToast('Product deleted'); };
 
       window.addVariant = function() { const container = document.getElementById('variantsContainer'); const row = document.createElement('div'); row.className = 'variant-row'; row.innerHTML = `<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button>`; container.appendChild(row); };
       window.removeVariant = function(btn) { const rows = document.querySelectorAll('#variantsContainer .variant-row'); if(rows.length > 1) btn.closest('.variant-row').remove(); else showToast('Need at least one variant'); };
 
       async function addProduct() {
-        const name = document.getElementById('prodName').value.trim(), brand = document.getElementById('prodBrand').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s), stock = parseInt(document.getElementById('prodStock').value)||0;
+        const name = document.getElementById('prodName').value.trim(), cat = document.getElementById('prodCat').value, desc = document.getElementById('prodDesc').value.trim(), imgs = document.getElementById('prodImages').value.split(',').map(s => s.trim()).filter(s => s), stock = parseInt(document.getElementById('prodStock').value)||0;
         if(!name) { showToast('Enter product name'); return; }
         const variantRows = document.querySelectorAll('#variantsContainer .variant-row'); const variants = [];
         variantRows.forEach(row => { const size = row.querySelector('.variant-size').value.trim(), price = parseFloat(row.querySelector('.variant-price').value); if(size && price > 0) variants.push({size,price}); });
         if(variants.length === 0) { showToast('Add at least one variant'); return; }
-        const newProduct = { id: Date.now(), name, brand: brand || '', category: cat, description: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock };
+        const newProduct = { id: Date.now(), name, category: cat, description: desc || 'Premium', images: imgs.length ? imgs : ['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock };
         products.push(newProduct);
         await saveProductToSupabase(newProduct);
         renderProductsList();
-        document.getElementById('prodName').value = ''; document.getElementById('prodBrand').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = ''; document.getElementById('prodStock').value = '10';
+        document.getElementById('prodName').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('prodImages').value = ''; document.getElementById('prodStock').value = '10';
         document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove" onclick="removeVariant(this)">✕</button></div>`;
         showToast(`✓ ${name} added!`);
       }
@@ -321,12 +347,50 @@
       // Vouchers
       async function loadVouchers() { try { let { data, error } = await db.from('vouchers').select('*'); if(error) throw error; vouchers = data || []; } catch(e) { vouchers = []; } return vouchers; }
       function renderVouchersList() { const c = document.getElementById('voucherListContainer'); if(!vouchers.length) { c.innerHTML='<div class="empty-state">No vouchers yet.</div>'; return; } let html=''; vouchers.forEach(v => { html += `<div class="voucher-item-row"><div class="voucher-info"><strong>${esc(v.code)}</strong> - ${v.discount}% off | Used: ${v.usedCount||0}/${v.maxUses>0?v.maxUses:'∞'} | ${v.active?'Active':'Inactive'}</div><div class="voucher-actions"><button class="delete-btn" onclick="window._delVoucher('${v.code}')"><i class="fas fa-trash"></i></button></div></div>`; }); c.innerHTML = html; }
-      window._delVoucher = async function(code) { if(!confirm('Delete voucher?')) return; try { await db.from('vouchers').delete().eq('code',code); } catch(e) {} vouchers = vouchers.filter(v => v.code !== code); renderVouchersList(); showToast('Voucher deleted'); };
+      window._delVoucher = async function(code) { const ok = await showConfirmPopup('Delete Voucher?','This will deactivate and remove this voucher code. This action cannot be undone.'); if(!ok) return; try { await db.from('vouchers').delete().eq('code',code); } catch(e) {} vouchers = vouchers.filter(v => v.code !== code); renderVouchersList(); showToast('Voucher deleted'); };
       async function addVoucher() { const code = document.getElementById('voucherCode').value.trim().toUpperCase(), discount = parseInt(document.getElementById('voucherDiscount').value), maxUses = parseInt(document.getElementById('voucherMaxUses').value)||0; if(!code || !discount || discount<1 || discount>99) { showToast('Enter valid code and discount (1-99)'); return; } try { await db.from('vouchers').insert([{code,discount,maxUses,usedCount:0,active:true}]); } catch(e) { showToast('Code already exists or error'); return; } vouchers.push({code,discount,maxUses,usedCount:0,active:true}); renderVouchersList(); document.getElementById('voucherCode').value = ''; document.getElementById('voucherDiscount').value = ''; document.getElementById('voucherMaxUses').value = ''; showToast(`Voucher ${code} added`); }
 
       function updateStats() { document.getElementById('statOrders').innerText = orders.length; document.getElementById('statProductsCount').innerText = products.length; }
       function esc(s) { if(!s) return ''; return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
       function showToast(m) { const t = document.getElementById('toastMsg'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
+
+      function showConfirmPopup(title, message, confirmLabel) {
+        return new Promise((resolve) => {
+          const overlay = document.getElementById('popupOverlay');
+          document.getElementById('popupIcon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+          document.getElementById('popupIcon').className = 'popup-icon warn';
+          document.getElementById('popupTitle').textContent = title;
+          document.getElementById('popupMessage').textContent = message;
+          const cancelBtn = document.getElementById('popupCancelBtn'), confirmBtn = document.getElementById('popupConfirmBtn');
+          cancelBtn.style.display = 'inline-block'; confirmBtn.textContent = confirmLabel || 'Delete'; confirmBtn.className = 'popup-btn popup-btn-confirm';
+          overlay.classList.add('open');
+          function cleanup(result) { overlay.classList.remove('open'); cancelBtn.removeEventListener('click', onCancel); confirmBtn.removeEventListener('click', onConfirm); overlay.removeEventListener('click', onOverlay); resolve(result); }
+          function onCancel() { cleanup(false); }
+          function onConfirm() { cleanup(true); }
+          function onOverlay(e) { if(e.target === overlay) cleanup(false); }
+          cancelBtn.addEventListener('click', onCancel);
+          confirmBtn.addEventListener('click', onConfirm);
+          overlay.addEventListener('click', onOverlay);
+        });
+      }
+
+      function showAlertPopup(title, message) {
+        return new Promise((resolve) => {
+          const overlay = document.getElementById('popupOverlay');
+          document.getElementById('popupIcon').innerHTML = '<i class="fas fa-info-circle"></i>';
+          document.getElementById('popupIcon').className = 'popup-icon info';
+          document.getElementById('popupTitle').textContent = title;
+          document.getElementById('popupMessage').textContent = message;
+          const cancelBtn = document.getElementById('popupCancelBtn'), confirmBtn = document.getElementById('popupConfirmBtn');
+          cancelBtn.style.display = 'none'; confirmBtn.textContent = 'OK'; confirmBtn.className = 'popup-btn popup-btn-confirm neutral';
+          overlay.classList.add('open');
+          function cleanup() { overlay.classList.remove('open'); confirmBtn.removeEventListener('click', onConfirm); overlay.removeEventListener('click', onOverlay); cancelBtn.style.display = 'inline-block'; resolve(); }
+          function onConfirm() { cleanup(); }
+          function onOverlay(e) { if(e.target === overlay) cleanup(); }
+          confirmBtn.addEventListener('click', onConfirm);
+          overlay.addEventListener('click', onOverlay);
+        });
+      }
 
       window.showSection = function(s) {
         ['orders','products','vouchers'].forEach(sec => document.getElementById(sec+'Section').style.display = 'none');
