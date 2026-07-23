@@ -90,7 +90,6 @@
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; background: var(--sand); display: block; }
         .sold-out-tag { position: absolute; top: 8px; left: 8px; background: rgba(44,43,40,0.85); color: white; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 40px; }
         .discount-tag { position: absolute; top: 8px; right: 8px; background: var(--warm-brown); color: white; font-size: 0.6rem; font-weight: 700; padding: 4px 9px; border-radius: 40px; }
-        .product-brand { font-size: 0.68rem; font-weight: 600; color: var(--stone); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
         .product-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 6px; color: var(--deep-olive); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .product-card .price { font-weight: 700; font-size: 1rem; color: var(--warm-brown); margin-top: auto; }
         .product-card .price .original { text-decoration: line-through; color: #c27c6e; font-size: 0.7rem; margin-right: 4px; font-weight: 500; }
@@ -203,7 +202,7 @@
 
 <div class="modal" id="infoModal"><div class="modal-card"><i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i><h3 id="infoTitle">Message</h3><p id="infoText" style="margin:16px 0;line-height:1.6;"></p><button class="btn-primary" id="closeInfoBtn">OK</button></div></div>
 
-<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><div class="modal-disclaimer"><i class="fas fa-info-circle"></i><p>Images are for reference only and packaging may vary. Please check the expiry date and seal before use.</p></div><h3 id="modalProdName"></h3><p id="modalProdBrand" style="color:var(--warm-brown);font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;"></p><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div></div></div>
+<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><div class="modal-disclaimer"><i class="fas fa-info-circle"></i><p>Images are for reference only and packaging may vary. Please check the expiry date and seal before use.</p></div><h3 id="modalProdName"></h3><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div></div></div>
 
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;"><a href="admin_007.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a></div>
 
@@ -242,7 +241,7 @@
 <footer><div class="container">
     <div class="footer-brand"><h3>DERMAKRAFT</h3><p>A curated skincare store based in Kathmandu, Nepal. We bring together genuine products from trusted brands, checked for authenticity before they reach you. Our own in-house DERMAKRAFT skincare line is launching soon.</p></div>
     <div class="footer-grid"><div class="footer-col"><h4>DERMAKRAFT Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Quality Promise</a></li><li><a id="footerNepal">Based in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div></div>
-    <div class="payment-strip"><span class="label">We accept</span><span class="pay-badge">COD</span><span class="pay-badge">National-Wide Delivery</span></div>
+    <div class="payment-strip"><span class="label">We accept</span><span class="pay-badge">COD</span><span class="pay-badge">Home Delivery</span></div>
     <div class="copyright">2025 DERMAKRAFT | Multi-Brand Skincare Store | Kathmandu, Nepal | 100% Authentic Products | Our Own Brand — Launching Soon</div>
 </div></footer>
 
@@ -302,7 +301,7 @@
         f.forEach(prod=>{
             const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0, discount=prod.discount||0;
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            c.innerHTML=`<div class="product-img-wrap"><img src="${imgs[0]}" class="product-img" loading="lazy" alt="${prod.name}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div>${prod.brand?`<div class="product-brand">${prod.brand}</div>`:''}<div class="product-title">${prod.name}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
+            c.innerHTML=`<div class="product-img-wrap"><img src="${imgs[0]}" class="product-img" loading="lazy" alt="${prod.name}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div><div class="product-title">${prod.name}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
             c.addEventListener('click',function(){ openProductModal(prod); });
             g.appendChild(c);
         });
@@ -333,7 +332,7 @@
 
     function openProductModal(prod){
         const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], stock=prod.stock||0;
-        document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name; document.getElementById('modalProdBrand').textContent=prod.brand?`by ${prod.brand}`:''; document.getElementById('modalProdDesc').textContent=prod.description||'';
+        document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name; document.getElementById('modalProdDesc').textContent=prod.description||'';
         let th=''; imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
         document.getElementById('modalThumbs').innerHTML=th;
         const stockEl=document.getElementById('modalStockInfo');
@@ -368,11 +367,17 @@
     document.getElementById('successModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
     document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 
-    function handleCheckout(){if(!cart.length){toast('Cart is empty');return;}updateCheckoutSummary();document.getElementById('checkoutModal').classList.add('open');}
+    let isSubmittingOrder = false;
+    function handleCheckout(){if(!cart.length){toast('Cart is empty');return;}updateCheckoutSummary();resetSubmitOrderBtn();document.getElementById('checkoutModal').classList.add('open');}
+    function resetSubmitOrderBtn(){ isSubmittingOrder=false; const b=document.getElementById('submitOrderBtn'); b.disabled=false; b.innerHTML='Place Order'; }
 
     async function submitOrder(){
+        if(isSubmittingOrder) return;
         const name=document.getElementById('custName').value.trim(), email=document.getElementById('custEmail').value.trim(), addr=document.getElementById('custAddress').value.trim(), phone=document.getElementById('custPhone').value.trim();
         if(!name||!email||!addr||!phone){toast('Please fill all fields');return;}
+        isSubmittingOrder = true;
+        const submitBtn = document.getElementById('submitOrderBtn');
+        submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
         const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0), discountAmount = voucherDiscount?Math.round(subtotal*(voucherDiscount/100)):0, total = subtotal - discountAmount + deliveryCharge;
         const itemsStr = cart.map(i=>`${i.quantity}x ${i.name}`).join(', '), orderId = 'ORD-'+Date.now(), orderDate = new Date().toISOString(), location = selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', trackingUrl = window.location.origin + window.location.pathname.replace('index.html','') + 'track.html?orderId='+orderId;
         const orderData = {orderId, customerName:name, email, phone, address:addr, location, deliveryCharge, items:itemsStr, subtotal, discount:discountAmount, total, date:orderDate, status:'ordered'};
@@ -387,11 +392,12 @@
                     await db.from('products').update({stock:newStock}).eq('id',item.productId);
                 }
             }
-        } catch(e) { console.error('Order failed', e); toast('Order could not be saved. Please try again.'); return; }
+        } catch(e) { console.error('Order failed', e); toast('Order could not be saved. Please try again.'); resetSubmitOrderBtn(); return; }
         localStorage.setItem('track_'+orderId, JSON.stringify({...orderData, trackingUrl}));
         try { await emailjs.send("service_ycj8myh","template_8sw10cu",{customerName:name, orderId, items:itemsStr, subtotal:subtotal.toLocaleString(), discount:discountAmount.toLocaleString(), deliveryCharge:deliveryCharge.toString(), total:total.toLocaleString(), location, address:addr, trackingUrl, email}); } catch(e) {}
         document.getElementById('successMsg').innerHTML = `<strong>Thank you ${name}!</strong><br><br>Order Total: <strong>NPR ${total.toLocaleString()}</strong><br>Delivery: ${location}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;"><strong>Payment:</strong> Pay via eSewa/Khalti using QR code sent to ${email}<br><small>Order processes after payment confirmation</small></div><br>Tracking link sent to ${email}`;
         document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('successModal').classList.add('open');
+        resetSubmitOrderBtn();
         document.getElementById('trackOrderBtn').onclick = function(){ window.location.href = trackingUrl; };
         cart = []; addedKeys.clear(); saveCart(); updateCartUI();
         voucherDiscount = 0; appliedVoucher = null;
