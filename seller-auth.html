@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sell on DERMAKRAFT | Seller Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#fefaf5 0%,#f3ede7 100%); min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:440px; margin:0 auto; padding:40px 20px; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  .back-link { font-size:0.78rem; color:var(--stone); text-decoration:none; margin-bottom:20px; display:inline-flex; align-items:center; gap:6px; }
+  .card { background:white; border-radius:28px; padding:36px 30px; box-shadow:0 20px 50px rgba(0,0,0,0.08); border:1px solid var(--border-light); }
+  .card h1 { font-family:'Playfair Display',serif; color:var(--warm-brown); font-size:1.7rem; margin-bottom:4px; }
+  .card .subtitle { color:var(--stone); font-size:0.82rem; margin-bottom:26px; }
+  .tabs { display:flex; background:var(--sand); border-radius:40px; padding:4px; margin-bottom:24px; }
+  .tab-btn { flex:1; border:none; background:none; padding:9px; border-radius:40px; font-family:inherit; font-size:0.8rem; font-weight:600; color:var(--stone); cursor:pointer; }
+  .tab-btn.active { background:var(--deep-olive); color:white; }
+  .field { margin-bottom:14px; text-align:left; }
+  .field label { display:block; font-size:0.68rem; font-weight:600; color:var(--charcoal); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:5px; }
+  .field input { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:10px; font-size:0.88rem; font-family:inherit; }
+  .field input:focus { outline:none; border-color:var(--olive); }
+  .btn-main { width:100%; background:var(--deep-olive); color:white; border:none; border-radius:50px; padding:13px; font-weight:600; font-size:0.9rem; cursor:pointer; margin-top:6px; min-height:46px; }
+  .btn-main:hover { background:var(--warm-brown); }
+  .btn-main:disabled { background:#cbbcac; cursor:not-allowed; }
+  .msg { font-size:0.78rem; margin-top:14px; padding:10px 14px; border-radius:10px; display:none; line-height:1.5; }
+  .msg.error { background:#fdecea; color:#c0392b; display:block; }
+  .msg.success { background:#e8f5e9; color:#2a4235; display:block; }
+  .form-panel { display:none; }
+  .form-panel.active { display:block; }
+  .commission-note { background:var(--sand); border-radius:12px; padding:12px 14px; font-size:0.72rem; color:var(--stone); line-height:1.6; margin-bottom:18px; display:flex; gap:8px; align-items:flex-start; }
+  .commission-note i { color:var(--warm-brown); margin-top:2px; }
+  @media (max-width:480px) { .card { padding:28px 20px; border-radius:22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a>
+  <div class="card">
+    <h1>DERMAKRAFT</h1>
+    <p class="subtitle">Seller Portal</p>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabLogin">Log In</button>
+      <button class="tab-btn" id="tabSignup">Sign Up</button>
+    </div>
+
+    <div class="form-panel active" id="loginPanel">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <button class="btn-main" id="loginBtn">Log In to Dashboard</button>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+
+    <div class="form-panel" id="signupPanel">
+      <div class="commission-note"><i class="fas fa-info-circle"></i><span>DERMAKRAFT takes a flat 5% commission on each item you sell. You keep 95% of every sale.</span></div>
+      <div class="field"><label>Business / Shop Name</label><input type="text" id="suBusiness" placeholder="e.g. Kathmandu Naturals"></div>
+      <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="suPhone" placeholder="+977 98..."></div>
+      <div class="field"><label>Password</label><input type="password" id="suPassword" placeholder="At least 6 characters"></div>
+      <button class="btn-main" id="signupBtn">Create Seller Account</button>
+      <div class="msg" id="signupMsg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const tabLogin = document.getElementById('tabLogin'), tabSignup = document.getElementById('tabSignup');
+  const loginPanel = document.getElementById('loginPanel'), signupPanel = document.getElementById('signupPanel');
+
+  tabLogin.addEventListener('click', () => { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); loginPanel.classList.add('active'); signupPanel.classList.remove('active'); });
+  tabSignup.addEventListener('click', () => { tabSignup.classList.add('active'); tabLogin.classList.remove('active'); signupPanel.classList.add('active'); loginPanel.classList.remove('active'); });
+
+  function showMsg(id, text, type){ const el=document.getElementById(id); el.textContent=text; el.className='msg '+type; }
+
+  document.getElementById('signupBtn').addEventListener('click', async function(){
+    const business = document.getElementById('suBusiness').value.trim();
+    const email = document.getElementById('suEmail').value.trim();
+    const phone = document.getElementById('suPhone').value.trim();
+    const password = document.getElementById('suPassword').value;
+    if(!business || !email || !phone || !password){ showMsg('signupMsg','Please fill in every field.','error'); return; }
+    if(password.length < 6){ showMsg('signupMsg','Password must be at least 6 characters.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+    try {
+      const { data, error } = await db.auth.signUp({ email, password });
+      if(error) throw error;
+      if(!data.session){
+        showMsg('signupMsg','Account created! Check your email to confirm, then log in.','success');
+        btn.disabled = false; btn.innerHTML = 'Create Seller Account';
+        return;
+      }
+      const { error: sellerErr } = await db.from('sellers').insert([{ id: data.user.id, business_name: business, contact_email: email, contact_phone: phone }]);
+      if(sellerErr) throw sellerErr;
+      showMsg('signupMsg','Account created! Redirecting to your dashboard...','success');
+      setTimeout(() => window.location.href = 'seller-dashboard.html', 1200);
+    } catch(e) {
+      showMsg('signupMsg', e.message || 'Something went wrong. Please try again.', 'error');
+      btn.disabled = false; btn.innerHTML = 'Create Seller Account';
+    }
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', async function(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if(!email || !password){ showMsg('loginMsg','Enter your email and password.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+    try {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      window.location.href = 'seller-dashboard.html';
+    } catch(e) {
+      showMsg('loginMsg', e.message || 'Login failed. Check your details.', 'error');
+      btn.disabled = false; btn.innerHTML = 'Log In to Dashboard';
+    }
+  });
+
+  (async function checkSession(){
+    const { data:{ session } } = await db.auth.getSession();
+    if(session) window.location.href = 'seller-dashboard.html';
+  })();
+})();
+</script>
+</body>
+</html>
