@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Seller Dashboard | DERMAKRAFT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:#f5f0eb; min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .loading-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; flex-direction:column; gap:12px; color:var(--stone); }
+  .loading-screen i { font-size:1.6rem; color:var(--olive); }
+  .container { max-width:1300px; margin:0 auto; padding:24px; display:none; }
+  @media (max-width:768px) { .container { padding:16px; } }
+  header { background:white; border-radius:22px; padding:20px 26px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+  @media (max-width:576px) { header { padding:16px 18px; flex-direction:column; text-align:center; } }
+  .brand h1 { font-family:'Playfair Display',serif; color:var(--warm-brown); font-size:1.5rem; }
+  .brand p { font-size:0.7rem; color:var(--stone); }
+  .seller-badge { background:var(--sand); color:var(--deep-olive); padding:5px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; letter-spacing:0.4px; }
+  .header-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn-ghost { background:none; border:1px solid var(--border-light); padding:8px 18px; border-radius:40px; cursor:pointer; color:var(--stone); font-family:inherit; font-size:0.82rem; }
+  .btn-ghost:hover { border-color:var(--warm-brown); color:var(--warm-brown); }
+  .pending-banner { background:#fff3cd; color:#856404; padding:14px 20px; border-radius:16px; font-size:0.82rem; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:24px; }
+  @media (max-width:576px) { .stats-grid { grid-template-columns:1fr 1fr; gap:10px; } }
+  .stat-card { background:white; border-radius:18px; padding:18px 14px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .stat-card i { font-size:1.3rem; color:var(--olive); margin-bottom:6px; }
+  .stat-card h3 { font-size:0.62rem; text-transform:uppercase; color:var(--stone); letter-spacing:0.6px; margin-bottom:2px; }
+  .stat-number { font-size:1.25rem; font-weight:700; color:var(--deep-olive); }
+  .nav-tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
+  .nav-tab { background:none; border:none; padding:9px 18px; border-radius:40px; cursor:pointer; font-weight:600; color:var(--stone); font-family:inherit; font-size:0.85rem; }
+  .nav-tab.active { background:var(--olive); color:white; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+  .card-box { background:white; border-radius:20px; padding:22px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .section-heading { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--deep-olive); margin-bottom:16px; }
+  .form-row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+  .form-field { flex:1; min-width:150px; }
+  .form-field label { display:block; font-size:0.68rem; font-weight:600; margin-bottom:4px; color:var(--stone); text-transform:uppercase; }
+  .form-field input, .form-field select { width:100%; padding:10px 12px; border:1px solid var(--border-light); border-radius:8px; font-family:inherit; font-size:0.85rem; }
+  .variant-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .variant-row input { flex:1; min-width:100px; padding:10px; border:1px solid var(--border-light); border-radius:8px; font-size:0.85rem; font-family:inherit; }
+  .btn-remove-sm { background:#c27c6e; color:white; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; min-width:36px; }
+  .btn-add-variant { background:var(--olive); color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:0.75rem; margin-top:4px; }
+  .btn-primary-sm { background:var(--deep-olive); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:0.85rem; font-weight:600; width:100%; margin-top:6px; min-height:44px; }
+  .product-item-row { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:var(--cream); border-radius:14px; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
+  .product-item-row img { width:52px; height:52px; border-radius:10px; object-fit:cover; }
+  .prod-info { display:flex; gap:12px; align-items:center; flex:1; min-width:220px; }
+  .prod-actions { display:flex; gap:8px; align-items:center; }
+  .discount-input { width:55px; padding:7px 8px; border:1px solid #ddd; border-radius:6px; font-size:0.75rem; text-align:center; }
+  .restock-input { width:60px; padding:7px 8px; border:1px solid #ddd; border-radius:6px; font-size:0.75rem; text-align:center; }
+  .btn-tiny { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-family:inherit; font-size:0.72rem; font-weight:600; background:var(--deep-olive); color:white; }
+  .btn-tiny.danger { background:none; color:#c27c6e; }
+  .listing-toggle { padding:6px 10px; border-radius:20px; font-size:0.65rem; font-weight:700; border:none; cursor:pointer; }
+  .listing-toggle.active-listing { background:#e8f5e9; color:#2a4235; }
+  .listing-toggle.hidden-listing { background:#f3ede7; color:#8b7b6e; }
+  table { width:100%; border-collapse:collapse; font-size:0.8rem; min-width:820px; }
+  .table-wrap { overflow-x:auto; }
+  th { text-align:left; padding:12px 10px; background:var(--sand); font-weight:600; color:var(--deep-olive); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.4px; }
+  td { padding:11px 10px; border-bottom:1px solid var(--border-light); vertical-align:top; }
+  .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.7rem; cursor:pointer; font-family:inherit; background:white; }
+  .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
+  .badge-status.ordered { background:#e8e0f7; color:#5b3a8c; }
+  .badge-status.paid { background:#cce5ff; color:#004085; }
+  .badge-status.processing { background:#fff3cd; color:#856404; }
+  .badge-status.shipped { background:#b8daff; color:#004085; }
+  .badge-status.delivered { background:#d4edda; color:#155724; }
+  .empty-state { text-align:center; padding:44px; color:var(--stone); font-size:0.85rem; }
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--deep-olive); color:white; padding:12px 22px; border-radius:40px; z-index:1000; display:none; font-size:0.85rem; }
+  .popup-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(44,43,40,0.45); z-index:5000; align-items:center; justify-content:center; padding:20px; }
+  .popup-overlay.open { display:flex; }
+  .popup-card { background:white; border-radius:22px; max-width:360px; width:100%; padding:26px 24px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.15); }
+  .popup-icon { font-size:2.3rem; margin-bottom:10px; }
+  .popup-icon.info { color:var(--olive); }
+  .popup-icon.warn { color:#c27c6e; }
+  .popup-title { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--deep-olive); margin-bottom:8px; font-weight:600; }
+  .popup-message { font-size:0.85rem; color:var(--stone); line-height:1.6; margin-bottom:20px; }
+  .popup-actions { display:flex; gap:10px; }
+  .popup-btn { flex:1; padding:11px; border-radius:40px; border:none; font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; min-height:42px; }
+  .popup-btn-confirm { background:#c0392b; color:white; }
+  .popup-btn-confirm.neutral { background:var(--deep-olive); }
+  .popup-btn-cancel { background:var(--sand); color:var(--deep-olive); }
+  @media (max-width:576px) { .product-item-row { flex-direction:column; align-items:flex-start; } .prod-actions { width:100%; justify-content:flex-end; flex-wrap:wrap; } }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen"><i class="fas fa-spinner fa-spin"></i><span>Loading your dashboard...</span></div>
+
+<div class="container" id="dashboardContainer">
+  <header>
+    <div class="brand"><h1>DERMAKRAFT</h1><p>seller dashboard</p></div>
+    <div class="header-actions">
+      <span class="seller-badge" id="sellerCodeBadge">SLR-0000</span>
+      <a href="index.html" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
+      <button class="btn-ghost" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </header>
+
+  <div class="pending-banner" id="pendingBanner" style="display:none;"><i class="fas fa-clock"></i> Your seller account is pending approval. You can add products now, but they'll go live once approved.</div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><i class="fas fa-box"></i><h3>My Products</h3><div class="stat-number" id="statProducts">0</div></div>
+    <div class="stat-card"><i class="fas fa-receipt"></i><h3>Total Orders</h3><div class="stat-number" id="statOrders">0</div></div>
+    <div class="stat-card"><i class="fas fa-coins"></i><h3>Gross Sales</h3><div class="stat-number" id="statGross">NPR 0</div></div>
+    <div class="stat-card"><i class="fas fa-wallet"></i><h3>Your Earnings (95%)</h3><div class="stat-number" id="statEarnings">NPR 0</div></div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-panel="productsPanel">My Products</button>
+    <button class="nav-tab" data-panel="ordersPanel">My Orders</button>
+    <button class="nav-tab" data-panel="profilePanel">Profile</button>
+  </div>
+
+  <div class="panel active" id="productsPanel">
+    <div class="card-box" style="margin-bottom:18px;">
+      <div class="section-heading">Add New Product</div>
+      <div class="form-row">
+        <div class="form-field"><label>Product Name</label><input type="text" id="prodName" placeholder="e.g. Gentle Soap"></div>
+        <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="facewash">Face Wash</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
+        <div class="form-field"><label>Image URLs (comma separated)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:0.68rem;font-weight:600;margin-bottom:8px;color:var(--stone);text-transform:uppercase;">Variants (Size & Price in NPR)</label>
+        <div id="variantsContainer">
+          <div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button></div>
+        </div>
+        <button type="button" class="btn-add-variant" onclick="addVariant()"><i class="fas fa-plus"></i> Add Variant</button>
+      </div>
+      <div class="form-row"><div class="form-field" style="max-width:180px;"><label>Initial Stock</label><input type="number" id="prodStock" placeholder="10" min="0" value="10"></div></div>
+      <button class="btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button>
+    </div>
+
+    <div class="card-box">
+      <div class="section-heading">Your Listings</div>
+      <div id="productListContainer"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="ordersPanel">
+    <div class="card-box">
+      <div class="section-heading">Orders Containing Your Products</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Order</th><th>Product</th><th>Qty</th><th>Line Total</th><th>Commission (5%)</th><th>You Earn</th><th>Status</th></tr></thead>
+        <tbody id="ordersTableBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="panel" id="profilePanel">
+    <div class="card-box" style="max-width:480px;">
+      <div class="section-heading">Seller Profile</div>
+      <div class="form-row"><div class="form-field"><label>Business Name</label><input type="text" id="profBusiness"></div></div>
+      <div class="form-row"><div class="form-field"><label>Contact Phone</label><input type="text" id="profPhone"></div></div>
+      <div class="form-row"><div class="form-field"><label>Contact Email</label><input type="text" id="profEmail" disabled style="background:#f5f0eb;"></div></div>
+      <div class="form-row"><div class="form-field"><label>Seller ID</label><input type="text" id="profCode" disabled style="background:#f5f0eb;"></div></div>
+      <div class="form-row"><div class="form-field"><label>Commission Rate</label><input type="text" id="profCommission" disabled style="background:#f5f0eb;"></div></div>
+      <button class="btn-primary-sm" id="saveProfileBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup-card">
+    <div class="popup-icon" id="popupIcon"><i class="fas fa-exclamation-triangle"></i></div>
+    <div class="popup-title" id="popupTitle">Are you sure?</div>
+    <div class="popup-message" id="popupMessage"></div>
+    <div class="popup-actions" id="popupActions">
+      <button class="popup-btn popup-btn-cancel" id="popupCancelBtn">Cancel</button>
+      <button class="popup-btn popup-btn-confirm" id="popupConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastMsg" class="toast"></div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null, currentSeller = null, myProducts = [], myOrderItems = [];
+
+  function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+  function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
+
+  function showConfirmPopup(title, message, confirmLabel) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('popupOverlay');
+      document.getElementById('popupIcon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+      document.getElementById('popupIcon').className = 'popup-icon warn';
+      document.getElementById('popupTitle').textContent = title;
+      document.getElementById('popupMessage').textContent = message;
+      const cancelBtn=document.getElementById('popupCancelBtn'), confirmBtn=document.getElementById('popupConfirmBtn');
+      cancelBtn.style.display='inline-block'; confirmBtn.textContent=confirmLabel||'Delete'; confirmBtn.className='popup-btn popup-btn-confirm';
+      overlay.classList.add('open');
+      function cleanup(r){ overlay.classList.remove('open'); cancelBtn.removeEventListener('click',onCancel); confirmBtn.removeEventListener('click',onConfirm); overlay.removeEventListener('click',onOverlay); resolve(r); }
+      function onCancel(){ cleanup(false); } function onConfirm(){ cleanup(true); } function onOverlay(e){ if(e.target===overlay) cleanup(false); }
+      cancelBtn.addEventListener('click',onCancel); confirmBtn.addEventListener('click',onConfirm); overlay.addEventListener('click',onOverlay);
+    });
+  }
+  function showAlertPopup(title, message) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('popupOverlay');
+      document.getElementById('popupIcon').innerHTML = '<i class="fas fa-info-circle"></i>';
+      document.getElementById('popupIcon').className = 'popup-icon info';
+      document.getElementById('popupTitle').textContent = title;
+      document.getElementById('popupMessage').textContent = message;
+      const cancelBtn=document.getElementById('popupCancelBtn'), confirmBtn=document.getElementById('popupConfirmBtn');
+      cancelBtn.style.display='none'; confirmBtn.textContent='OK'; confirmBtn.className='popup-btn popup-btn-confirm neutral';
+      overlay.classList.add('open');
+      function cleanup(){ overlay.classList.remove('open'); confirmBtn.removeEventListener('click',onConfirm); overlay.removeEventListener('click',onOverlay); cancelBtn.style.display='inline-block'; resolve(); }
+      function onConfirm(){ cleanup(); } function onOverlay(e){ if(e.target===overlay) cleanup(); }
+      confirmBtn.addEventListener('click',onConfirm); overlay.addEventListener('click',onOverlay);
+    });
+  }
+
+  // ---------- AUTH GATE ----------
+  async function init(){
+    const { data:{ session } } = await db.auth.getSession();
+    if(!session){ window.location.href = 'seller-auth.html'; return; }
+    currentUser = session.user;
+
+    const { data: sellerRow, error: sellerErr } = await db.from('sellers').select('*').eq('id', currentUser.id).single();
+    if(sellerErr || !sellerRow){
+      await showAlertPopup('Setup Needed','We could not find a seller profile for this account. Please sign up again or contact support.');
+      await db.auth.signOut();
+      window.location.href = 'seller-auth.html';
+      return;
+    }
+    currentSeller = sellerRow;
+    document.getElementById('sellerCodeBadge').textContent = currentSeller.seller_code;
+    if(currentSeller.status === 'pending') document.getElementById('pendingBanner').style.display = 'flex';
+    if(currentSeller.status === 'suspended'){
+      await showAlertPopup('Account Suspended','Your seller account has been suspended. Please contact DERMAKRAFT support.');
+    }
+
+    document.getElementById('profBusiness').value = currentSeller.business_name || '';
+    document.getElementById('profPhone').value = currentSeller.contact_phone || '';
+    document.getElementById('profEmail').value = currentSeller.contact_email || '';
+    document.getElementById('profCode').value = currentSeller.seller_code || '';
+    document.getElementById('profCommission').value = (currentSeller.commission_rate ?? 5) + '%';
+
+    await loadProducts();
+    await loadOrderItems();
+
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'block';
+  }
+
+  // ---------- PRODUCTS ----------
+  async function loadProducts(){
+    try {
+      const { data, error } = await db.from('products').select('*').eq('seller_id', currentUser.id).order('id',{ascending:false});
+      if(error) throw error;
+      myProducts = (data||[]).map(p => { if(typeof p.variants==='string') p.variants=JSON.parse(p.variants); if(typeof p.images==='string') p.images=JSON.parse(p.images); return p; });
+    } catch(e){ console.error(e); myProducts = []; }
+    renderProducts();
+  }
+
+  function renderProducts(){
+    const c = document.getElementById('productListContainer');
+    document.getElementById('statProducts').textContent = myProducts.length;
+    if(!myProducts.length){ c.innerHTML = "<div class=\"empty-state\">You haven't listed any products yet. Add your first one above.</div>"; return; }
+    let html = '';
+    myProducts.forEach(p => {
+      const stock = p.stock||0, discount = p.discount||0, img = (p.images && p.images[0]) || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=200';
+      const listed = (p.listing_status||'active') === 'active';
+      html += `<div class="product-item-row">
+        <div class="prod-info"><img src="${img}"><div><strong>${esc(p.name)}</strong> <small style="color:var(--stone);">[${p.category}]</small><br><small style="color:var(--stone);">Stock: ${stock} ${discount>0?`• ${discount}% off`:''}</small></div></div>
+        <div class="prod-actions">
+          <button class="listing-toggle ${listed?'active-listing':'hidden-listing'}" onclick="window._toggleListing(${p.id})">${listed?'Live':'Hidden'}</button>
+          <input type="number" class="restock-input" id="restock-${p.id}" placeholder="Qty" min="1" value="1">
+          <button class="btn-tiny" onclick="window._restock(${p.id}, parseInt(document.getElementById('restock-${p.id}').value)||0)">+ Restock</button>
+          <input type="number" class="discount-input" id="discount-${p.id}" value="${discount}" placeholder="%" min="0" max="99">
+          <button class="btn-tiny" onclick="window._setDiscount(${p.id}, document.getElementById('discount-${p.id}').value)">Apply</button>
+          <button class="btn-tiny danger" onclick="window._deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+        </div></div>`;
+    });
+    c.innerHTML = html;
+  }
+
+  async function saveProduct(product){
+    const payload = { id: product.id, name: product.name, seller_id: currentUser.id, category: product.category, description: product.description, images: JSON.stringify(product.images), variants: JSON.stringify(product.variants), discount: product.discount||0, stock: product.stock||0, listing_status: product.listing_status||'active' };
+    const { error } = await db.from('products').upsert([payload]);
+    if(error) throw error;
+  }
+
+  window.addVariant = function(){ const c=document.getElementById('variantsContainer'); const row=document.createElement('div'); row.className='variant-row'; row.innerHTML=`<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button>`; c.appendChild(row); };
+  window.removeVariant = function(btn){ const rows=document.querySelectorAll('#variantsContainer .variant-row'); if(rows.length>1) btn.closest('.variant-row').remove(); else showToast('Need at least one variant'); };
+
+  document.getElementById('addProductBtn').addEventListener('click', async function(){
+    const name=document.getElementById('prodName').value.trim(), cat=document.getElementById('prodCat').value, desc=document.getElementById('prodDesc').value.trim();
+    const imgs=document.getElementById('prodImages').value.split(',').map(s=>s.trim()).filter(s=>s);
+    const stock=parseInt(document.getElementById('prodStock').value)||0;
+    if(!name){ showToast('Enter a product name'); return; }
+    const variants=[];
+    document.querySelectorAll('#variantsContainer .variant-row').forEach(row=>{ const size=row.querySelector('.variant-size').value.trim(), price=parseFloat(row.querySelector('.variant-price').value); if(size && price>0) variants.push({size,price}); });
+    if(!variants.length){ showToast('Add at least one variant'); return; }
+    const btn=this; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Adding...';
+    const newProduct = { id: Date.now(), name, category:cat, description: desc||'Genuine product', images: imgs.length?imgs:['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock, listing_status: currentSeller.status==='approved'?'active':'active' };
+    try {
+      await saveProduct(newProduct);
+      myProducts.unshift(newProduct);
+      renderProducts();
+      document.getElementById('prodName').value=''; document.getElementById('prodDesc').value=''; document.getElementById('prodImages').value=''; document.getElementById('prodStock').value='10';
+      document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button></div>`;
+      showToast('Product added!');
+    } catch(e){ console.error(e); showToast('Could not add product. Please try again.'); }
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-plus"></i> Add Product';
+  });
+
+  window._toggleListing = async function(id){
+    const p = myProducts.find(x=>x.id===id); if(!p) return;
+    p.listing_status = (p.listing_status||'active')==='active' ? 'hidden' : 'active';
+    try { await saveProduct(p); renderProducts(); showToast(p.listing_status==='active' ? 'Listing is live' : 'Listing hidden from store'); }
+    catch(e){ showToast('Could not update listing'); }
+  };
+  window._restock = async function(id, amount){
+    const p = myProducts.find(x=>x.id===id); if(!p || !amount) return;
+    p.stock = Math.max(0, (p.stock||0) + amount);
+    try { await saveProduct(p); renderProducts(); showToast(`Stock updated to ${p.stock}`); }
+    catch(e){ showToast('Could not update stock'); }
+  };
+  window._setDiscount = async function(id, val){
+    const d = Math.max(0, Math.min(99, parseInt(val)||0));
+    const p = myProducts.find(x=>x.id===id); if(!p) return;
+    p.discount = d;
+    try { await saveProduct(p); renderProducts(); showToast(`Discount set to ${d}%`); }
+    catch(e){ showToast('Could not update discount'); }
+  };
+  window._deleteProduct = async function(id){
+    const ok = await showConfirmPopup('Delete Product?','This will permanently remove this listing from your store. This action cannot be undone.');
+    if(!ok) return;
+    try { await db.from('products').delete().eq('id', id).eq('seller_id', currentUser.id); myProducts = myProducts.filter(p=>p.id!==id); renderProducts(); showToast('Product deleted'); }
+    catch(e){ showToast('Could not delete product'); }
+  };
+
+  // ---------- ORDERS / EARNINGS ----------
+  async function loadOrderItems(){
+    try {
+      const { data, error } = await db.from('order_items').select('*').eq('seller_id', currentUser.id).order('created_at',{ascending:false});
+      if(error) throw error;
+      myOrderItems = data || [];
+    } catch(e){ console.error(e); myOrderItems = []; }
+    renderOrderItems();
+  }
+
+  function renderOrderItems(){
+    const tbody = document.getElementById('ordersTableBody');
+    const gross = myOrderItems.reduce((s,i)=>s+parseFloat(i.line_total||0),0);
+    const earnings = myOrderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
+    document.getElementById('statOrders').textContent = myOrderItems.length;
+    document.getElementById('statGross').textContent = 'NPR ' + gross.toLocaleString();
+    document.getElementById('statEarnings').textContent = 'NPR ' + earnings.toLocaleString();
+    if(!myOrderItems.length){ tbody.innerHTML = "<tr><td colspan=\"7\" class=\"empty-state\">No orders yet. Once someone buys your product, it'll show up here.</td></tr>"; return; }
+    let html = '';
+    myOrderItems.forEach(item => {
+      const status = item.fulfillment_status || 'ordered';
+      html += `<tr>
+        <td><small>#${(item.order_id||'').slice(-8)}</small></td>
+        <td>${esc(item.product_name)}${item.variant_label?` <small style="color:var(--stone);">(${esc(item.variant_label)})</small>`:''}</td>
+        <td>${item.quantity}</td>
+        <td>NPR ${parseFloat(item.line_total||0).toLocaleString()}</td>
+        <td><small style="color:var(--stone);">NPR ${parseFloat(item.commission_amount||0).toLocaleString()}</small></td>
+        <td><strong>NPR ${parseFloat(item.seller_earning||0).toLocaleString()}</strong></td>
+        <td><select class="status-select" onchange="window._updateItemStatus(${item.id}, this.value)">
+          <option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option>
+          <option value="paid" ${status==='paid'?'selected':''}>Paid</option>
+          <option value="processing" ${status==='processing'?'selected':''}>Processing</option>
+          <option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option>
+          <option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option>
+        </select></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  window._updateItemStatus = async function(itemId, newStatus){
+    try { await db.from('order_items').update({fulfillment_status:newStatus}).eq('id', itemId).eq('seller_id', currentUser.id); const it = myOrderItems.find(i=>i.id===itemId); if(it) it.fulfillment_status=newStatus; showToast('Status updated'); }
+    catch(e){ showToast('Could not update status'); }
+  };
+
+  // ---------- PROFILE ----------
+  document.getElementById('saveProfileBtn').addEventListener('click', async function(){
+    const business = document.getElementById('profBusiness').value.trim();
+    const phone = document.getElementById('profPhone').value.trim();
+    if(!business || !phone){ showToast('Business name and phone are required'); return; }
+    try {
+      await db.from('sellers').update({ business_name: business, contact_phone: phone }).eq('id', currentUser.id);
+      showToast('Profile updated');
+    } catch(e){ showToast('Could not save profile'); }
+  });
+
+  // ---------- NAV ----------
+  document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', function(){
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById(this.dataset.panel).classList.add('active');
+  }));
+
+  document.getElementById('logoutBtn').addEventListener('click', async function(){
+    await db.auth.signOut();
+    window.location.href = 'seller-auth.html';
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
