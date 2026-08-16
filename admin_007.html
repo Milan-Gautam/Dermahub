@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DERMAKRAFT | Admin Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:#f5f0eb; min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .login-container { display:flex; justify-content:center; align-items:center; min-height:100vh; background:linear-gradient(135deg,#fefaf5 0%,#f3ede7 100%); padding:20px; }
+  .login-card { background:white; border-radius:28px; padding:40px 30px; max-width:400px; width:100%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.08); border:1px solid var(--border-light); }
+  .login-card .lock-icon { font-size:2.6rem; margin-bottom:14px; color:var(--warm-brown); }
+  .login-card h1 { font-family:'Playfair Display',serif; color:var(--warm-brown); font-size:1.8rem; margin-bottom:4px; }
+  .login-card .subtitle { color:var(--stone); font-size:0.82rem; margin-bottom:26px; }
+  .field { margin-bottom:14px; text-align:left; }
+  .field label { display:block; font-size:0.68rem; font-weight:600; color:var(--charcoal); text-transform:uppercase; margin-bottom:5px; }
+  .field input { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:10px; font-size:0.88rem; font-family:inherit; }
+  .field input:focus { outline:none; border-color:var(--olive); }
+  .login-btn { width:100%; padding:13px; background:var(--deep-olive); color:white; border:none; border-radius:10px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; min-height:46px; margin-top:6px; }
+  .login-btn:hover { background:var(--warm-brown); }
+  .login-btn:disabled { background:#cbbcac; cursor:not-allowed; }
+  .msg { font-size:0.78rem; margin-top:14px; padding:10px 14px; border-radius:10px; display:none; line-height:1.5; }
+  .msg.error { background:#fdecea; color:#c0392b; display:block; }
+
+  .loading-screen { display:none; align-items:center; justify-content:center; min-height:100vh; flex-direction:column; gap:12px; color:var(--stone); }
+  .loading-screen.show { display:flex; }
+  .loading-screen i { font-size:1.6rem; color:var(--olive); }
+
+  .dashboard-container { max-width:1400px; margin:0 auto; padding:24px; display:none; }
+  @media (max-width:768px) { .dashboard-container { padding:16px; } }
+  .admin-header { background:white; border-radius:24px; padding:20px 28px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+  @media (max-width:576px) { .admin-header { padding:16px 20px; flex-direction:column; text-align:center; } }
+  .logo h1 { font-family:'Playfair Display',serif; color:var(--warm-brown); font-size:1.5rem; }
+  .logo p { font-size:0.68rem; color:var(--stone); }
+  .header-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn-ghost { background:none; border:1px solid var(--border-light); padding:8px 18px; border-radius:40px; cursor:pointer; color:var(--stone); font-family:inherit; font-size:0.8rem; }
+  .btn-ghost:hover { border-color:var(--warm-brown); color:var(--warm-brown); }
+
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:24px; }
+  @media (max-width:576px) { .stats-grid { grid-template-columns:1fr 1fr; gap:10px; } }
+  .stat-card { background:white; border-radius:18px; padding:18px 12px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .stat-card i { font-size:1.3rem; color:var(--olive); margin-bottom:6px; }
+  .stat-card h3 { font-size:0.6rem; text-transform:uppercase; color:var(--stone); letter-spacing:0.5px; margin-bottom:2px; }
+  .stat-number { font-size:1.2rem; font-weight:700; color:var(--deep-olive); }
+
+  .nav-tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
+  .nav-tab { background:none; border:none; padding:9px 18px; border-radius:40px; cursor:pointer; font-weight:600; color:var(--stone); font-family:inherit; font-size:0.85rem; }
+  .nav-tab.active { background:var(--olive); color:white; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .card-box { background:white; border-radius:20px; padding:22px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .section-heading { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--deep-olive); margin-bottom:16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:0.8rem; min-width:900px; }
+  th { text-align:left; padding:12px 10px; background:var(--sand); font-weight:600; color:var(--deep-olive); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.4px; }
+  td { padding:11px 10px; border-bottom:1px solid var(--border-light); vertical-align:top; }
+  .empty-state { text-align:center; padding:44px; color:var(--stone); font-size:0.85rem; }
+
+  .badge-order { background:var(--olive); color:white; padding:4px 10px; border-radius:20px; font-size:0.63rem; display:inline-block; }
+  .badge-location { padding:3px 8px; border-radius:12px; font-size:0.6rem; font-weight:600; }
+  .badge-location.inside { background:#e8f5e9; color:var(--deep-olive); }
+  .badge-location.outside { background:#fff3e0; color:#e67e22; }
+  .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
+  .badge-status.ordered, .badge-status.pending { background:#e8e0f7; color:#5b3a8c; }
+  .badge-status.paid, .badge-status.approved { background:#cce5ff; color:#004085; }
+  .badge-status.processing { background:#fff3cd; color:#856404; }
+  .badge-status.shipped { background:#b8daff; color:#004085; }
+  .badge-status.delivered { background:#d4edda; color:#155724; }
+  .badge-status.suspended { background:#fdecea; color:#c0392b; }
+
+  .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.7rem; cursor:pointer; font-family:inherit; background:white; }
+  .delete-btn { background:none; border:none; color:#c27c6e; cursor:pointer; font-size:0.9rem; padding:6px; border-radius:8px; }
+  .delete-btn:hover { background:#fee2dd; }
+  .btn-tiny { padding:7px 12px; border-radius:8px; border:none; cursor:pointer; font-family:inherit; font-size:0.7rem; font-weight:600; background:var(--deep-olive); color:white; }
+  .btn-tiny.warn { background:#c27c6e; }
+  .btn-tiny.ok { background:var(--olive); }
+
+  .form-row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+  .form-field { flex:1; min-width:150px; }
+  .form-field label { display:block; font-size:0.68rem; font-weight:600; margin-bottom:4px; color:var(--stone); text-transform:uppercase; }
+  .form-field input, .form-field select { width:100%; padding:10px 12px; border:1px solid var(--border-light); border-radius:8px; font-family:inherit; font-size:0.85rem; }
+  .variant-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .variant-row input { flex:1; min-width:100px; padding:10px; border:1px solid var(--border-light); border-radius:8px; font-size:0.85rem; font-family:inherit; }
+  .btn-remove-sm { background:#c27c6e; color:white; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; min-width:36px; }
+  .btn-add-variant { background:var(--olive); color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:0.75rem; margin-top:4px; }
+  .btn-primary-sm { background:var(--deep-olive); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:0.85rem; font-weight:600; width:100%; margin-top:6px; min-height:44px; }
+
+  .product-item-row { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--cream); border-radius:14px; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
+  .prod-info { flex:1; min-width:220px; }
+  .prod-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .discount-input, .restock-input { width:55px; padding:6px 8px; border:1px solid #ddd; border-radius:6px; font-size:0.72rem; text-align:center; }
+
+  .seller-row { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:var(--cream); border-radius:14px; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
+  .seller-info { flex:1; min-width:220px; }
+  .seller-code-tag { background:var(--sand); color:var(--deep-olive); padding:3px 10px; border-radius:20px; font-size:0.65rem; font-weight:700; margin-right:6px; }
+
+  .cashflow-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+  .cashflow-card { background:var(--deep-olive); color:white; border-radius:20px; padding:22px; }
+  .cashflow-card.alt { background:var(--warm-brown); }
+  .cashflow-card.neutral { background:white; color:var(--charcoal); border:1px solid var(--border-light); }
+  .cashflow-card h4 { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.4px; opacity:0.85; margin-bottom:8px; }
+  .cashflow-card .amount { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:600; }
+  .cashflow-note { font-size:0.72rem; color:var(--stone); margin-top:16px; line-height:1.6; background:var(--sand); padding:12px 16px; border-radius:12px; }
+
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--deep-olive); color:white; padding:12px 24px; border-radius:40px; z-index:1000; display:none; font-size:0.85rem; }
+  .popup-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(44,43,40,0.45); z-index:5000; align-items:center; justify-content:center; padding:20px; }
+  .popup-overlay.open { display:flex; }
+  .popup-card { background:white; border-radius:22px; max-width:360px; width:100%; padding:26px 24px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.15); }
+  .popup-icon { font-size:2.3rem; margin-bottom:10px; }
+  .popup-icon.info { color:var(--olive); }
+  .popup-icon.warn { color:#c27c6e; }
+  .popup-title { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--deep-olive); margin-bottom:8px; font-weight:600; }
+  .popup-message { font-size:0.85rem; color:var(--stone); line-height:1.6; margin-bottom:20px; }
+  .popup-actions { display:flex; gap:10px; }
+  .popup-btn { flex:1; padding:11px; border-radius:40px; border:none; font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; min-height:42px; }
+  .popup-btn-confirm { background:#c0392b; color:white; }
+  .popup-btn-confirm.neutral { background:var(--deep-olive); }
+  .popup-btn-cancel { background:var(--sand); color:var(--deep-olive); }
+
+  @media (max-width:576px) {
+    .toast { bottom:10px; right:10px; left:10px; text-align:center; }
+    .product-item-row, .seller-row { flex-direction:column; align-items:flex-start; }
+    .prod-actions { width:100%; justify-content:flex-end; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="loginPage" class="login-container">
+    <div class="login-card">
+      <div class="lock-icon"><i class="fas fa-shield-halved"></i></div>
+      <h1>DERMAKRAFT</h1>
+      <p class="subtitle">Platform Admin Login</p>
+      <div class="field"><label>Email</label><input type="email" id="adminEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••••"></div>
+      <button class="login-btn" id="loginBtn">Log In to Dashboard</button>
+      <div class="msg" id="loginError"></div>
+    </div>
+  </div>
+
+  <div class="loading-screen" id="loadingScreen"><i class="fas fa-spinner fa-spin"></i><span>Loading platform data...</span></div>
+
+  <div class="dashboard-container" id="dashboard">
+    <div class="admin-header">
+      <div class="logo"><h1>DERMAKRAFT</h1><p>platform admin</p></div>
+      <div class="header-actions">
+        <a href="index.html" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
+        <button class="btn-ghost" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <button class="btn-ghost" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3>Total Orders</h3><div class="stat-number" id="statOrders">0</div></div>
+      <div class="stat-card"><i class="fas fa-users"></i><h3>Total Sellers</h3><div class="stat-number" id="statSellers">0</div></div>
+      <div class="stat-card"><i class="fas fa-boxes"></i><h3>Total Products</h3><div class="stat-number" id="statProducts">0</div></div>
+      <div class="stat-card"><i class="fas fa-coins"></i><h3>Gross Revenue</h3><div class="stat-number" id="statGross">NPR 0</div></div>
+      <div class="stat-card"><i class="fas fa-wallet"></i><h3>Platform Commission</h3><div class="stat-number" id="statCommission">NPR 0</div></div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-panel="ordersPanel"><i class="fas fa-clipboard-list"></i> Orders</button>
+      <button class="nav-tab" data-panel="sellersPanel"><i class="fas fa-store"></i> Sellers</button>
+      <button class="nav-tab" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
+      <button class="nav-tab" data-panel="cashflowPanel"><i class="fas fa-chart-line"></i> Cash Flow</button>
+      <button class="nav-tab" data-panel="vouchersPanel"><i class="fas fa-ticket-alt"></i> Vouchers</button>
+    </div>
+
+    <!-- ORDERS (RECEIVERS) -->
+    <div class="panel active" id="ordersPanel">
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-clipboard-list"></i> Customer Orders</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Order ID</th><th>Receiver</th><th>Contact</th><th>Location</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="ordersTableBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- SELLERS -->
+    <div class="panel" id="sellersPanel">
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-store"></i> Registered Sellers</div>
+        <div id="sellersListContainer"></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="panel" id="productsPanel">
+      <div class="card-box" style="margin-bottom:18px;">
+        <div class="section-heading"><i class="fas fa-plus-circle"></i> List an Official DERMAKRAFT Product</div>
+        <p style="font-size:0.78rem;color:var(--stone);margin-bottom:16px;">Use this when your own DERMAKRAFT-brand items are ready to launch. Seller-listed products are added by sellers themselves from their dashboard.</p>
+        <div class="form-row">
+          <div class="form-field"><label>Product Name</label><input type="text" id="prodName" placeholder="e.g. Gentle Soap"></div>
+          <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="facewash">Face Wash</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
+          <div class="form-field"><label>Image URLs (comma)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:0.68rem;font-weight:600;margin-bottom:8px;color:var(--stone);text-transform:uppercase;">Variants (Size & Price in NPR)</label>
+          <div id="variantsContainer">
+            <div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button></div>
+          </div>
+          <button type="button" class="btn-add-variant" onclick="addVariant()"><i class="fas fa-plus"></i> Add Variant</button>
+        </div>
+        <div class="form-row"><div class="form-field" style="max-width:180px;"><label>Initial Stock</label><input type="number" id="prodStock" placeholder="10" min="0" value="10"></div></div>
+        <button class="btn-primary-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add Official Product</button>
+      </div>
+
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-boxes"></i> All Listings <small style="font-weight:400;color:var(--stone);font-size:0.7rem;">(sellers + official)</small></div>
+        <div id="productListContainer"></div>
+      </div>
+    </div>
+
+    <!-- CASH FLOW -->
+    <div class="panel" id="cashflowPanel">
+      <div class="cashflow-grid">
+        <div class="cashflow-card"><h4>Gross Sales (All Sellers)</h4><div class="amount" id="cfGross">NPR 0</div></div>
+        <div class="cashflow-card alt"><h4>Platform Commission (5%)</h4><div class="amount" id="cfCommission">NPR 0</div></div>
+        <div class="cashflow-card neutral"><h4>Owed to Sellers (95%)</h4><div class="amount" id="cfSellerEarnings">NPR 0</div></div>
+      </div>
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-users"></i> Earnings by Seller</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Seller</th><th>Items Sold</th><th>Gross Sales</th><th>Commission (5%)</th><th>Seller Earns</th></tr></thead>
+          <tbody id="sellerEarningsTableBody"></tbody>
+        </table></div>
+        <div class="cashflow-note"><i class="fas fa-info-circle"></i> "Owed to Sellers" reflects what each seller has earned from confirmed order lines — it does not track whether you've actually paid them out yet. Treat this as your reconciliation reference, not a live payout ledger.</div>
+      </div>
+    </div>
+
+    <!-- VOUCHERS -->
+    <div class="panel" id="vouchersPanel">
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-ticket-alt"></i> Manage Vouchers</div>
+        <div class="form-row">
+          <div class="form-field"><label>Code</label><input type="text" id="voucherCode" placeholder="e.g. SALE10"></div>
+          <div class="form-field"><label>Discount %</label><input type="number" id="voucherDiscount" placeholder="10"></div>
+          <div class="form-field"><label>Max Uses (0=unlimited)</label><input type="number" id="voucherMaxUses" placeholder="100"></div>
+          <div class="form-field"><button class="btn-primary-sm" id="addVoucherBtn" style="margin-top:0;"><i class="fas fa-plus"></i> Add Voucher</button></div>
+        </div>
+        <div id="voucherListContainer" style="margin-top:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-card">
+      <div class="popup-icon" id="popupIcon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="popup-title" id="popupTitle">Are you sure?</div>
+      <div class="popup-message" id="popupMessage"></div>
+      <div class="popup-actions" id="popupActions">
+        <button class="popup-btn popup-btn-cancel" id="popupCancelBtn">Cancel</button>
+        <button class="popup-btn popup-btn-confirm" id="popupConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastMsg" class="toast"></div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [];
+
+  function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+  function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
+
+  function showConfirmPopup(title, message, confirmLabel){
+    return new Promise((resolve) => {
+      const overlay=document.getElementById('popupOverlay');
+      document.getElementById('popupIcon').innerHTML='<i class="fas fa-exclamation-triangle"></i>';
+      document.getElementById('popupIcon').className='popup-icon warn';
+      document.getElementById('popupTitle').textContent=title;
+      document.getElementById('popupMessage').textContent=message;
+      const cancelBtn=document.getElementById('popupCancelBtn'), confirmBtn=document.getElementById('popupConfirmBtn');
+      cancelBtn.style.display='inline-block'; confirmBtn.textContent=confirmLabel||'Delete'; confirmBtn.className='popup-btn popup-btn-confirm';
+      overlay.classList.add('open');
+      function cleanup(r){ overlay.classList.remove('open'); cancelBtn.removeEventListener('click',onCancel); confirmBtn.removeEventListener('click',onConfirm); overlay.removeEventListener('click',onOverlay); resolve(r); }
+      function onCancel(){ cleanup(false); } function onConfirm(){ cleanup(true); } function onOverlay(e){ if(e.target===overlay) cleanup(false); }
+      cancelBtn.addEventListener('click',onCancel); confirmBtn.addEventListener('click',onConfirm); overlay.addEventListener('click',onOverlay);
+    });
+  }
+  function showAlertPopup(title, message){
+    return new Promise((resolve) => {
+      const overlay=document.getElementById('popupOverlay');
+      document.getElementById('popupIcon').innerHTML='<i class="fas fa-info-circle"></i>';
+      document.getElementById('popupIcon').className='popup-icon info';
+      document.getElementById('popupTitle').textContent=title;
+      document.getElementById('popupMessage').textContent=message;
+      const cancelBtn=document.getElementById('popupCancelBtn'), confirmBtn=document.getElementById('popupConfirmBtn');
+      cancelBtn.style.display='none'; confirmBtn.textContent='OK'; confirmBtn.className='popup-btn popup-btn-confirm neutral';
+      overlay.classList.add('open');
+      function cleanup(){ overlay.classList.remove('open'); confirmBtn.removeEventListener('click',onConfirm); overlay.removeEventListener('click',onOverlay); cancelBtn.style.display='inline-block'; resolve(); }
+      function onConfirm(){ cleanup(); } function onOverlay(e){ if(e.target===overlay) cleanup(); }
+      confirmBtn.addEventListener('click',onConfirm); overlay.addEventListener('click',onOverlay);
+    });
+  }
+
+  // ---------------- AUTH ----------------
+  document.getElementById('loginBtn').addEventListener('click', async function(){
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    if(!email || !password){ errEl.textContent='Enter your email and password.'; errEl.style.display='block'; return; }
+    const btn=this; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Logging in...';
+    try {
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      const { data: adminRow } = await db.from('admins').select('id').eq('id', data.user.id).single();
+      if(!adminRow){
+        await db.auth.signOut();
+        errEl.textContent = 'This account is not authorized as a platform admin.';
+        errEl.style.display = 'block';
+        btn.disabled=false; btn.innerHTML='Log In to Dashboard';
+        return;
+      }
+      enterDashboard();
+    } catch(e){
+      errEl.textContent = e.message || 'Login failed.';
+      errEl.style.display = 'block';
+      btn.disabled=false; btn.innerHTML='Log In to Dashboard';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async function(){
+    await db.auth.signOut();
+    document.getElementById('dashboard').style.display='none';
+    document.getElementById('loginPage').style.display='flex';
+  });
+
+  async function enterDashboard(){
+    document.getElementById('loginPage').style.display='none';
+    document.getElementById('loadingScreen').classList.add('show');
+    await refreshAll();
+    document.getElementById('loadingScreen').classList.remove('show');
+    document.getElementById('dashboard').style.display='block';
+  }
+
+  // ---------------- DATA LOADING ----------------
+  async function loadOrders(){
+    try { const { data, error } = await db.from('orders').select('*').order('date',{ascending:false}); if(error) throw error; orders = data || []; } catch(e){ console.error(e); orders = []; }
+    orders.forEach(o => { if(!o.status) o.status='ordered'; });
+  }
+  async function loadSellers(){
+    try { const { data, error } = await db.from('sellers').select('*').order('created_at',{ascending:false}); if(error) throw error; sellers = data || []; } catch(e){ console.error(e); sellers = []; }
+  }
+  async function loadProducts(){
+    try { const { data, error } = await db.from('products').select('*'); if(error) throw error; products = (data||[]).map(p => { if(typeof p.variants==='string') p.variants=JSON.parse(p.variants); if(typeof p.images==='string') p.images=JSON.parse(p.images); return p; }); } catch(e){ console.error(e); products = []; }
+  }
+  async function loadOrderItems(){
+    try { const { data, error } = await db.from('order_items').select('*'); if(error) throw error; orderItems = data || []; } catch(e){ console.error(e); orderItems = []; }
+  }
+  async function loadVouchers(){
+    try { const { data, error } = await db.from('vouchers').select('*'); if(error) throw error; vouchers = data || []; } catch(e){ console.error(e); vouchers = []; }
+  }
+
+  async function refreshAll(){
+    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers()]);
+    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers();
+    updateTopStats();
+  }
+
+  function updateTopStats(){
+    document.getElementById('statOrders').textContent = orders.length;
+    document.getElementById('statSellers').textContent = sellers.length;
+    document.getElementById('statProducts').textContent = products.length;
+    const gross = orderItems.reduce((s,i)=>s+parseFloat(i.line_total||0),0);
+    const commission = orderItems.reduce((s,i)=>s+parseFloat(i.commission_amount||0),0);
+    document.getElementById('statGross').textContent = 'NPR ' + gross.toLocaleString();
+    document.getElementById('statCommission').textContent = 'NPR ' + commission.toLocaleString();
+  }
+
+  // ---------------- ORDERS (RECEIVERS) ----------------
+  function renderOrders(){
+    const tbody = document.getElementById('ordersTableBody');
+    if(!orders.length){ tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No orders yet</td></tr>'; return; }
+    let html = '';
+    orders.forEach(o => {
+      const t = parseFloat(o.total)||0, status = o.status || 'ordered';
+      html += `<tr>
+        <td><span class="badge-order">#${(o.orderId||'').slice(-8)}</span></td>
+        <td><strong>${esc(o.customerName)}</strong></td>
+        <td>${esc(o.email)}<br><small>${esc(o.phone)}</small></td>
+        <td><span class="badge-location ${(o.location||'').includes('Inside')?'inside':'outside'}">${esc(o.location)}</span></td>
+        <td>${esc(o.items)}</td>
+        <td><strong>NPR ${t.toLocaleString()}</strong></td>
+        <td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td><select class="status-select" onchange="window._updateOrderStatus('${o.orderId}', this.value)">
+          <option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option>
+          <option value="paid" ${status==='paid'?'selected':''}>Paid</option>
+          <option value="processing" ${status==='processing'?'selected':''}>Processing</option>
+          <option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option>
+          <option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option>
+        </select> <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+  window._updateOrderStatus = async function(orderId, newStatus){
+    try { await db.from('orders').update({status:newStatus}).eq('orderId',orderId); const o=orders.find(x=>x.orderId===orderId); if(o) o.status=newStatus; renderOrders(); showToast('Status updated'); }
+    catch(e){ showToast('Could not update status'); }
+  };
+  window._delOrder = async function(id){
+    const ok = await showConfirmPopup('Delete Order?','This will permanently remove this order. This action cannot be undone.');
+    if(!ok) return;
+    try { await db.from('orders').delete().eq('orderId',id); orders = orders.filter(o=>o.orderId!==id); renderOrders(); updateTopStats(); showToast('Order deleted'); }
+    catch(e){ showToast('Could not delete order'); }
+  };
+
+  // ---------------- SELLERS ----------------
+  function renderSellers(){
+    const c = document.getElementById('sellersListContainer');
+    if(!sellers.length){ c.innerHTML = '<div class="empty-state">No sellers have signed up yet.</div>'; return; }
+    let html = '';
+    sellers.forEach(s => {
+      const prodCount = products.filter(p=>p.seller_id===s.id).length;
+      const status = s.status || 'pending';
+      html += `<div class="seller-row">
+        <div class="seller-info">
+          <span class="seller-code-tag">${esc(s.seller_code)}</span><strong>${esc(s.business_name)}</strong>
+          <span class="badge-status ${status}">${status}</span><br>
+          <small style="color:var(--stone);">${esc(s.contact_email)} • ${esc(s.contact_phone)} • ${prodCount} product${prodCount===1?'':'s'} • ${s.commission_rate??5}% commission</small>
+        </div>
+        <div class="prod-actions">
+          ${status!=='approved'?`<button class="btn-tiny ok" onclick="window._setSellerStatus('${s.id}','approved')">Approve</button>`:''}
+          ${status!=='suspended'?`<button class="btn-tiny warn" onclick="window._setSellerStatus('${s.id}','suspended')">Suspend</button>`:`<button class="btn-tiny ok" onclick="window._setSellerStatus('${s.id}','approved')">Reactivate</button>`}
+        </div></div>`;
+    });
+    c.innerHTML = html;
+  }
+  window._setSellerStatus = async function(id, status){
+    try { await db.from('sellers').update({status}).eq('id',id); const s=sellers.find(x=>x.id===id); if(s) s.status=status; renderSellers(); showToast(`Seller ${status}`); }
+    catch(e){ showToast('Could not update seller status'); }
+  };
+
+  // ---------------- PRODUCTS ----------------
+  window.addVariant = function(){ const c=document.getElementById('variantsContainer'); const row=document.createElement('div'); row.className='variant-row'; row.innerHTML=`<input type="text" class="variant-size" placeholder="Size (e.g. 200g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button>`; c.appendChild(row); };
+  window.removeVariant = function(btn){ const rows=document.querySelectorAll('#variantsContainer .variant-row'); if(rows.length>1) btn.closest('.variant-row').remove(); else showToast('Need at least one variant'); };
+
+  document.getElementById('addProductBtn').addEventListener('click', async function(){
+    const name=document.getElementById('prodName').value.trim(), cat=document.getElementById('prodCat').value, desc=document.getElementById('prodDesc').value.trim();
+    const imgs=document.getElementById('prodImages').value.split(',').map(s=>s.trim()).filter(s=>s);
+    const stock=parseInt(document.getElementById('prodStock').value)||0;
+    if(!name){ showToast('Enter a product name'); return; }
+    const variants=[];
+    document.querySelectorAll('#variantsContainer .variant-row').forEach(row=>{ const size=row.querySelector('.variant-size').value.trim(), price=parseFloat(row.querySelector('.variant-price').value); if(size && price>0) variants.push({size,price}); });
+    if(!variants.length){ showToast('Add at least one variant'); return; }
+    const btn=this; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Adding...';
+    const newProduct = { id: Date.now(), name, seller_id: null, category:cat, description: desc||'Official DERMAKRAFT product', images: imgs.length?imgs:['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock, listing_status:'active' };
+    try {
+      await db.from('products').upsert([{ id:newProduct.id, name:newProduct.name, seller_id:null, category:newProduct.category, description:newProduct.description, images:JSON.stringify(newProduct.images), variants:JSON.stringify(newProduct.variants), discount:0, stock, listing_status:'active' }]);
+      products.unshift(newProduct);
+      renderProducts(); updateTopStats();
+      document.getElementById('prodName').value=''; document.getElementById('prodDesc').value=''; document.getElementById('prodImages').value=''; document.getElementById('prodStock').value='10';
+      document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button></div>`;
+      showToast('Official product added!');
+    } catch(e){ console.error(e); showToast('Could not add product'); }
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-plus"></i> Add Official Product';
+  });
+
+  function sellerLabelFor(sellerId){
+    if(!sellerId) return 'DERMAKRAFT (Official)';
+    const s = sellers.find(x=>x.id===sellerId);
+    return s ? s.business_name : 'Unknown Seller';
+  }
+
+  function renderProducts(){
+    const c = document.getElementById('productListContainer');
+    if(!products.length){ c.innerHTML = '<div class="empty-state">No products listed yet.</div>'; return; }
+    let html = '';
+    products.forEach(p => {
+      const stock = p.stock||0, discount = p.discount||0, listed = (p.listing_status||'active')==='active';
+      html += `<div class="product-item-row">
+        <div class="prod-info">
+          <strong>${esc(p.name)}</strong> <small>[${p.category}]</small><br>
+          <small style="color:var(--warm-brown);">${esc(sellerLabelFor(p.seller_id))}</small> • <small>Stock: ${stock} ${discount>0?`• ${discount}% off`:''} ${listed?'':'• Hidden'}</small>
+        </div>
+        <div class="prod-actions">
+          <button class="btn-tiny ${listed?'warn':'ok'}" onclick="window._toggleListing(${p.id})">${listed?'Hide':'Unhide'}</button>
+          <input type="number" class="restock-input" id="restock-${p.id}" placeholder="Qty" min="1" value="1">
+          <button class="btn-tiny" onclick="window._restock(${p.id}, parseInt(document.getElementById('restock-${p.id}').value)||0)">+ Restock</button>
+          <input type="number" class="discount-input" id="discount-${p.id}" value="${discount}" placeholder="%" min="0" max="99">
+          <button class="btn-tiny" onclick="window._setDiscount(${p.id}, document.getElementById('discount-${p.id}').value)">Apply</button>
+          <button class="delete-btn" onclick="window._delProd(${p.id})"><i class="fas fa-trash"></i></button>
+        </div></div>`;
+    });
+    c.innerHTML = html;
+  }
+
+  async function persistProduct(p){
+    const payload = { id:p.id, name:p.name, seller_id:p.seller_id||null, category:p.category, description:p.description, images:JSON.stringify(p.images), variants:JSON.stringify(p.variants), discount:p.discount||0, stock:p.stock||0, listing_status:p.listing_status||'active' };
+    await db.from('products').upsert([payload]);
+  }
+  window._toggleListing = async function(id){
+    const p = products.find(x=>x.id===id); if(!p) return;
+    p.listing_status = (p.listing_status||'active')==='active' ? 'hidden' : 'active';
+    try { await persistProduct(p); renderProducts(); showToast(p.listing_status==='active'?'Listing unhidden':'Listing hidden'); }
+    catch(e){ showToast('Could not update listing'); }
+  };
+  window._restock = async function(id, amount){
+    const p = products.find(x=>x.id===id); if(!p || !amount) return;
+    p.stock = Math.max(0, (p.stock||0) + amount);
+    try { await persistProduct(p); renderProducts(); showToast(`Stock updated to ${p.stock}`); }
+    catch(e){ showToast('Could not update stock'); }
+  };
+  window._setDiscount = async function(id, val){
+    const d = Math.max(0, Math.min(99, parseInt(val)||0));
+    const p = products.find(x=>x.id===id); if(!p) return;
+    p.discount = d;
+    try { await persistProduct(p); renderProducts(); showToast(`Discount set to ${d}%`); }
+    catch(e){ showToast('Could not update discount'); }
+  };
+  window._delProd = async function(id){
+    const ok = await showConfirmPopup('Delete Product?','This removes the listing entirely. This action cannot be undone.');
+    if(!ok) return;
+    try { await db.from('products').delete().eq('id',id); products = products.filter(p=>p.id!==id); renderProducts(); updateTopStats(); showToast('Product deleted'); }
+    catch(e){ showToast('Could not delete product'); }
+  };
+
+  // ---------------- CASH FLOW ----------------
+  function renderCashflow(){
+    const gross = orderItems.reduce((s,i)=>s+parseFloat(i.line_total||0),0);
+    const commission = orderItems.reduce((s,i)=>s+parseFloat(i.commission_amount||0),0);
+    const sellerEarnings = orderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
+    document.getElementById('cfGross').textContent = 'NPR ' + gross.toLocaleString();
+    document.getElementById('cfCommission').textContent = 'NPR ' + commission.toLocaleString();
+    document.getElementById('cfSellerEarnings').textContent = 'NPR ' + sellerEarnings.toLocaleString();
+
+    const bySeller = {};
+    orderItems.forEach(item => {
+      const key = item.seller_id || 'official';
+      if(!bySeller[key]) bySeller[key] = { items:0, gross:0, commission:0, earning:0 };
+      bySeller[key].items += item.quantity || 0;
+      bySeller[key].gross += parseFloat(item.line_total||0);
+      bySeller[key].commission += parseFloat(item.commission_amount||0);
+      bySeller[key].earning += parseFloat(item.seller_earning||0);
+    });
+    const tbody = document.getElementById('sellerEarningsTableBody');
+    const keys = Object.keys(bySeller);
+    if(!keys.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No sales recorded yet</td></tr>'; return; }
+    let html = '';
+    keys.forEach(key => {
+      const row = bySeller[key];
+      const label = key==='official' ? 'DERMAKRAFT (Official)' : sellerLabelFor(key);
+      html += `<tr><td><strong>${esc(label)}</strong></td><td>${row.items}</td><td>NPR ${row.gross.toLocaleString()}</td><td>NPR ${row.commission.toLocaleString()}</td><td><strong>NPR ${row.earning.toLocaleString()}</strong></td></tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  // ---------------- VOUCHERS ----------------
+  function renderVouchers(){
+    const c = document.getElementById('voucherListContainer');
+    if(!vouchers.length){ c.innerHTML = '<div class="empty-state">No vouchers yet.</div>'; return; }
+    let html = '';
+    vouchers.forEach(v => {
+      html += `<div class="seller-row"><div class="seller-info"><strong>${esc(v.code)}</strong> - ${v.discount}% off | Used: ${v.usedCount||0}/${v.maxUses>0?v.maxUses:'∞'} | ${v.active?'Active':'Inactive'}</div><div class="prod-actions"><button class="delete-btn" onclick="window._delVoucher('${v.code}')"><i class="fas fa-trash"></i></button></div></div>`;
+    });
+    c.innerHTML = html;
+  }
+  window._delVoucher = async function(code){
+    const ok = await showConfirmPopup('Delete Voucher?','This will deactivate and remove this voucher code.');
+    if(!ok) return;
+    try { await db.from('vouchers').delete().eq('code',code); vouchers = vouchers.filter(v=>v.code!==code); renderVouchers(); showToast('Voucher deleted'); }
+    catch(e){ showToast('Could not delete voucher'); }
+  };
+  document.getElementById('addVoucherBtn').addEventListener('click', async function(){
+    const code = document.getElementById('voucherCode').value.trim().toUpperCase();
+    const discount = parseInt(document.getElementById('voucherDiscount').value);
+    const maxUses = parseInt(document.getElementById('voucherMaxUses').value)||0;
+    if(!code || !discount || discount<1 || discount>99){ showToast('Enter a valid code and discount (1-99)'); return; }
+    try {
+      await db.from('vouchers').insert([{code,discount,maxUses,usedCount:0,active:true}]);
+      vouchers.push({code,discount,maxUses,usedCount:0,active:true});
+      renderVouchers();
+      document.getElementById('voucherCode').value=''; document.getElementById('voucherDiscount').value=''; document.getElementById('voucherMaxUses').value='';
+      showToast(`Voucher ${code} added`);
+    } catch(e){ showToast('Code already exists or error occurred'); }
+  });
+
+  // ---------------- NAV ----------------
+  document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', function(){
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById(this.dataset.panel).classList.add('active');
+  }));
+
+  document.getElementById('refreshBtn').addEventListener('click', async function(){ showToast('Refreshing...'); await refreshAll(); showToast('Refreshed'); });
+
+  // ---------------- SESSION CHECK ON LOAD ----------------
+  (async function checkExistingSession(){
+    const { data:{ session } } = await db.auth.getSession();
+    if(session){
+      const { data: adminRow } = await db.from('admins').select('id').eq('id', session.user.id).single();
+      if(adminRow) { enterDashboard(); return; }
+      await db.auth.signOut();
+    }
+  })();
+})();
+</script>
+</body>
+</html>
