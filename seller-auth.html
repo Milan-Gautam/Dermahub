@@ -90,7 +90,8 @@
     if(password.length < 6){ showMsg('signupMsg','Password must be at least 6 characters.','error'); return; }
     const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
     try {
-      const { data, error } = await db.auth.signUp({ email, password });
+      const redirectUrl = window.location.origin + window.location.pathname;
+      const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
       if(error) throw error;
       if(!data.session){
         showMsg('signupMsg','Account created! Check your email to confirm, then log in.','success');
