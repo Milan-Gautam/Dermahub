@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-    <title>DERMAKRAFT | Genuine Skincare, Handpicked for You</title>
-    <meta name="description" content="DERMAKRAFT is a curated skincare store in Kathmandu, Nepal, bringing you genuine products from trusted brands.">
-    <meta name="keywords" content="skincare nepal, skin, glow, soap kathmandu, shampoo bar nepal, face wash nepal, authentic skincare nepal, sunscreen nepal, lip balm, moisturizer, dermakraft">
-    <meta name="author" content="DERMAKRAFT">
+    <title>DERMAHUB | Skin, Hair & Body Care — All in One Place</title>
+    <meta name="description" content="DERMAHUB is Nepal's marketplace for everything skin-related — skincare, haircare, body care, and bath essentials from trusted sellers, all in one place.">
+    <meta name="keywords" content="skincare nepal, haircare nepal, body care nepal, skin, glow, soap kathmandu, shampoo bar nepal, face wash nepal, sunscreen nepal, lip balm, moisturizer, body lotion nepal, dermahub">
+    <meta name="author" content="DERMAHUB">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="DERMAKRAFT | Genuine Skincare, Handpicked for You">
-    <meta property="og:description" content="A curated skincare store in Kathmandu, Nepal — genuine products from trusted brands, all in one place.">
+    <meta property="og:title" content="DERMAHUB | Skin, Hair & Body Care — All in One Place">
+    <meta property="og:description" content="Nepal's marketplace for everything skin-related — skincare, haircare, body care, and bath essentials from trusted sellers, all in one place.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://akraft.vercel.app">
     <link rel="canonical" href="https://akraft.vercel.app">
@@ -174,13 +174,13 @@
 
 <header>
     <div class="container header-inner">
-        <div class="logo" id="logoClick" title="DERMAKRAFT - Skincare Store Nepal"><h1>DERMAKRAFT</h1><p>curated skincare, kathmandu</p></div>
+        <div class="logo" id="logoClick" title="DERMAHUB - Skin, Hair & Body Care Nepal"><h1>DERMAHUB</h1><p>skin, hair &amp; body, kathmandu</p></div>
         <nav class="nav-links">
             <a id="navShop">Shop All</a>
             <a id="navStory">Our Story</a>
             <a id="navScience">Our Science</a>
             <a id="navContact">Contact</a>
-            <a href="seller-auth.html" style="color:var(--warm-brown);font-weight:700;">Sell on DERMAKRAFT</a>
+            <a href="seller-auth.html" style="color:var(--warm-brown);font-weight:700;">Sell on DERMAHUB</a>
         </nav>
         <div class="header-actions"><button class="cart-icon" id="cartBtn"><i class="fas fa-shopping-bag"></i> Cart <span class="cart-count" id="cartCount">0</span></button></div>
     </div>
@@ -212,7 +212,7 @@
 <div id="toastMsg" class="toast"></div>
 
 <main>
-    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-check-circle"></i> trusted brands, genuine products</div><h1>Genuine Skincare, Handpicked for You</h1><p>We source and curate skincare and bath essentials from trusted brands, so you can shop with confidence. Our own DERMAKRAFT formulas are in the works — launching soon.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
+    <section class="hero"><div class="container hero-grid"><div class="hero-text"><div class="badge"><i class="fas fa-check-circle"></i> trusted sellers, genuine products</div><h1>Everything Skin, Hair & Body — In One Place</h1><p>DERMAHUB brings together skincare, haircare, body care, and bath essentials from trusted sellers across Nepal, so you can shop with confidence. Our own DERMAHUB formulas are in the works — launching soon.</p><button class="btn-shop" onclick="document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'})">Explore Products <i class="fas fa-arrow-right" style="margin-left:6px;"></i></button></div><div class="hero-img" id="heroImage"></div></div></section>
 
     <div class="trust-strip"><div class="container trust-strip-inner">
         <div class="trust-item"><i class="fas fa-shield-alt"></i><span>100% Genuine<small>Sourced from authorized suppliers</small></span></div>
@@ -222,7 +222,7 @@
     </div></div>
 
     <section class="why-section"><div class="container">
-        <div class="section-title">Why Shop With DERMAKRAFT</div>
+        <div class="section-title">Why Shop With DERMAHUB</div>
         <p class="section-subtitle">A store built on trust, transparency, and genuine care for your skin</p>
         <div class="why-grid">
             <div class="why-card"><div class="why-icon"><i class="fas fa-certificate"></i></div><h3>Verified Authenticity</h3><p>Every product listed is checked for authenticity and sourced through legitimate channels before it reaches our shelves.</p></div>
@@ -231,7 +231,7 @@
         </div>
     </div></section>
 
-    <div class="container"><div class="section-title">Our Collection</div><p class="section-subtitle">Genuine products from trusted brands, curated for your daily skincare ritual</p>
+    <div class="container"><div class="section-title">Our Collection</div><p class="section-subtitle">Genuine skin, hair & body care from trusted sellers, curated for your daily routine</p>
         <div class="category-tabs" id="categoryTabs">
             <button class="cat-btn active" data-cat="new">New</button>
             <button class="cat-btn" data-cat="soap">Soap Bars</button>
@@ -241,16 +241,17 @@
             <button class="cat-btn" data-cat="lipbalm">Lip Balm</button>
             <button class="cat-btn" data-cat="sunscreen">Sunscreen</button>
             <button class="cat-btn" data-cat="moisturizer">Moisturizer</button>
+            <button class="cat-btn" data-cat="bodycare">Body Care</button>
         </div>
         <div class="product-grid" id="productGridContainer"></div>
     </div>
 </main>
 
 <footer><div class="container">
-    <div class="footer-brand"><h3>DERMAKRAFT</h3><p>A curated skincare marketplace based in Kathmandu, Nepal. Independent sellers list genuine products here, checked before they go live. Our own in-house DERMAKRAFT skincare line is launching soon.</p></div>
-    <div class="footer-grid"><div class="footer-col"><h4>DERMAKRAFT Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Quality Promise</a></li><li><a id="footerNepal">Based in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div><div class="footer-col"><h4>Sell With Us</h4><ul><li><a href="seller-auth.html">Become a Seller</a></li><li><a href="seller-auth.html">Seller Login</a></li></ul></div><div class="footer-col"><h4>Legal</h4><ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li></ul></div></div>
+    <div class="footer-brand"><h3>DERMAHUB</h3><p>Nepal's marketplace for everything skin-related — skincare, haircare, body care, and bath essentials from independent sellers, checked before they go live. Our own in-house DERMAHUB line is launching soon.</p></div>
+    <div class="footer-grid"><div class="footer-col"><h4>DERMAHUB Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Quality Promise</a></li><li><a id="footerNepal">Based in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a id="footerContact">Get in Touch</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div><div class="footer-col"><h4>Sell With Us</h4><ul><li><a href="seller-auth.html">Become a Seller</a></li><li><a href="seller-auth.html">Seller Login</a></li></ul></div><div class="footer-col"><h4>Legal</h4><ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li></ul></div></div>
     <div class="payment-strip"><span class="label">We accept</span><span class="pay-badge">eSewa</span><span class="pay-badge">Khalti</span></div>
-    <div class="copyright">2025 DERMAKRAFT | A Skincare Marketplace | Kathmandu, Nepal | 100% Authentic Products | <a href="privacy.html" style="color:var(--stone);">Privacy</a> · <a href="terms.html" style="color:var(--stone);">Terms</a></div>
+    <div class="copyright">2025 DERMAHUB | Skin, Hair & Body Care Marketplace | Kathmandu, Nepal | 100% Authentic Products | <a href="privacy.html" style="color:var(--stone);">Privacy</a> · <a href="terms.html" style="color:var(--stone);">Terms</a></div>
 </div></footer>
 
 <script>
@@ -260,7 +261,7 @@
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     emailjs.init("2X9gef2Tudenoiugp");
 
-    const STORAGE_PRODUCTS = "dermakraft_products_v3", STORAGE_CART = "dermakraft_cart";
+    const STORAGE_PRODUCTS = "dermahub_products_v3", STORAGE_CART = "dermahub_cart";
 
     let products = [], sellerMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), currentFilter = "new", selectedLocation = "inside", deliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
 
@@ -442,15 +443,15 @@
     document.querySelectorAll('.footerCatLink').forEach(l=>l.addEventListener('click',function(){currentFilter=this.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));document.querySelector(`.cat-btn[data-cat="${this.dataset.cat}"]`)?.classList.add('active');renderProducts();document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'});}));
 
     document.getElementById('navShop').addEventListener('click',()=>document.getElementById('productGridContainer').scrollIntoView({behavior:'smooth'}));
-    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAKRAFT started in Kathmandu as a curated skincare store, bringing together genuine products from trusted brands in one place. We're also developing our own in-house DERMAKRAFT skincare line — launching soon."));
+    document.getElementById('navStory').addEventListener('click',()=>showInfo("Our Story","DERMAHUB started in Kathmandu as a marketplace for everything skin-related — skincare, haircare, body care, and more — bringing together genuine products from trusted sellers in one place. We're also developing our own in-house DERMAHUB line — launching soon."));
     document.getElementById('navScience').addEventListener('click',()=>showInfo("Quality Promise","Every product we list is sourced directly from authorized suppliers or the brands themselves. We check packaging, batch details, and freshness before anything goes up for sale."));
-    document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAKRAFT","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
-    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","A curated skincare store based in Kathmandu, Nepal, bringing together genuine products from trusted brands. Our own DERMAKRAFT skincare line is launching soon."));
+    document.getElementById('navContact').addEventListener('click',()=>showInfo("Contact DERMAHUB","Email: hello@dermahub.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
+    document.getElementById('footerStory').addEventListener('click',()=>showInfo("Our Story","A marketplace for everything skin-related, based in Kathmandu, Nepal — skincare, haircare, body care, and bath essentials from trusted sellers. Our own DERMAHUB line is launching soon."));
     document.getElementById('footerScience').addEventListener('click',()=>showInfo("Quality Promise","Sourced from authorized suppliers. Checked for authenticity, batch details, and freshness before listing."));
-    document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Based in Nepal","Proudly operating out of Kathmandu Valley, delivering genuine skincare across Nepal."));
+    document.getElementById('footerNepal').addEventListener('click',()=>showInfo("Based in Nepal","Proudly operating out of Kathmandu Valley, delivering genuine skin, hair & body care across Nepal."));
     document.getElementById('footerShipping').addEventListener('click',()=>showInfo("Shipping","Inside Kathmandu: NPR 100 (3-5 days)\nOutside Valley: NPR 200 (5-7 days)\nFree shipping on orders above NPR 2000"));
     document.getElementById('footerReturns').addEventListener('click',()=>showInfo("Returns Policy","30-day satisfaction guarantee. Contact us for return or exchange support."));
-    document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermakraft.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
+    document.getElementById('footerContact').addEventListener('click',()=>showInfo("Get in Touch","Email: hello@dermahub.com\nPhone: +977 9812345678\nKathmandu, Nepal"));
 
     const heroImages = [
         "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800",
