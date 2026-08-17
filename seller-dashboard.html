@@ -229,12 +229,23 @@
     if(!session){ window.location.href = 'seller-auth.html'; return; }
     currentUser = session.user;
 
-    const { data: sellerRow, error: sellerErr } = await db.from('sellers').select('*').eq('id', currentUser.id).single();
+    let { data: sellerRow, error: sellerErr } = await db.from('sellers').select('*').eq('id', currentUser.id).single();
+
     if(sellerErr || !sellerRow){
-      await showAlertPopup('Setup Needed','We could not find a seller profile for this account. Please sign up again or contact support.');
-      await db.auth.signOut();
-      window.location.href = 'seller-auth.html';
-      return;
+      // First-time login after email confirmation: the seller profile wasn't
+      // created at signup, so rebuild it now from the account's stored metadata.
+      const meta = currentUser.user_metadata || {};
+      const { data: createdRow, error: createErr } = await db.from('sellers')
+        .insert([{ id: currentUser.id, business_name: meta.business_name || currentUser.email.split('@')[0], contact_email: currentUser.email, contact_phone: meta.contact_phone || '' }])
+        .select().single();
+      if(createErr || !createdRow){
+        await showAlertPopup('Setup Needed','We could not set up your seller profile automatically. Please contact support.');
+        await db.auth.signOut();
+        window.location.href = 'seller-auth.html';
+        return;
+      }
+      sellerRow = createdRow;
+      showToast('Welcome! Your seller profile has been set up.');
     }
     currentSeller = sellerRow;
     document.getElementById('sellerCodeBadge').textContent = currentSeller.seller_code;
