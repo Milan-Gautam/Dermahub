@@ -91,10 +91,10 @@
     const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
     try {
       const redirectUrl = window.location.origin + window.location.pathname;
-      const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
+      const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl, data: { business_name: business, contact_phone: phone } } });
       if(error) throw error;
       if(!data.session){
-        showMsg('signupMsg','Account created! Check your email to confirm, then log in.','success');
+        showMsg('signupMsg','Account created! Check your email to confirm, then log in — your shop details are saved and will finish setting up automatically.','success');
         btn.disabled = false; btn.innerHTML = 'Create Seller Account';
         return;
       }
