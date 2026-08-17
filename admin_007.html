@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>DERMAKRAFT | Admin Dashboard</title>
+<title>DERMAHUB | Admin Dashboard</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
@@ -136,7 +136,7 @@
   <div id="loginPage" class="login-container">
     <div class="login-card">
       <div class="lock-icon"><i class="fas fa-shield-halved"></i></div>
-      <h1>DERMAKRAFT</h1>
+      <h1>DERMAHUB</h1>
       <p class="subtitle">Platform Admin Login</p>
       <div class="field"><label>Email</label><input type="email" id="adminEmail" placeholder="you@example.com"></div>
       <div class="field"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••••"></div>
@@ -149,7 +149,7 @@
 
   <div class="dashboard-container" id="dashboard">
     <div class="admin-header">
-      <div class="logo"><h1>DERMAKRAFT</h1><p>platform admin</p></div>
+      <div class="logo"><h1>DERMAHUB</h1><p>platform admin</p></div>
       <div class="header-actions">
         <a href="index.html" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
         <button class="btn-ghost" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
@@ -196,11 +196,11 @@
     <!-- PRODUCTS -->
     <div class="panel" id="productsPanel">
       <div class="card-box" style="margin-bottom:18px;">
-        <div class="section-heading"><i class="fas fa-plus-circle"></i> List an Official DERMAKRAFT Product</div>
-        <p style="font-size:0.78rem;color:var(--stone);margin-bottom:16px;">Use this when your own DERMAKRAFT-brand items are ready to launch. Seller-listed products are added by sellers themselves from their dashboard.</p>
+        <div class="section-heading"><i class="fas fa-plus-circle"></i> List an Official DERMAHUB Product</div>
+        <p style="font-size:0.78rem;color:var(--stone);margin-bottom:16px;">Use this when your own DERMAHUB-brand items are ready to launch. Seller-listed products are added by sellers themselves from their dashboard.</p>
         <div class="form-row">
           <div class="form-field"><label>Product Name</label><input type="text" id="prodName" placeholder="e.g. Gentle Soap"></div>
-          <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="facewash">Face Wash</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option></select></div>
+          <div class="form-field"><label>Category</label><select id="prodCat"><option value="soap">Soap Bar</option><option value="handwash">Hand Wash</option><option value="shampoo">Hair Care</option><option value="facewash">Face Wash</option><option value="lipbalm">Lip Balm</option><option value="sunscreen">Sunscreen</option><option value="moisturizer">Moisturizer</option><option value="bodycare">Body Care</option></select></div>
         </div>
         <div class="form-row">
           <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
@@ -463,7 +463,7 @@
     document.querySelectorAll('#variantsContainer .variant-row').forEach(row=>{ const size=row.querySelector('.variant-size').value.trim(), price=parseFloat(row.querySelector('.variant-price').value); if(size && price>0) variants.push({size,price}); });
     if(!variants.length){ showToast('Add at least one variant'); return; }
     const btn=this; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Adding...';
-    const newProduct = { id: Date.now(), name, seller_id: null, category:cat, description: desc||'Official DERMAKRAFT product', images: imgs.length?imgs:['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock, listing_status:'active' };
+    const newProduct = { id: Date.now(), name, seller_id: null, category:cat, description: desc||'Official DERMAHUB product', images: imgs.length?imgs:['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock, listing_status:'active' };
     try {
       await db.from('products').upsert([{ id:newProduct.id, name:newProduct.name, seller_id:null, category:newProduct.category, description:newProduct.description, images:JSON.stringify(newProduct.images), variants:JSON.stringify(newProduct.variants), discount:0, stock, listing_status:'active' }]);
       products.unshift(newProduct);
@@ -476,7 +476,7 @@
   });
 
   function sellerLabelFor(sellerId){
-    if(!sellerId) return 'DERMAKRAFT (Official)';
+    if(!sellerId) return 'DERMAHUB (Official)';
     const s = sellers.find(x=>x.id===sellerId);
     return s ? s.business_name : 'Unknown Seller';
   }
@@ -558,7 +558,7 @@
     let html = '';
     keys.forEach(key => {
       const row = bySeller[key];
-      const label = key==='official' ? 'DERMAKRAFT (Official)' : sellerLabelFor(key);
+      const label = key==='official' ? 'DERMAHUB (Official)' : sellerLabelFor(key);
       html += `<tr><td><strong>${esc(label)}</strong></td><td>${row.items}</td><td>NPR ${row.gross.toLocaleString()}</td><td>NPR ${row.commission.toLocaleString()}</td><td><strong>NPR ${row.earning.toLocaleString()}</strong></td></tr>`;
     });
     tbody.innerHTML = html;
