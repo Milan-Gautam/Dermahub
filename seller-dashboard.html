@@ -396,7 +396,7 @@
   }
 
   window._updateItemStatus = async function(itemId, newStatus){
-    try { await db.from('order_items').update({fulfillment_status:newStatus}).eq('id', itemId).eq('seller_id', currentUser.id); const it = myOrderItems.find(i=>i.id===itemId); if(it) it.fulfillment_status=newStatus; showToast('Status updated'); }
+    try { await db.from('order_items').update({fulfillment_status:newStatus}).eq('id', itemId).eq('seller_id', currentUser.id); const it = myOrderItems.find(i=>i.id===itemId); if(it) it.fulfillment_status=newStatus; showToast('Status updated — the customer\'s order will reflect this'); }
     catch(e){ showToast('Could not update status'); }
   };
 
