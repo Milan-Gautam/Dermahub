@@ -52,7 +52,16 @@
       <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
       <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
       <button class="btn-main" id="loginBtn">Log In to Dashboard</button>
+      <div style="text-align:right;margin-top:10px;"><a href="#" id="forgotPasswordLink" style="font-size:0.76rem;color:var(--stone);text-decoration:none;">Forgot password?</a></div>
       <div class="msg" id="loginMsg"></div>
+    </div>
+
+    <div class="form-panel" id="forgotPanel">
+      <p style="font-size:0.8rem;color:var(--stone);margin-bottom:16px;text-align:left;">Enter your account email and we'll send you a link to reset your password.</p>
+      <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@example.com"></div>
+      <button class="btn-main" id="sendResetBtn">Send Reset Link</button>
+      <div style="text-align:right;margin-top:10px;"><a href="#" id="backToLoginLink" style="font-size:0.76rem;color:var(--stone);text-decoration:none;">Back to login</a></div>
+      <div class="msg" id="forgotMsg"></div>
     </div>
 
     <div class="form-panel" id="signupPanel">
@@ -76,8 +85,9 @@
   const tabLogin = document.getElementById('tabLogin'), tabSignup = document.getElementById('tabSignup');
   const loginPanel = document.getElementById('loginPanel'), signupPanel = document.getElementById('signupPanel');
 
-  tabLogin.addEventListener('click', () => { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); loginPanel.classList.add('active'); signupPanel.classList.remove('active'); });
-  tabSignup.addEventListener('click', () => { tabSignup.classList.add('active'); tabLogin.classList.remove('active'); signupPanel.classList.add('active'); loginPanel.classList.remove('active'); });
+  tabLogin.addEventListener('click', () => { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); loginPanel.classList.add('active'); signupPanel.classList.remove('active'); forgotPanelRef().classList.remove('active'); });
+  tabSignup.addEventListener('click', () => { tabSignup.classList.add('active'); tabLogin.classList.remove('active'); signupPanel.classList.add('active'); loginPanel.classList.remove('active'); forgotPanelRef().classList.remove('active'); });
+  function forgotPanelRef(){ return document.getElementById('forgotPanel'); }
 
   function showMsg(id, text, type){ const el=document.getElementById(id); el.textContent=text; el.className='msg '+type; }
 
@@ -121,6 +131,30 @@
       showMsg('loginMsg', e.message || 'Login failed. Check your details.', 'error');
       btn.disabled = false; btn.innerHTML = 'Log In to Dashboard';
     }
+  });
+
+  const forgotPanel = document.getElementById('forgotPanel');
+  document.getElementById('forgotPasswordLink').addEventListener('click', function(e){
+    e.preventDefault();
+    loginPanel.classList.remove('active'); signupPanel.classList.remove('active'); forgotPanel.classList.add('active');
+  });
+  document.getElementById('backToLoginLink').addEventListener('click', function(e){
+    e.preventDefault();
+    forgotPanel.classList.remove('active'); loginPanel.classList.add('active');
+  });
+  document.getElementById('sendResetBtn').addEventListener('click', async function(){
+    const email = document.getElementById('forgotEmail').value.trim();
+    if(!email){ showMsg('forgotMsg','Enter your account email.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      const redirectUrl = window.location.origin + window.location.pathname.replace('seller-auth.html','') + 'reset-password.html';
+      const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+      if(error) throw error;
+      showMsg('forgotMsg','If that email has an account, a reset link is on its way. Check your inbox (and spam folder).','success');
+    } catch(e) {
+      showMsg('forgotMsg', e.message || 'Something went wrong. Please try again.', 'error');
+    }
+    btn.disabled = false; btn.innerHTML = 'Send Reset Link';
   });
 
   (async function checkSession(){
