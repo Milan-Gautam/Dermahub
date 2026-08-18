@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Request a Return | DERMAHUB</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:#f5f0eb; min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .top-bar { background:white; border-bottom:1px solid var(--border-light); padding:16px 0; }
+  .top-bar .container { max-width:600px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; }
+  .logo-link { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--warm-brown); text-decoration:none; font-weight:600; }
+  .back-link { font-size:0.8rem; color:var(--stone); text-decoration:none; }
+  .wrap { max-width:600px; margin:0 auto; padding:32px 20px 60px; }
+  .card { background:white; border-radius:24px; padding:28px 24px; box-shadow:0 4px 20px rgba(0,0,0,0.04); border:1px solid var(--border-light); }
+  .card h1 { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--deep-olive); margin-bottom:6px; }
+  .card p.sub { color:var(--stone); font-size:0.85rem; margin-bottom:22px; line-height:1.6; }
+  .field { margin-bottom:14px; text-align:left; }
+  .field label { display:block; font-size:0.68rem; font-weight:600; color:var(--charcoal); text-transform:uppercase; margin-bottom:5px; }
+  .field input, .field select, .field textarea { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:10px; font-size:0.88rem; font-family:inherit; }
+  .field textarea { resize:vertical; min-height:80px; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--olive); }
+  .btn-main { background:var(--deep-olive); color:white; border:none; border-radius:50px; padding:13px 24px; font-weight:600; font-size:0.9rem; cursor:pointer; min-height:46px; }
+  .btn-main:hover { background:var(--warm-brown); }
+  .btn-main:disabled { background:#cbbcac; cursor:not-allowed; }
+  .msg { font-size:0.78rem; margin-top:14px; padding:10px 14px; border-radius:10px; display:none; line-height:1.5; }
+  .msg.error { background:#fdecea; color:#c0392b; display:block; }
+  .msg.success { background:#e8f5e9; color:#2a4235; display:block; }
+  .msg.warn { background:#fff3cd; color:#856404; display:block; }
+  .state { display:none; }
+  .state.active { display:block; }
+  .item-option { border:2px solid var(--border-light); border-radius:14px; padding:14px; margin-bottom:10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .item-option.selected { border-color:var(--olive); background:#f0f7f2; }
+  .item-option .name { font-weight:600; font-size:0.85rem; }
+  .item-option .meta { font-size:0.72rem; color:var(--stone); margin-top:2px; }
+  .item-option .price { font-weight:700; color:var(--warm-brown); font-size:0.9rem; white-space:nowrap; }
+  .icon { font-size:2.4rem; color:var(--olive); margin-bottom:12px; text-align:center; }
+  .center { text-align:center; }
+</style>
+</head>
+<body>
+  <div class="top-bar"><div class="container"><a href="index.html" class="logo-link">DERMAHUB</a><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a></div></div>
+
+  <div class="wrap">
+
+    <!-- STEP 1: FIND ORDER -->
+    <div class="card state active" id="lookupState">
+      <h1>Request a Return</h1>
+      <p class="sub">Enter your Order ID and the email you used at checkout. You'll find your Order ID in your confirmation email or on your tracking page.</p>
+      <div class="field"><label>Order ID</label><input type="text" id="lookupOrderId" placeholder="ORD-..."></div>
+      <div class="field"><label>Email</label><input type="email" id="lookupEmail" placeholder="you@example.com"></div>
+      <button class="btn-main" id="findOrderBtn">Find My Order</button>
+      <div class="msg" id="lookupMsg"></div>
+    </div>
+
+    <!-- STEP 2: PICK ITEM -->
+    <div class="card state" id="itemsState">
+      <h1>Select an Item to Return</h1>
+      <p class="sub">Choose which item from this order you'd like to return.</p>
+      <div id="itemsList"></div>
+      <button class="btn-main" id="continueBtn" style="margin-top:10px;" disabled>Continue</button>
+      <div class="msg" id="itemsMsg"></div>
+    </div>
+
+    <!-- STEP 3: DETAILS -->
+    <div class="card state" id="detailsState">
+      <h1>Tell Us What Happened</h1>
+      <p class="sub" id="selectedItemSummary"></p>
+      <div class="field"><label>Reason</label>
+        <select id="returnReason">
+          <option value="Wrong item received">Wrong item received</option>
+          <option value="Damaged or defective">Damaged or defective</option>
+          <option value="Not as described">Not as described</option>
+          <option value="Changed my mind">Changed my mind</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Description</label><textarea id="returnDescription" placeholder="Tell us more about the issue..."></textarea></div>
+      <div class="field"><label>Refund Amount Requested (NPR)</label><input type="number" id="refundAmount" min="0"></div>
+      <button class="btn-main" id="submitReturnBtn">Submit Return Request</button>
+      <div class="msg" id="detailsMsg"></div>
+    </div>
+
+    <!-- STEP 4: DONE -->
+    <div class="card state center" id="doneState">
+      <div class="icon"><i class="fas fa-circle-check"></i></div>
+      <h1>Request Submitted</h1>
+      <p class="sub">The seller (or DERMAHUB, for official products) will review your request. You'll be contacted at the email you provided once there's an update.</p>
+      <a href="index.html" class="btn-main" style="text-decoration:none;display:inline-block;">Back to Store</a>
+    </div>
+
+  </div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const RETURN_WINDOW_DAYS = 30;
+  let currentOrder = null, currentItems = [], selectedItem = null;
+
+  function showState(id){ document.querySelectorAll('.state').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+  function showMsg(id, text, type){ const el=document.getElementById(id); el.textContent=text; el.className='msg '+type; }
+  function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+  document.getElementById('findOrderBtn').addEventListener('click', async function(){
+    const orderId = document.getElementById('lookupOrderId').value.trim();
+    const email = document.getElementById('lookupEmail').value.trim();
+    if(!orderId || !email){ showMsg('lookupMsg','Enter your Order ID and email.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+    try {
+      const { data: order, error } = await db.from('orders').select('*').eq('orderId', orderId).eq('email', email).single();
+      if(error || !order) throw new Error('No matching order found. Double-check your Order ID and email.');
+
+      const daysSince = (Date.now() - new Date(order.date).getTime()) / (1000*60*60*24);
+      if(daysSince > RETURN_WINDOW_DAYS){
+        showMsg('lookupMsg', `This order is outside our ${RETURN_WINDOW_DAYS}-day return window. Contact support directly for help.`, 'warn');
+        btn.disabled = false; btn.innerHTML = 'Find My Order';
+        return;
+      }
+
+      const { data: items, error: itemsErr } = await db.rpc('get_order_items_for_return', { p_order_id: orderId, p_email: email });
+      if(itemsErr) throw itemsErr;
+      if(!items || !items.length) throw new Error('No items found on this order.');
+
+      currentOrder = order;
+      currentItems = items;
+      renderItems();
+      showState('itemsState');
+    } catch(e) {
+      showMsg('lookupMsg', e.message || 'Could not find that order.', 'error');
+    }
+    btn.disabled = false; btn.innerHTML = 'Find My Order';
+  });
+
+  function renderItems(){
+    const c = document.getElementById('itemsList');
+    let html = '';
+    currentItems.forEach(item => {
+      html += `<div class="item-option" data-id="${item.id}">
+        <div><div class="name">${esc(item.product_name)}${item.variant_label?` (${esc(item.variant_label)})`:''}</div><div class="meta">Qty: ${item.quantity}</div></div>
+        <div class="price">NPR ${parseFloat(item.line_total||0).toLocaleString()}</div>
+      </div>`;
+    });
+    c.innerHTML = html;
+    document.querySelectorAll('.item-option').forEach(el => el.addEventListener('click', function(){
+      document.querySelectorAll('.item-option').forEach(o=>o.classList.remove('selected'));
+      this.classList.add('selected');
+      selectedItem = currentItems.find(i => String(i.id) === this.dataset.id);
+      document.getElementById('continueBtn').disabled = false;
+    }));
+  }
+
+  document.getElementById('continueBtn').addEventListener('click', function(){
+    if(!selectedItem) return;
+    document.getElementById('selectedItemSummary').textContent = `${selectedItem.product_name}${selectedItem.variant_label ? ' ('+selectedItem.variant_label+')' : ''} — NPR ${parseFloat(selectedItem.line_total||0).toLocaleString()}`;
+    document.getElementById('refundAmount').value = selectedItem.line_total;
+    document.getElementById('refundAmount').max = selectedItem.line_total;
+    showState('detailsState');
+  });
+
+  document.getElementById('submitReturnBtn').addEventListener('click', async function(){
+    const reason = document.getElementById('returnReason').value;
+    const description = document.getElementById('returnDescription').value.trim();
+    let amount = parseFloat(document.getElementById('refundAmount').value);
+    if(!amount || amount <= 0){ showMsg('detailsMsg','Enter a valid refund amount.','error'); return; }
+    if(amount > selectedItem.line_total){ amount = selectedItem.line_total; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    try {
+      const { error } = await db.from('return_requests').insert([{
+        order_id: currentOrder.orderId,
+        order_item_id: selectedItem.id,
+        seller_id: selectedItem.seller_id,
+        customer_email: currentOrder.email,
+        customer_name: currentOrder.customerName,
+        product_name: selectedItem.product_name,
+        reason,
+        description,
+        requested_amount: amount,
+        status: 'requested'
+      }]);
+      if(error) throw error;
+      showState('doneState');
+    } catch(e) {
+      showMsg('detailsMsg', e.message || 'Could not submit your request. Please try again.', 'error');
+      btn.disabled = false; btn.innerHTML = 'Submit Return Request';
+    }
+  });
+})();
+</script>
+</body>
+</html>
