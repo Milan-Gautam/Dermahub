@@ -182,6 +182,7 @@
       <button class="nav-tab" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
       <button class="nav-tab" data-panel="cashflowPanel"><i class="fas fa-chart-line"></i> Cash Flow</button>
       <button class="nav-tab" data-panel="payoutsPanel"><i class="fas fa-hand-holding-dollar"></i> Payouts</button>
+      <button class="nav-tab" data-panel="returnsPanel"><i class="fas fa-rotate-left"></i> Returns</button>
       <button class="nav-tab" data-panel="vouchersPanel"><i class="fas fa-ticket-alt"></i> Vouchers</button>
     </div>
 
@@ -264,6 +265,23 @@
       </div>
     </div>
 
+    <!-- RETURNS -->
+    <div class="panel" id="returnsPanel">
+      <div class="cashflow-grid">
+        <div class="cashflow-card alt"><h4>Total Refunded</h4><div class="amount" id="rfTotalRefunded">NPR 0</div></div>
+        <div class="cashflow-card neutral"><h4>Open Requests</h4><div class="amount" id="rfOpenCount">0</div></div>
+      </div>
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-rotate-left"></i> All Return Requests</div>
+        <p style="font-size:0.78rem;color:var(--stone);margin-bottom:16px;">Sellers handle their own returns from their dashboard — this table is for oversight and stepping in on disputes or official DERMAHUB products.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Product</th><th>Seller</th><th>Customer</th><th>Reason</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="returnsTableBody"></tbody>
+        </table></div>
+        <div class="cashflow-note"><i class="fas fa-info-circle"></i> Open question worth deciding: when an item is refunded, does DERMAHUB also give back its 5% commission on that sale, or keep it? Right now the seller's earnings figure nets out refunds automatically — platform commission accounting doesn't yet, since that's a policy call, not a technical one.</div>
+      </div>
+    </div>
+
     <!-- VOUCHERS -->
     <div class="panel" id="vouchersPanel">
       <div class="card-box">
@@ -299,7 +317,7 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [];
+  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [];
 
   function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
   function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
@@ -424,10 +442,13 @@
   async function loadPayoutRequests(){
     try { const { data, error } = await db.from('payout_requests').select('*').order('requested_at',{ascending:false}); if(error) throw error; payoutRequests = data || []; } catch(e){ console.error(e); payoutRequests = []; }
   }
+  async function loadReturnRequests(){
+    try { const { data, error } = await db.from('return_requests').select('*').order('requested_at',{ascending:false}); if(error) throw error; returnRequests = data || []; } catch(e){ console.error(e); returnRequests = []; }
+  }
 
   async function refreshAll(){
-    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests()]);
-    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests();
+    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests()]);
+    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests();
     updateTopStats();
   }
 
@@ -646,6 +667,45 @@
       renderPayoutRequests();
       showToast(`Payout ${status}`);
     } catch(e){ showToast('Could not update payout request'); }
+  };
+
+  // ---------------- RETURNS ----------------
+  function renderReturnRequests(){
+    const totalRefunded = returnRequests.filter(r=>r.status==='refunded').reduce((s,r)=>s+parseFloat(r.refund_amount||0),0);
+    const openCount = returnRequests.filter(r=>r.status==='requested'||r.status==='approved').length;
+    document.getElementById('rfTotalRefunded').textContent = 'NPR ' + totalRefunded.toLocaleString();
+    document.getElementById('rfOpenCount').textContent = openCount;
+
+    const tbody = document.getElementById('returnsTableBody');
+    if(!returnRequests.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No return requests yet</td></tr>'; return; }
+    let html = '';
+    returnRequests.forEach(r => {
+      const status = r.status || 'requested';
+      html += `<tr>
+        <td><strong>${esc(r.product_name)}</strong></td>
+        <td><small>${esc(sellerLabelFor(r.seller_id))}</small></td>
+        <td><small>${esc(r.customer_name)}<br>${esc(r.customer_email)}</small></td>
+        <td><small>${esc(r.reason)}</small></td>
+        <td>NPR ${parseFloat(r.requested_amount||0).toLocaleString()}</td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          ${status==='requested'?`<button class="btn-tiny ok" onclick="window._setReturnStatus(${r.id},'approved')">Approve</button> <button class="btn-tiny warn" onclick="window._setReturnStatus(${r.id},'rejected')">Reject</button>`:''}
+          ${status==='approved'?`<button class="btn-tiny ok" onclick="window._setReturnStatus(${r.id},'refunded')">Mark Refunded</button>`:''}
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+  window._setReturnStatus = async function(id, status){
+    const r = returnRequests.find(x=>x.id===id); if(!r) return;
+    const payload = { status, processed_at: new Date().toISOString() };
+    if(status === 'refunded') payload.refund_amount = r.requested_amount;
+    try {
+      await db.from('return_requests').update(payload).eq('id', id);
+      Object.assign(r, payload);
+      renderReturnRequests();
+      showToast(`Return ${status}`);
+    } catch(e){ showToast('Could not update return request'); }
   };
 
   // ---------------- VOUCHERS ----------------
