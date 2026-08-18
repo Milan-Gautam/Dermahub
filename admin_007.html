@@ -73,7 +73,7 @@
   .badge-status.processing { background:#fff3cd; color:#856404; }
   .badge-status.shipped { background:#b8daff; color:#004085; }
   .badge-status.delivered { background:#d4edda; color:#155724; }
-  .badge-status.suspended { background:#fdecea; color:#c0392b; }
+  .badge-status.suspended, .badge-status.rejected { background:#fdecea; color:#c0392b; }
 
   .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.7rem; cursor:pointer; font-family:inherit; background:white; }
   .delete-btn { background:none; border:none; color:#c27c6e; cursor:pointer; font-size:0.9rem; padding:6px; border-radius:8px; }
@@ -138,10 +138,21 @@
       <div class="lock-icon"><i class="fas fa-shield-halved"></i></div>
       <h1>DERMAHUB</h1>
       <p class="subtitle">Platform Admin Login</p>
-      <div class="field"><label>Email</label><input type="email" id="adminEmail" placeholder="you@example.com"></div>
-      <div class="field"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••••"></div>
-      <button class="login-btn" id="loginBtn">Log In to Dashboard</button>
-      <div class="msg" id="loginError"></div>
+      <div id="mainLoginFields">
+        <div class="field"><label>Email</label><input type="email" id="adminEmail" placeholder="you@example.com"></div>
+        <div class="field"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••••"></div>
+        <button class="login-btn" id="loginBtn">Log In to Dashboard</button>
+        <div style="text-align:right;margin-top:10px;"><a href="#" id="forgotPasswordLink" style="font-size:0.76rem;color:var(--stone);text-decoration:none;">Forgot password?</a></div>
+        <div class="msg" id="loginError"></div>
+      </div>
+
+      <div id="forgotPanel" style="display:none;">
+        <p style="font-size:0.78rem;color:var(--stone);margin:0 0 14px;text-align:left;">Enter your admin email and we'll send you a link to reset your password.</p>
+        <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@example.com"></div>
+        <button class="login-btn" id="sendResetBtn">Send Reset Link</button>
+        <div style="text-align:right;margin-top:10px;"><a href="#" id="backToLoginLink" style="font-size:0.76rem;color:var(--stone);text-decoration:none;">Back to login</a></div>
+        <div class="msg" id="forgotMsg"></div>
+      </div>
     </div>
   </div>
 
@@ -170,6 +181,7 @@
       <button class="nav-tab" data-panel="sellersPanel"><i class="fas fa-store"></i> Sellers</button>
       <button class="nav-tab" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
       <button class="nav-tab" data-panel="cashflowPanel"><i class="fas fa-chart-line"></i> Cash Flow</button>
+      <button class="nav-tab" data-panel="payoutsPanel"><i class="fas fa-hand-holding-dollar"></i> Payouts</button>
       <button class="nav-tab" data-panel="vouchersPanel"><i class="fas fa-ticket-alt"></i> Vouchers</button>
     </div>
 
@@ -236,7 +248,19 @@
           <thead><tr><th>Seller</th><th>Items Sold</th><th>Gross Sales</th><th>Commission (5%)</th><th>Seller Earns</th></tr></thead>
           <tbody id="sellerEarningsTableBody"></tbody>
         </table></div>
-        <div class="cashflow-note"><i class="fas fa-info-circle"></i> "Owed to Sellers" reflects what each seller has earned from confirmed order lines — it does not track whether you've actually paid them out yet. Treat this as your reconciliation reference, not a live payout ledger.</div>
+        <div class="cashflow-note"><i class="fas fa-info-circle"></i> "Owed to Sellers" reflects total earnings from confirmed order lines. For what's actually been requested or paid out, see the Payouts tab.</div>
+      </div>
+    </div>
+
+    <!-- PAYOUTS -->
+    <div class="panel" id="payoutsPanel">
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-hand-holding-dollar"></i> Seller Payout Requests</div>
+        <p style="font-size:0.78rem;color:var(--stone);margin-bottom:16px;">Approve a request, send the money yourself via eSewa/Khalti/bank transfer, then mark it Paid. This table is your reconciliation record — it doesn't move money automatically.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Seller</th><th>Amount</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="payoutRequestsTableBody"></tbody>
+        </table></div>
       </div>
     </div>
 
@@ -275,7 +299,7 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [];
+  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [];
 
   function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
   function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
@@ -310,6 +334,34 @@
       confirmBtn.addEventListener('click',onConfirm); overlay.addEventListener('click',onOverlay);
     });
   }
+
+  document.getElementById('forgotPasswordLink').addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('mainLoginFields').style.display = 'none';
+    document.getElementById('forgotPanel').style.display = 'block';
+  });
+  document.getElementById('backToLoginLink').addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('forgotPanel').style.display = 'none';
+    document.getElementById('mainLoginFields').style.display = 'block';
+  });
+  document.getElementById('sendResetBtn').addEventListener('click', async function(){
+    const email = document.getElementById('forgotEmail').value.trim();
+    const msgEl = document.getElementById('forgotMsg');
+    if(!email){ msgEl.textContent='Enter your admin email.'; msgEl.className='msg error'; return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      const redirectUrl = window.location.origin + window.location.pathname.replace('admin_007.html','') + 'reset-password.html';
+      const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+      if(error) throw error;
+      msgEl.textContent = 'If that email has an account, a reset link is on its way. Check your inbox (and spam folder).';
+      msgEl.className = 'msg success';
+    } catch(e) {
+      msgEl.textContent = e.message || 'Something went wrong. Please try again.';
+      msgEl.className = 'msg error';
+    }
+    btn.disabled = false; btn.innerHTML = 'Send Reset Link';
+  });
 
   // ---------------- AUTH ----------------
   document.getElementById('loginBtn').addEventListener('click', async function(){
@@ -369,10 +421,13 @@
   async function loadVouchers(){
     try { const { data, error } = await db.from('vouchers').select('*'); if(error) throw error; vouchers = data || []; } catch(e){ console.error(e); vouchers = []; }
   }
+  async function loadPayoutRequests(){
+    try { const { data, error } = await db.from('payout_requests').select('*').order('requested_at',{ascending:false}); if(error) throw error; payoutRequests = data || []; } catch(e){ console.error(e); payoutRequests = []; }
+  }
 
   async function refreshAll(){
-    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers()]);
-    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers();
+    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests()]);
+    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests();
     updateTopStats();
   }
 
@@ -563,6 +618,35 @@
     });
     tbody.innerHTML = html;
   }
+
+  // ---------------- PAYOUTS ----------------
+  function renderPayoutRequests(){
+    const tbody = document.getElementById('payoutRequestsTableBody');
+    if(!payoutRequests.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No payout requests yet</td></tr>'; return; }
+    let html = '';
+    payoutRequests.forEach(p => {
+      const status = p.status || 'pending';
+      html += `<tr>
+        <td><strong>${esc(sellerLabelFor(p.seller_id))}</strong></td>
+        <td>NPR ${parseFloat(p.amount||0).toLocaleString()}</td>
+        <td><small>${p.requested_at ? new Date(p.requested_at).toLocaleDateString() : ''}</small></td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          ${status==='pending'?`<button class="btn-tiny ok" onclick="window._setPayoutStatus(${p.id},'approved')">Approve</button> <button class="btn-tiny warn" onclick="window._setPayoutStatus(${p.id},'rejected')">Reject</button>`:''}
+          ${status==='approved'?`<button class="btn-tiny ok" onclick="window._setPayoutStatus(${p.id},'paid')">Mark Paid</button>`:''}
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+  window._setPayoutStatus = async function(id, status){
+    try {
+      await db.from('payout_requests').update({ status, processed_at: new Date().toISOString() }).eq('id', id);
+      const p = payoutRequests.find(x=>x.id===id); if(p) p.status = status;
+      renderPayoutRequests();
+      showToast(`Payout ${status}`);
+    } catch(e){ showToast('Could not update payout request'); }
+  };
 
   // ---------------- VOUCHERS ----------------
   function renderVouchers(){
