@@ -64,11 +64,12 @@
   td { padding:11px 10px; border-bottom:1px solid var(--border-light); vertical-align:top; }
   .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.7rem; cursor:pointer; font-family:inherit; background:white; }
   .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
-  .badge-status.ordered { background:#e8e0f7; color:#5b3a8c; }
-  .badge-status.paid { background:#cce5ff; color:#004085; }
+  .badge-status.ordered, .badge-status.pending { background:#e8e0f7; color:#5b3a8c; }
+  .badge-status.paid, .badge-status.approved { background:#cce5ff; color:#004085; }
   .badge-status.processing { background:#fff3cd; color:#856404; }
   .badge-status.shipped { background:#b8daff; color:#004085; }
   .badge-status.delivered { background:#d4edda; color:#155724; }
+  .badge-status.rejected { background:#fdecea; color:#c0392b; }
   .empty-state { text-align:center; padding:44px; color:var(--stone); font-size:0.85rem; }
   .toast { position:fixed; bottom:20px; right:20px; background:var(--deep-olive); color:white; padding:12px 22px; border-radius:40px; z-index:1000; display:none; font-size:0.85rem; }
   .popup-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(44,43,40,0.45); z-index:5000; align-items:center; justify-content:center; padding:20px; }
@@ -113,6 +114,7 @@
   <div class="nav-tabs">
     <button class="nav-tab active" data-panel="productsPanel">My Products</button>
     <button class="nav-tab" data-panel="ordersPanel">My Orders</button>
+    <button class="nav-tab" data-panel="payoutsPanel">Payouts</button>
     <button class="nav-tab" data-panel="profilePanel">Profile</button>
   </div>
 
@@ -154,6 +156,27 @@
     </div>
   </div>
 
+  <div class="panel" id="payoutsPanel">
+    <div class="stats-grid">
+      <div class="stat-card"><i class="fas fa-wallet"></i><h3>Available Balance</h3><div class="stat-number" id="statAvailable">NPR 0</div></div>
+      <div class="stat-card"><i class="fas fa-hourglass-half"></i><h3>Pending / Approved</h3><div class="stat-number" id="statPendingPayouts">NPR 0</div></div>
+      <div class="stat-card"><i class="fas fa-circle-check"></i><h3>Paid Out (Lifetime)</h3><div class="stat-number" id="statPaidOut">NPR 0</div></div>
+    </div>
+    <div class="card-box" style="margin-bottom:18px;max-width:420px;">
+      <div class="section-heading">Request a Payout</div>
+      <div class="form-row"><div class="form-field"><label>Amount (NPR)</label><input type="number" id="payoutAmount" placeholder="0" min="1"></div></div>
+      <button class="btn-primary-sm" id="requestPayoutBtn"><i class="fas fa-paper-plane"></i> Request Payout</button>
+      <p style="font-size:0.72rem;color:var(--stone);margin-top:10px;">DERMAHUB verifies and sends payouts manually via eSewa, Khalti, or bank transfer once approved.</p>
+    </div>
+    <div class="card-box">
+      <div class="section-heading">Payout History</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th>Note</th></tr></thead>
+        <tbody id="payoutHistoryBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
   <div class="panel" id="profilePanel">
     <div class="card-box" style="max-width:480px;">
       <div class="section-heading">Seller Profile</div>
@@ -187,7 +210,7 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let currentUser = null, currentSeller = null, myProducts = [], myOrderItems = [];
+  let currentUser = null, currentSeller = null, myProducts = [], myOrderItems = [], payoutRequests = [];
 
   function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
   function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
@@ -262,6 +285,7 @@
 
     await loadProducts();
     await loadOrderItems();
+    await loadPayoutRequests();
 
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('dashboardContainer').style.display = 'block';
@@ -399,6 +423,58 @@
     try { await db.from('order_items').update({fulfillment_status:newStatus}).eq('id', itemId).eq('seller_id', currentUser.id); const it = myOrderItems.find(i=>i.id===itemId); if(it) it.fulfillment_status=newStatus; showToast('Status updated — the customer\'s order will reflect this'); }
     catch(e){ showToast('Could not update status'); }
   };
+
+  // ---------- PAYOUTS ----------
+  async function loadPayoutRequests(){
+    try {
+      const { data, error } = await db.from('payout_requests').select('*').eq('seller_id', currentUser.id).order('requested_at',{ascending:false});
+      if(error) throw error;
+      payoutRequests = data || [];
+    } catch(e){ console.error(e); payoutRequests = []; }
+    renderPayouts();
+  }
+
+  function renderPayouts(){
+    const totalEarnings = myOrderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
+    const spokenFor = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved'||p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const pendingApproved = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const paidOut = payoutRequests.filter(p=>p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const available = Math.max(0, totalEarnings - spokenFor);
+
+    document.getElementById('statAvailable').textContent = 'NPR ' + available.toLocaleString();
+    document.getElementById('statPendingPayouts').textContent = 'NPR ' + pendingApproved.toLocaleString();
+    document.getElementById('statPaidOut').textContent = 'NPR ' + paidOut.toLocaleString();
+
+    const tbody = document.getElementById('payoutHistoryBody');
+    if(!payoutRequests.length){ tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No payout requests yet</td></tr>'; return; }
+    let html = '';
+    payoutRequests.forEach(p => {
+      html += `<tr>
+        <td><small>${p.requested_at ? new Date(p.requested_at).toLocaleDateString() : ''}</small></td>
+        <td><strong>NPR ${parseFloat(p.amount||0).toLocaleString()}</strong></td>
+        <td><span class="badge-status ${p.status}">${p.status}</span></td>
+        <td><small style="color:var(--stone);">${esc(p.admin_note||'—')}</small></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  document.getElementById('requestPayoutBtn').addEventListener('click', async function(){
+    const totalEarnings = myOrderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
+    const spokenFor = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved'||p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const available = Math.max(0, totalEarnings - spokenFor);
+    const amount = parseFloat(document.getElementById('payoutAmount').value);
+    if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
+    if(amount > available){ showToast(`You can request up to NPR ${available.toLocaleString()}`); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      await db.from('payout_requests').insert([{ seller_id: currentUser.id, amount, status: 'pending' }]);
+      document.getElementById('payoutAmount').value = '';
+      await loadPayoutRequests();
+      showToast('Payout requested — DERMAHUB will review it shortly');
+    } catch(e){ showToast('Could not submit request'); }
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Payout';
+  });
 
   // ---------- PROFILE ----------
   document.getElementById('saveProfileBtn').addEventListener('click', async function(){
