@@ -115,6 +115,7 @@
     <button class="nav-tab active" data-panel="productsPanel">My Products</button>
     <button class="nav-tab" data-panel="ordersPanel">My Orders</button>
     <button class="nav-tab" data-panel="payoutsPanel">Payouts</button>
+    <button class="nav-tab" data-panel="returnsPanel">Returns</button>
     <button class="nav-tab" data-panel="profilePanel">Profile</button>
   </div>
 
@@ -177,6 +178,16 @@
     </div>
   </div>
 
+  <div class="panel" id="returnsPanel">
+    <div class="card-box">
+      <div class="section-heading">Return Requests on Your Products</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Product</th><th>Reason</th><th>Amount</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="returnsTableBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
   <div class="panel" id="profilePanel">
     <div class="card-box" style="max-width:480px;">
       <div class="section-heading">Seller Profile</div>
@@ -210,7 +221,7 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let currentUser = null, currentSeller = null, myProducts = [], myOrderItems = [], payoutRequests = [];
+  let currentUser = null, currentSeller = null, myProducts = [], myOrderItems = [], payoutRequests = [], myReturnRequests = [];
 
   function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
   function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
@@ -286,6 +297,7 @@
     await loadProducts();
     await loadOrderItems();
     await loadPayoutRequests();
+    await loadReturnRequests();
 
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('dashboardContainer').style.display = 'block';
@@ -434,12 +446,17 @@
     renderPayouts();
   }
 
-  function renderPayouts(){
+  function calcAvailableBalance(){
     const totalEarnings = myOrderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
+    const totalRefunded = myReturnRequests.filter(r=>r.status==='refunded').reduce((s,r)=>s+parseFloat(r.refund_amount||0)*0.95,0);
     const spokenFor = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved'||p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    return Math.max(0, (totalEarnings - totalRefunded) - spokenFor);
+  }
+
+  function renderPayouts(){
+    const available = calcAvailableBalance();
     const pendingApproved = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved').reduce((s,p)=>s+parseFloat(p.amount||0),0);
     const paidOut = payoutRequests.filter(p=>p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
-    const available = Math.max(0, totalEarnings - spokenFor);
 
     document.getElementById('statAvailable').textContent = 'NPR ' + available.toLocaleString();
     document.getElementById('statPendingPayouts').textContent = 'NPR ' + pendingApproved.toLocaleString();
@@ -460,9 +477,7 @@
   }
 
   document.getElementById('requestPayoutBtn').addEventListener('click', async function(){
-    const totalEarnings = myOrderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
-    const spokenFor = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved'||p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
-    const available = Math.max(0, totalEarnings - spokenFor);
+    const available = calcAvailableBalance();
     const amount = parseFloat(document.getElementById('payoutAmount').value);
     if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
     if(amount > available){ showToast(`You can request up to NPR ${available.toLocaleString()}`); return; }
@@ -475,6 +490,50 @@
     } catch(e){ showToast('Could not submit request'); }
     btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Payout';
   });
+
+  // ---------- RETURNS ----------
+  async function loadReturnRequests(){
+    try {
+      const { data, error } = await db.from('return_requests').select('*').eq('seller_id', currentUser.id).order('requested_at',{ascending:false});
+      if(error) throw error;
+      myReturnRequests = data || [];
+    } catch(e){ console.error(e); myReturnRequests = []; }
+    renderReturns();
+  }
+
+  function renderReturns(){
+    const tbody = document.getElementById('returnsTableBody');
+    if(!myReturnRequests.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No return requests yet</td></tr>'; return; }
+    let html = '';
+    myReturnRequests.forEach(r => {
+      const status = r.status || 'requested';
+      html += `<tr>
+        <td><strong>${esc(r.product_name)}</strong><br><small style="color:var(--stone);">${esc(r.customer_name)}</small></td>
+        <td><small>${esc(r.reason)}</small></td>
+        <td>NPR ${parseFloat(r.requested_amount||0).toLocaleString()}</td>
+        <td><small>${r.requested_at ? new Date(r.requested_at).toLocaleDateString() : ''}</small></td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          ${status==='requested'?`<button class="btn-tiny ok" onclick="window._setReturnStatus(${r.id},'approved')">Approve</button> <button class="btn-tiny warn" onclick="window._setReturnStatus(${r.id},'rejected')">Reject</button>`:''}
+          ${status==='approved'?`<button class="btn-tiny ok" onclick="window._setReturnStatus(${r.id},'refunded')">Mark Refunded</button>`:''}
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  window._setReturnStatus = async function(id, status){
+    const r = myReturnRequests.find(x=>x.id===id); if(!r) return;
+    const payload = { status, processed_at: new Date().toISOString() };
+    if(status === 'refunded') payload.refund_amount = r.requested_amount;
+    try {
+      await db.from('return_requests').update(payload).eq('id', id).eq('seller_id', currentUser.id);
+      Object.assign(r, payload);
+      renderReturns();
+      renderPayouts();
+      showToast(`Return ${status}`);
+    } catch(e){ showToast('Could not update return request'); }
+  };
 
   // ---------- PROFILE ----------
   document.getElementById('saveProfileBtn').addEventListener('click', async function(){
