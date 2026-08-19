@@ -1,209 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DERMAKRAFT | Track Your Order</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Inter',system-ui,sans-serif;background:#f5f0eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
-        .card{background:white;border-radius:20px;padding:24px 20px;max-width:500px;width:100%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.06);}
-        h1{font-family:'Playfair Display',serif;color:#9c6e4b;margin-bottom:4px;font-size:1.5rem;}
-        p.subtitle{color:#8b7b6e;font-size:0.8rem;margin-bottom:20px;}
-        .input-group{text-align:left;margin-bottom:12px;}
-        .input-group label{display:block;font-size:0.65rem;font-weight:600;margin-bottom:3px;color:#2c2b28;text-transform:uppercase;letter-spacing:0.5px;}
-        .input-group input{width:100%;padding:11px 14px;border:1px solid #ece2d9;border-radius:10px;font-size:0.85rem;font-family:inherit;background:#fefaf5;}
-        .input-group input:focus{outline:none;border-color:#9c6e4b;}
-        .btn{display:block;background:#2a4235;color:white;padding:12px;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;width:100%;font-family:inherit;text-align:center;margin-top:4px;}
-        .btn:hover{background:#9c6e4b;}
-        .btn:disabled{background:#999;cursor:not-allowed;}
-        .btn-sm{background:#3a5a45;font-size:0.8rem;padding:10px;}
-        .btn-outline{background:white;color:#2a4235;border:1px solid #2a4235;font-size:0.8rem;}
-        .error-msg{color:#c27c6e;font-size:0.75rem;margin-top:8px;display:none;}
-        .status-bar{display:flex;justify-content:space-between;margin:24px 0 20px;position:relative;gap:2px;}
-        .status-bar::before{content:'';position:absolute;top:15px;left:8%;width:84%;height:2px;background:#ece2d9;z-index:0;}
-        .status-step{z-index:1;text-align:center;flex:1;min-width:50px;}
-        .step-circle{width:30px;height:30px;border-radius:50%;background:#ece2d9;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;font-size:12px;color:white;font-weight:700;transition:all 0.3s;}
-        .step-circle.done{background:#3a5a45;}
-        .step-circle.current{background:#9c6e4b;box-shadow:0 0 0 4px rgba(156,110,75,0.25);transform:scale(1.15);}
-        .step-label{font-size:0.45rem;color:#8b7b6e;text-transform:uppercase;font-weight:600;line-height:1.2;letter-spacing:0.3px;}
-        .step-label.done{color:#2a4235;}
-        .info-section{background:#fefaf5;border-radius:12px;padding:12px 14px;margin-top:16px;text-align:left;}
-        .info-row{display:flex;justify-content:space-between;padding:7px 0;font-size:0.78rem;border-bottom:1px solid #f3ede7;}
-        .info-row:last-child{border-bottom:none;}
-        .info-label{color:#8b7b6e;font-weight:500;}
-        .info-value{font-weight:600;color:#2c2b28;text-align:right;}
-        .status-msg{padding:10px 12px;border-radius:10px;margin-top:12px;font-size:0.75rem;line-height:1.5;text-align:left;}
-        .msg-warning{background:#fff8e1;color:#856404;border-left:3px solid #ffc107;}
-        .msg-info{background:#e8f0fe;color:#004085;border-left:3px solid #2196F3;}
-        .msg-success{background:#e8f5e9;color:#155724;border-left:3px solid #4caf50;}
-        .thank-you{background:#f3ede7;padding:16px;border-radius:12px;margin-top:20px;text-align:center;color:#2a4235;font-size:0.85rem;line-height:1.6;}
-        .not-found{color:#c27c6e;padding:20px;font-size:0.9rem;}
-        .logout-link{color:#8b7b6e;font-size:0.75rem;margin-top:14px;cursor:pointer;text-decoration:underline;display:inline-block;}
-        #trackingView{display:none;}
-        #loginView{display:block;}
-        .loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle;}
-        @keyframes spin{to{transform:rotate(360deg);}}
-        @media (max-width: 420px) {
-            .card{padding:20px 14px;border-radius:16px;}
-            h1{font-size:1.3rem;}
-            .status-bar{gap:1px;margin:20px 0 16px;}
-            .status-bar::before{top:13px;left:5%;width:90%;}
-            .step-circle{width:26px;height:26px;font-size:10px;}
-            .step-label{font-size:0.4rem;}
-            .info-row{font-size:0.72rem;flex-direction:column;gap:2px;}
-            .info-value{text-align:left;}
-            .btn{font-size:0.8rem;padding:10px;}
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Track Your Order | DERMAHUB</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:#f5f0eb; min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .top-bar { background:white; border-bottom:1px solid var(--border-light); padding:16px 0; }
+  .top-bar .container { max-width:680px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; }
+  .logo-link { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--warm-brown); text-decoration:none; font-weight:600; }
+  .back-link { font-size:0.8rem; color:var(--stone); text-decoration:none; }
+  .wrap { max-width:680px; margin:0 auto; padding:32px 20px 60px; }
+  .card { background:white; border-radius:24px; padding:28px 24px; box-shadow:0 4px 20px rgba(0,0,0,0.04); border:1px solid var(--border-light); }
+  .card h1 { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--deep-olive); margin-bottom:6px; }
+  .card p.sub { color:var(--stone); font-size:0.85rem; margin-bottom:22px; line-height:1.6; }
+  .field { margin-bottom:14px; text-align:left; }
+  .field label { display:block; font-size:0.68rem; font-weight:600; color:var(--charcoal); text-transform:uppercase; margin-bottom:5px; }
+  .field input { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:10px; font-size:0.88rem; font-family:inherit; }
+  .field input:focus { outline:none; border-color:var(--olive); }
+  .btn-main { background:var(--deep-olive); color:white; border:none; border-radius:50px; padding:13px 24px; font-weight:600; font-size:0.9rem; cursor:pointer; min-height:46px; }
+  .btn-main:hover { background:var(--warm-brown); }
+  .btn-main:disabled { background:#cbbcac; cursor:not-allowed; }
+  .msg { font-size:0.78rem; margin-top:14px; padding:10px 14px; border-radius:10px; display:none; line-height:1.5; }
+  .msg.error { background:#fdecea; color:#c0392b; display:block; }
+  .state { display:none; }
+  .state.active { display:block; }
+
+  .status-track { display:flex; justify-content:space-between; margin:24px 0 28px; position:relative; }
+  .status-track::before { content:''; position:absolute; top:14px; left:0; right:0; height:3px; background:var(--border-light); z-index:0; }
+  .status-track .fill { position:absolute; top:14px; left:0; height:3px; background:var(--olive); z-index:1; transition:width 0.4s; }
+  .status-step { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+  .status-step .dot { width:28px; height:28px; border-radius:50%; background:var(--border-light); color:white; display:flex; align-items:center; justify-content:center; font-size:0.7rem; }
+  .status-step.done .dot { background:var(--olive); }
+  .status-step .label { font-size:0.62rem; color:var(--stone); text-align:center; font-weight:600; text-transform:uppercase; }
+  .status-step.done .label { color:var(--olive); }
+
+  .order-meta { background:var(--cream); border-radius:14px; padding:16px 18px; margin-bottom:18px; font-size:0.85rem; line-height:1.8; }
+  .order-meta strong { color:var(--deep-olive); }
+  .item-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-light); gap:10px; }
+  .item-row:last-child { border-bottom:none; }
+  .item-row .iname { font-weight:600; font-size:0.85rem; }
+  .item-row .imeta { font-size:0.72rem; color:var(--stone); }
+  .item-row .badge { padding:3px 10px; border-radius:20px; font-size:0.62rem; font-weight:700; text-transform:capitalize; white-space:nowrap; }
+  .badge.ordered { background:#e8e0f7; color:#5b3a8c; }
+  .badge.paid { background:#cce5ff; color:#004085; }
+  .badge.processing { background:#fff3cd; color:#856404; }
+  .badge.shipped { background:#b8daff; color:#004085; }
+  .badge.delivered { background:#d4edda; color:#155724; }
+  .actions-row { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .btn-secondary-link { flex:1; text-align:center; background:none; border:1px solid var(--border-light); border-radius:50px; padding:11px; font-size:0.82rem; font-weight:600; color:var(--deep-olive); text-decoration:none; min-width:140px; }
+  .btn-secondary-link:hover { border-color:var(--warm-brown); color:var(--warm-brown); }
+  @media (max-width:480px) { .status-step .label { font-size:0.56rem; } .status-track .dot { width:24px; height:24px; } }
+</style>
 </head>
 <body>
-<div class="card">
-    <h1>📦 Track Your Order</h1>
-    
-    <div id="loginView">
-        <p class="subtitle">Enter Order ID & Email to track</p>
-        <div class="input-group"><label>Order ID</label><input type="text" id="loginOrderId" placeholder="e.g. ORD-1715000000"></div>
-        <div class="input-group"><label>Email Address</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
-        <button class="btn" id="loginBtn">🔍 Track Order</button>
-        <div class="error-msg" id="loginError"></div>
-    </div>
-    
-    <div id="trackingView">
-        <div id="trackContent"></div>
-        <button class="btn btn-sm" id="refreshBtn" style="margin-top:10px;">🔄 Refresh Status</button>
-        <a href="index.html" class="btn btn-outline" style="margin-top:6px;">← Back to Store</a>
-        <div class="logout-link" id="logoutLink">Track different order</div>
-    </div>
-</div>
+  <div class="top-bar"><div class="container"><a href="index.html" class="logo-link">DERMAHUB</a><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div class="wrap">
+
+    <!-- LOOKUP -->
+    <div class="card state active" id="lookupState">
+      <h1>Track Your Order</h1>
+      <p class="sub">Enter your Order ID and the email you used at checkout.</p>
+      <div class="field"><label>Order ID</label><input type="text" id="lookupOrderId" placeholder="ORD-..."></div>
+      <div class="field"><label>Email</label><input type="email" id="lookupEmail" placeholder="you@example.com"></div>
+      <button class="btn-main" id="findOrderBtn">Track Order</button>
+      <div class="msg" id="lookupMsg"></div>
+    </div>
+
+    <!-- ORDER DETAILS -->
+    <div class="card state" id="orderState">
+      <h1 id="orderTitle">Order Status</h1>
+      <p class="sub" id="orderSubDate"></p>
+
+      <div class="status-track" id="statusTrack">
+        <div class="fill" id="statusFill" style="width:0%;"></div>
+        <div class="status-step" data-stage="0"><div class="dot"><i class="fas fa-receipt"></i></div><div class="label">Ordered</div></div>
+        <div class="status-step" data-stage="1"><div class="dot"><i class="fas fa-money-bill-wave"></i></div><div class="label">Paid</div></div>
+        <div class="status-step" data-stage="2"><div class="dot"><i class="fas fa-box-open"></i></div><div class="label">Processing</div></div>
+        <div class="status-step" data-stage="3"><div class="dot"><i class="fas fa-truck"></i></div><div class="label">Shipped</div></div>
+        <div class="status-step" data-stage="4"><div class="dot"><i class="fas fa-circle-check"></i></div><div class="label">Delivered</div></div>
+      </div>
+
+      <div class="order-meta" id="orderMeta"></div>
+
+      <div id="itemsList"></div>
+
+      <div class="actions-row">
+        <a href="request-return.html" class="btn-secondary-link"><i class="fas fa-rotate-left"></i> Request a Return</a>
+        <a href="index.html" class="btn-secondary-link"><i class="fas fa-store"></i> Continue Shopping</a>
+      </div>
+    </div>
+
+  </div>
+
 <script>
-    (function() {
-        const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let currentOrderId = null, currentEmail = null;
-        const loginBtn = document.getElementById('loginBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const logoutLink = document.getElementById('logoutLink');
-        const loginError = document.getElementById('loginError');
-        const orderIdInput = document.getElementById('loginOrderId');
-        const emailInput = document.getElementById('loginEmail');
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function searchOrder(orderId, email) {
-            try {
-                const { data, error } = await db.from('orders').select('*').eq('orderId', orderId);
-                if (error) throw error;
-                if (data && data.length > 0) {
-                    const order = data[0];
-                    if ((order.email || '').toLowerCase() === email) return order;
-                }
-                const local = JSON.parse(localStorage.getItem('track_'+orderId) || 'null');
-                if (local && (local.email || '').toLowerCase() === email) return local;
-                return null;
-            } catch (e) { console.error(e); return null; }
-        }
+  const STAGES = ['ordered','paid','processing','shipped','delivered'];
 
-        function showTracking(data) {
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('trackingView').style.display = 'block';
-            loginError.style.display = 'none';
+  function showState(id){ document.querySelectorAll('.state').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+  function showMsg(id, text){ const el=document.getElementById(id); el.textContent=text; el.className='msg error'; }
+  function esc(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 
-            const status = (data.status || 'ordered').toLowerCase();
-            const steps = ['ordered','paid','processing','shipped','delivered'];
-            const labels = ['Ordered','Paid','Processing','Shipped','Delivered'];
-            const currentIdx = steps.indexOf(status);
+  // Auto-fill from a tracking link like track.html?orderId=ORD-123&email=you@example.com
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('orderId')) document.getElementById('lookupOrderId').value = params.get('orderId');
+  if(params.get('email')) document.getElementById('lookupEmail').value = params.get('email');
 
-            let bar = '<div class="status-bar">';
-            labels.forEach((lbl,i) => {
-                const done = i <= currentIdx;
-                const isCurrent = i === currentIdx;
-                let cls = done ? 'done' : '';
-                if (isCurrent) cls += ' current';
-                bar += `<div class="status-step"><div class="step-circle ${cls.trim()}">${done ? '✓' : i+1}</div><div class="step-label ${done ? 'done' : ''}">${lbl}</div></div>`;
-            });
-            bar += '</div>';
+  document.getElementById('findOrderBtn').addEventListener('click', trackOrder);
+  if(params.get('orderId') && params.get('email')) trackOrder();
 
-            let msgHtml = '';
-            if (status === 'ordered') msgHtml = '<div class="status-msg msg-warning">⏳ <strong>Payment Pending</strong><br>Pay via eSewa/Khalti using the QR code sent to your email.</div>';
-            else if (status === 'paid') msgHtml = '<div class="status-msg msg-info">✅ <strong>Payment Received!</strong><br>We are preparing your order with care.</div>';
-            else if (status === 'processing') msgHtml = '<div class="status-msg msg-info">🔄 <strong>Processing</strong><br>Your products are being handcrafted.</div>';
-            else if (status === 'shipped') msgHtml = '<div class="status-msg msg-info">🚚 <strong>Shipped!</strong><br>Your order is on its way.</div>';
-            else if (status === 'delivered') msgHtml = '<div class="status-msg msg-success">✅ <strong>Delivered!</strong><br>Thank you for your trust.</div>';
+  async function trackOrder(){
+    const orderId = document.getElementById('lookupOrderId').value.trim();
+    const email = document.getElementById('lookupEmail').value.trim();
+    if(!orderId || !email){ showMsg('lookupMsg','Enter your Order ID and email.'); return; }
+    const btn = document.getElementById('findOrderBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+    try {
+      const { data: orderResults, error } = await db.rpc('get_order_for_tracking', { p_order_id: orderId, p_email: email });
+      const order = orderResults && orderResults.length ? orderResults[0] : null;
+      if(error || !order) throw new Error('No matching order found. Double-check your Order ID and email.');
 
-            const isPaid = ['paid','processing','shipped','delivered'].includes(status);
+      let items = [];
+      try {
+        const { data: itemsData } = await db.rpc('get_order_items_for_return', { p_order_id: orderId, p_email: email });
+        items = itemsData || [];
+      } catch(e) { /* falls back to the plain items summary below */ }
 
-            const thankYou = `
-                <div class="thank-you">
-                    <strong>🌟 Thank you for being a valued customer!</strong><br>
-                    Your satisfaction means the world to us. If you have any questions, simply reply to your order confirmation email.<br>
-                    <em>— The DERMAKRAFT Team</em>
-                </div>`;
+      renderOrder(order, items);
+      showState('orderState');
+    } catch(e) {
+      showMsg('lookupMsg', e.message || 'Could not find that order.');
+    }
+    btn.disabled = false; btn.innerHTML = 'Track Order';
+  }
 
-            document.getElementById('trackContent').innerHTML = `
-                ${bar}
-                ${msgHtml}
-                <div class="info-section">
-                    <div class="info-row"><span class="info-label">Order ID</span><span class="info-value">#${(data.orderId||'').slice(-8)}</span></div>
-                    <div class="info-row"><span class="info-label">Customer</span><span class="info-value">${data.customerName||'N/A'}</span></div>
-                    <div class="info-row"><span class="info-label">Items</span><span class="info-value">${data.items||'N/A'}</span></div>
-                    <div class="info-row"><span class="info-label">Total</span><span class="info-value">NPR ${parseFloat(data.total||0).toLocaleString()}</span></div>
-                    <div class="info-row"><span class="info-label">Payment</span><span class="info-value" style="color:${isPaid?'#155724':'#856404'};">${isPaid?'✅ Paid':'⏳ Pending'}</span></div>
-                    <div class="info-row"><span class="info-label">Delivery</span><span class="info-value">${data.location||'N/A'}</span></div>
-                    <div class="info-row"><span class="info-label">Date</span><span class="info-value">${data.date?new Date(data.date).toLocaleDateString():'N/A'}</span></div>
-                </div>
-                ${thankYou}
-            `;
-        }
+  function renderOrder(order, items){
+    document.getElementById('orderTitle').textContent = `Order #${(order.orderId||'').slice(-8)}`;
+    document.getElementById('orderSubDate').textContent = order.date ? `Placed on ${new Date(order.date).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}` : '';
 
-        loginBtn.addEventListener('click', async function() {
-            const orderId = orderIdInput.value.trim();
-            const email = emailInput.value.trim().toLowerCase();
-            if (!orderId || !email) {
-                loginError.style.display = 'block';
-                loginError.innerText = 'Please fill both fields.';
-                return;
-            }
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Searching...';
-            loginError.style.display = 'none';
+    const status = (order.status || 'ordered').toLowerCase();
+    const stageIndex = Math.max(0, STAGES.indexOf(status));
+    document.getElementById('statusFill').style.width = (stageIndex / (STAGES.length-1) * 100) + '%';
+    document.querySelectorAll('.status-step').forEach(step => {
+      const idx = parseInt(step.dataset.stage);
+      step.classList.toggle('done', idx <= stageIndex);
+    });
 
-            const order = await searchOrder(orderId, email);
-            if (order) {
-                currentOrderId = orderId;
-                currentEmail = email;
-                showTracking(order);
-            } else {
-                loginError.style.display = 'block';
-                loginError.innerText = '❌ No order found with that ID and email.';
-            }
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '🔍 Track Order';
-        });
+    document.getElementById('orderMeta').innerHTML = `
+      <div><strong>Receiver:</strong> ${esc(order.customerName)}</div>
+      <div><strong>Delivery:</strong> ${esc(order.location)}</div>
+      <div><strong>Address:</strong> ${esc(order.address)}</div>
+      <div><strong>Total:</strong> NPR ${parseFloat(order.total||0).toLocaleString()}</div>
+    `;
 
-        refreshBtn.addEventListener('click', async function() {
-            if (!currentOrderId || !currentEmail) return;
-            document.getElementById('trackContent').innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner" style="border-color:#2a4235;border-top-color:transparent;"></span> Refreshing...</p>';
-            const order = await searchOrder(currentOrderId, currentEmail);
-            if (order) showTracking(order);
-            else document.getElementById('trackContent').innerHTML = '<p class="not-found">❌ Order not found.</p>';
-        });
-
-        logoutLink.addEventListener('click', function() {
-            currentOrderId = null; currentEmail = null;
-            document.getElementById('loginView').style.display = 'block';
-            document.getElementById('trackingView').style.display = 'none';
-            orderIdInput.value = ''; emailInput.value = '';
-        });
-
-        emailInput.addEventListener('keypress', e => { if(e.key==='Enter') loginBtn.click(); });
-        orderIdInput.addEventListener('keypress', e => { if(e.key==='Enter') loginBtn.click(); });
-
-        const params = new URLSearchParams(window.location.search);
-        if(params.get('orderId')) { orderIdInput.value = params.get('orderId'); emailInput.focus(); }
-    })();
+    const listEl = document.getElementById('itemsList');
+    if(items && items.length){
+      let html = '';
+      items.forEach(item => {
+        const itemStatus = (item.fulfillment_status || 'ordered').toLowerCase();
+        html += `<div class="item-row">
+          <div><div class="iname">${esc(item.product_name)}${item.variant_label?` <small style="color:var(--stone);">(${esc(item.variant_label)})</small>`:''}</div><div class="imeta">Qty: ${item.quantity} · NPR ${parseFloat(item.line_total||0).toLocaleString()}</div></div>
+          <span class="badge ${itemStatus}">${itemStatus}</span>
+        </div>`;
+      });
+      listEl.innerHTML = html;
+    } else {
+      listEl.innerHTML = `<div class="order-meta" style="margin-bottom:0;"><strong>Items:</strong> ${esc(order.items)}</div>`;
+    }
+  }
+})();
 </script>
 </body>
 </html>
