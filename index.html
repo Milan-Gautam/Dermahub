@@ -168,6 +168,13 @@
         .modal-img-thumbs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
         .modal-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
         .modal-thumb.active { border-color: var(--olive); }
+        @media (min-width: 768px) {
+            .product-modal-content { max-width: 860px; padding: 32px; display: flex; gap: 32px; align-items: flex-start; max-height: 88vh; }
+            .modal-media-col { flex: 0 0 42%; position: sticky; top: 0; }
+            .modal-info-col { flex: 1; min-width: 0; padding-top: 4px; }
+            .modal-thumb { width: 58px; height: 58px; }
+            .modal-close { top: 14px; right: 18px; }
+        }
         .modal-stock-info { font-size: 0.72rem; font-weight: 600; margin-bottom: 8px; }
         .modal-stock-info.stock-low { color: #e67e22; }
         .modal-stock-info.stock-ok { color: var(--olive); }
@@ -239,7 +246,7 @@
 
 <div class="modal" id="infoModal"><div class="modal-card"><i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i><h3 id="infoTitle">Message</h3><p id="infoText" style="margin:16px 0;line-height:1.6;"></p><button class="btn-primary" id="closeInfoBtn">OK</button></div></div>
 
-<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><div class="modal-disclaimer"><i class="fas fa-info-circle"></i><p>Images are for reference only and packaging may vary. Please check the expiry date and seal before use.</p></div><h3 id="modalProdName"></h3><p id="modalProdSeller" style="color:var(--olive);font-size:0.72rem;font-weight:600;margin-bottom:6px;"></p><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div><div class="related-section" id="relatedSection" style="display:none;"><div class="related-title">You Might Also Like</div><div class="related-grid" id="relatedGrid"></div></div></div></div>
+<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><div class="modal-media-col"><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><div class="modal-disclaimer"><i class="fas fa-info-circle"></i><p>Images are for reference only and packaging may vary. Please check the expiry date and seal before use.</p></div></div><div class="modal-info-col"><h3 id="modalProdName"></h3><p id="modalProdSeller" style="color:var(--olive);font-size:0.72rem;font-weight:600;margin-bottom:6px;"></p><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div id="modalProdIngredients" style="display:none;margin-bottom:12px;"><div class="related-title">Key Ingredients</div><p style="color:var(--stone);font-size:0.82rem;line-height:1.6;"></p></div><div id="modalProdHowToUse" style="display:none;margin-bottom:12px;"><div class="related-title">How to Use</div><p style="color:var(--stone);font-size:0.82rem;line-height:1.6;"></p></div><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div><div class="related-section" id="relatedSection" style="display:none;"><div class="related-title">You Might Also Like</div><div class="related-grid" id="relatedGrid"></div></div></div></div></div>
 
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;"><a href="admin_007.html" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a></div>
 
@@ -328,18 +335,19 @@
 
     const STORAGE_PRODUCTS = "dermahub_products_v3", STORAGE_CART = "dermahub_cart";
 
-    let products = [], sellerMap = {}, salesMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), currentFilter = "new", selectedLocation = "inside", baseDeliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
+    let products = [], sellerMap = {}, sellerPhotoMap = {}, salesMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), currentFilter = "new", selectedLocation = "inside", baseDeliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
     let searchQuery = "", sortBy = "relevance", filterSeller = "", filterMinPrice = null, filterMaxPrice = null, filterInStock = false, visibleCount = 12;
     const PAGE_SIZE = 12, FREE_SHIPPING_THRESHOLD = 2000;
 
     function toast(msg){ const t=document.getElementById('toastMsg'); t.innerText=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2500); }
+    function esc(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
     function getKey(pid,v){ return `${pid}-${v}`; }
     function getDiscountedPrice(price,discount){ return discount>0?Math.round(price*(1-discount/100)):price; }
     function loadCart(){ const s=localStorage.getItem(STORAGE_CART); return s?JSON.parse(s):[]; }
     function saveCart(){ localStorage.setItem(STORAGE_CART,JSON.stringify(cart)); }
 
     async function loadSellerMap(){
-        try { const {data,error} = await db.from('public_sellers').select('id,business_name'); if(error) throw error; const map={}; (data||[]).forEach(s=>map[s.id]=s.business_name); return map; }
+        try { const {data,error} = await db.from('public_sellers').select('id,business_name,store_photo_url'); if(error) throw error; const map={}; const photoMap={}; (data||[]).forEach(s=>{map[s.id]=s.business_name; if(s.store_photo_url) photoMap[s.id]=s.store_photo_url;}); sellerPhotoMap = photoMap; return map; }
         catch(e){ console.log('Seller list load failed (marketplace tables may not exist yet)', e); return {}; }
     }
 
@@ -358,14 +366,14 @@
         const msgEl = document.getElementById('voucherMsg');
         if(!code){ msgEl.innerHTML='<span style="color:#c27c6e;">Enter a code</span>'; return; }
         try {
-            let {data,error} = await db.from('vouchers').select('*').eq('code',code).eq('active',true);
+            let {data,error} = await db.rpc('validate_voucher', {p_code: code});
             if(error) throw error;
             if(data && data.length>0){
                 const v=data[0];
                 if(v.maxUses>0 && v.usedCount >= v.maxUses){ msgEl.innerHTML='<span style="color:#c27c6e;">Code expired</span>'; return; }
                 voucherDiscount = v.discount;
                 appliedVoucher = v.code;
-                msgEl.innerHTML = `<span style="color:#2a4235;">✓ ${v.discount}% off applied</span>`;
+                msgEl.innerHTML = `<span style="color:#2a4235;">✓ ${esc(v.discount)}% off applied</span>`;
                 document.getElementById('voucherCode').disabled = true;
                 document.querySelector('.voucher-input button').disabled = true;
                 updateCartUI();
@@ -376,7 +384,7 @@
     }
     window.applyVoucher = applyVoucher;
 
-    async function incrementVoucherUsage(code){ try { let {data}=await db.from('vouchers').select('usedCount').eq('code',code); if(data && data.length>0){ const nc=(data[0].usedCount||0)+1; await db.from('vouchers').update({usedCount:nc}).eq('code',code); } } catch(e){} }
+    async function incrementVoucherUsage(code){ try { await db.rpc('increment_voucher_usage', {p_code: code}); } catch(e){} }
 
     function productDisplayPrice(prod){
         const dv = prod.variants[0];
@@ -438,7 +446,7 @@
             const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0, discount=prod.discount||0;
             const sellerName = sellerMap[prod.seller_id];
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            c.innerHTML=`<div class="product-img-wrap"><img src="${imgs[0]}" class="product-img" loading="lazy" alt="${prod.name}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${sellerName}</div>`:''}<div class="product-title">${prod.name}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
+            c.innerHTML=`<div class="product-img-wrap"><img src="${esc(imgs[0])}" class="product-img" loading="lazy" alt="${esc(prod.name)}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${esc(sellerName)}</div>`:''}<div class="product-title">${esc(prod.name)}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
             c.addEventListener('click',function(){ openProductModal(prod); });
             g.appendChild(c);
         });
@@ -447,7 +455,7 @@
     function updateCartUI(){
         const c=document.getElementById('cartList');
         if(!cart.length){c.innerHTML='<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your cart is empty</li>';}
-        else{let h='';cart.forEach((i,idx)=>{h+=`<li class="cart-item"><img src="${i.img}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">&minus;</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;});c.innerHTML=h;
+        else{let h='';cart.forEach((i,idx)=>{h+=`<li class="cart-item"><img src="${esc(i.img)}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${esc(i.name)}</div><div class="cart-item-price">NPR ${i.price}</div><div class="cart-qty"><button class="qty-btn dec" data-idx="${idx}">&minus;</button><span>${i.quantity}</span><button class="qty-btn inc" data-idx="${idx}">+</button><button class="remove-item" data-idx="${idx}">remove</button></div></div></li>`;});c.innerHTML=h;
         document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),-1)));
         document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',()=>modQty(parseInt(b.dataset.idx),1)));
         document.querySelectorAll('.remove-item').forEach(b=>b.addEventListener('click',()=>removeItem(parseInt(b.dataset.idx))));}
@@ -475,9 +483,20 @@
 
     function openProductModal(prod){
         const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], stock=prod.stock||0;
-        document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name; document.getElementById('modalProdSeller').innerHTML = sellerMap[prod.seller_id] ? `<i class="fas fa-store"></i> Sold by ${sellerMap[prod.seller_id]}` : ''; document.getElementById('modalProdDesc').textContent=prod.description||'';
-        let th=''; imgs.forEach((img,i)=>th+=`<img src="${img}" class="modal-thumb${i===0?' active':''}" onclick="document.getElementById('modalMainImg').src='${img}';document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active');">`);
+        document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name;
+        const sellerPhoto = sellerPhotoMap[prod.seller_id];
+        document.getElementById('modalProdSeller').innerHTML = sellerMap[prod.seller_id] ? `${sellerPhoto?`<img src="${esc(sellerPhoto)}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">`:'<i class="fas fa-store"></i> '}Sold by ${esc(sellerMap[prod.seller_id])}` : '';
+        document.getElementById('modalProdDesc').textContent=prod.description||'';
+        const ingEl = document.getElementById('modalProdIngredients'), howEl = document.getElementById('modalProdHowToUse');
+        if(prod.ingredients){ ingEl.querySelector('p').textContent = prod.ingredients; ingEl.style.display='block'; } else { ingEl.style.display='none'; }
+        if(prod.how_to_use){ howEl.querySelector('p').textContent = prod.how_to_use; howEl.style.display='block'; } else { howEl.style.display='none'; }
+        let th=''; imgs.forEach((img,i)=>th+=`<img src="${esc(img)}" class="modal-thumb${i===0?' active':''}" data-img-index="${i}">`);
         document.getElementById('modalThumbs').innerHTML=th;
+        document.querySelectorAll('#modalThumbs .modal-thumb').forEach(thumbEl => thumbEl.addEventListener('click', function(){
+            document.getElementById('modalMainImg').src = imgs[parseInt(this.dataset.imgIndex)];
+            document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active'));
+            this.classList.add('active');
+        }));
         const stockEl=document.getElementById('modalStockInfo');
         if(stock===0){ stockEl.textContent='Currently out of stock'; stockEl.className='modal-stock-info stock-out'; }
         else if(stock<=5){ stockEl.textContent=`Only ${stock} left in stock`; stockEl.className='modal-stock-info stock-low'; }
@@ -499,7 +518,7 @@
         let html = '';
         related.forEach(p => {
             const imgs = p.images || [p.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=200'];
-            html += `<div class="related-card" data-id="${p.id}"><img src="${imgs[0]}" loading="lazy"><div class="rname">${p.name}</div><div class="rprice">NPR ${productDisplayPrice(p)}</div></div>`;
+            html += `<div class="related-card" data-id="${p.id}"><img src="${esc(imgs[0])}" loading="lazy"><div class="rname">${esc(p.name)}</div><div class="rprice">NPR ${productDisplayPrice(p)}</div></div>`;
         });
         grid.innerHTML = html;
         grid.querySelectorAll('.related-card').forEach(card => card.addEventListener('click', function(){
@@ -540,7 +559,7 @@
         const submitBtn = document.getElementById('submitOrderBtn');
         submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
         const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0), discountAmount = voucherDiscount?Math.round(subtotal*(voucherDiscount/100)):0, deliveryCharge = getEffectiveDelivery(subtotal), total = subtotal - discountAmount + deliveryCharge;
-        const itemsStr = cart.map(i=>`${i.quantity}x ${i.name}`).join(', '), orderId = 'ORD-'+Date.now(), orderDate = new Date().toISOString(), location = selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', trackingUrl = window.location.origin + window.location.pathname.replace('index.html','') + 'track.html?orderId='+orderId;
+        const itemsStr = cart.map(i=>`${i.quantity}x ${i.name}`).join(', '), orderId = 'ORD-'+Date.now(), orderDate = new Date().toISOString(), location = selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', trackingUrl = window.location.origin + window.location.pathname.replace('index.html','') + 'track.html?orderId='+encodeURIComponent(orderId)+'&email='+encodeURIComponent(email);
         const orderData = {orderId, customerName:name, email, phone, address:addr, location, deliveryCharge, items:itemsStr, subtotal, discount:discountAmount, total, date:orderDate, status:'ordered'};
         try {
             const {error} = await db.from('orders').insert([orderData]);
@@ -563,7 +582,7 @@
         } catch(e) { console.error('Order failed', e); toast('Order could not be saved. Please try again.'); resetSubmitOrderBtn(); return; }
         localStorage.setItem('track_'+orderId, JSON.stringify({...orderData, trackingUrl}));
         try { await emailjs.send("service_ycj8myh","template_8sw10cu",{customerName:name, orderId, items:itemsStr, subtotal:subtotal.toLocaleString(), discount:discountAmount.toLocaleString(), deliveryCharge:deliveryCharge.toString(), total:total.toLocaleString(), location, address:addr, trackingUrl, email}); } catch(e) {}
-        document.getElementById('successMsg').innerHTML = `<strong>Thank you ${name}!</strong><br><br>Order Total: <strong>NPR ${total.toLocaleString()}</strong><br>Delivery: ${location}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;"><strong>Payment:</strong> Pay via eSewa/Khalti using QR code sent to ${email}<br><small>Order processes after payment confirmation</small></div><br>Tracking link sent to ${email}`;
+        document.getElementById('successMsg').innerHTML = `<strong>Thank you ${esc(name)}!</strong><br><br>Order Total: <strong>NPR ${total.toLocaleString()}</strong><br>Delivery: ${esc(location)}<br><br><div style="background:#fff3cd;padding:10px;border-radius:8px;font-size:0.8rem;"><strong>Payment:</strong> Pay via eSewa/Khalti using QR code sent to ${esc(email)}<br><small>Order processes after payment confirmation</small></div><br>Tracking link sent to ${esc(email)}`;
         document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('successModal').classList.add('open');
         resetSubmitOrderBtn();
         document.getElementById('trackOrderBtn').onclick = function(){ window.location.href = trackingUrl; };
@@ -631,8 +650,8 @@
         const sellerMatches = Object.entries(sellerMap).filter(([id,name])=>name.toLowerCase().includes(q)).slice(0,3);
         if(!productMatches.length && !sellerMatches.length){ dd.classList.remove('open'); return; }
         let html = '';
-        productMatches.forEach(p=>{ html += `<div class="ac-item" data-type="product" data-id="${p.id}"><i class="fas fa-magnifying-glass"></i> ${p.name}<small>NPR ${productDisplayPrice(p)}</small></div>`; });
-        sellerMatches.forEach(([id,name])=>{ html += `<div class="ac-item" data-type="seller" data-id="${id}"><i class="fas fa-store"></i> ${name}<small>Seller</small></div>`; });
+        productMatches.forEach(p=>{ html += `<div class="ac-item" data-type="product" data-id="${p.id}"><i class="fas fa-magnifying-glass"></i> ${esc(p.name)}<small>NPR ${productDisplayPrice(p)}</small></div>`; });
+        sellerMatches.forEach(([id,name])=>{ html += `<div class="ac-item" data-type="seller" data-id="${id}"><i class="fas fa-store"></i> ${esc(name)}<small>Seller</small></div>`; });
         dd.innerHTML = html;
         dd.classList.add('open');
         dd.querySelectorAll('.ac-item').forEach(item=>item.addEventListener('mousedown', function(){
