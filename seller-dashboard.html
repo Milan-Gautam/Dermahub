@@ -130,6 +130,10 @@
         <div class="form-field"><label>Description</label><input type="text" id="prodDesc" placeholder="Short description"></div>
         <div class="form-field"><label>Image URLs (comma separated)</label><input type="text" id="prodImages" placeholder="url1, url2, url3"></div>
       </div>
+      <div class="form-row">
+        <div class="form-field"><label>Key Ingredients <small style="text-transform:none;color:var(--stone);">(optional)</small></label><textarea id="prodIngredients" rows="2" style="width:100%;padding:10px 12px;border:1px solid var(--border-light);border-radius:8px;font-family:inherit;font-size:0.85rem;resize:vertical;" placeholder="e.g. Aloe vera, glycerin, tea tree oil..."></textarea></div>
+        <div class="form-field"><label>How to Use <small style="text-transform:none;color:var(--stone);">(optional)</small></label><textarea id="prodHowToUse" rows="2" style="width:100%;padding:10px 12px;border:1px solid var(--border-light);border-radius:8px;font-family:inherit;font-size:0.85rem;resize:vertical;" placeholder="e.g. Apply twice daily to clean skin..."></textarea></div>
+      </div>
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:0.68rem;font-weight:600;margin-bottom:8px;color:var(--stone);text-transform:uppercase;">Variants (Size & Price in NPR)</label>
         <div id="variantsContainer">
@@ -189,14 +193,38 @@
   </div>
 
   <div class="panel" id="profilePanel">
-    <div class="card-box" style="max-width:480px;">
+    <div class="card-box" style="max-width:520px;margin-bottom:18px;">
+      <div class="section-heading">Store Photo</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+        <img id="storePhotoPreview" src="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--cream);border:1px solid var(--border-light);display:none;">
+        <div id="storePhotoPlaceholder" style="width:72px;height:72px;border-radius:50%;background:var(--sand);display:flex;align-items:center;justify-content:center;color:var(--stone);font-size:1.4rem;"><i class="fas fa-store"></i></div>
+        <div>
+          <input type="file" id="storePhotoInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+          <button class="btn-tiny" id="choosePhotoBtn" type="button">Choose Photo</button>
+          <p style="font-size:0.68rem;color:var(--stone);margin-top:6px;">JPG, PNG, or WebP. Max 2MB.</p>
+        </div>
+      </div>
+      <div id="photoUploadMsg" style="font-size:0.76rem;display:none;"></div>
+    </div>
+
+    <div class="card-box" style="max-width:520px;margin-bottom:18px;">
       <div class="section-heading">Seller Profile</div>
       <div class="form-row"><div class="form-field"><label>Business Name</label><input type="text" id="profBusiness"></div></div>
+      <div class="form-row"><div class="form-field"><label>Store Description</label><textarea id="profDescription" rows="3" style="width:100%;padding:10px 12px;border:1px solid var(--border-light);border-radius:8px;font-family:inherit;font-size:0.85rem;resize:vertical;" placeholder="Tell customers what your store is about..."></textarea></div></div>
       <div class="form-row"><div class="form-field"><label>Contact Phone</label><input type="text" id="profPhone"></div></div>
       <div class="form-row"><div class="form-field"><label>Contact Email</label><input type="text" id="profEmail" disabled style="background:#f5f0eb;"></div></div>
       <div class="form-row"><div class="form-field"><label>Seller ID</label><input type="text" id="profCode" disabled style="background:#f5f0eb;"></div></div>
       <div class="form-row"><div class="form-field"><label>Commission Rate</label><input type="text" id="profCommission" disabled style="background:#f5f0eb;"></div></div>
       <button class="btn-primary-sm" id="saveProfileBtn">Save Changes</button>
+    </div>
+
+    <div class="card-box" style="max-width:520px;">
+      <div class="section-heading">Change Password</div>
+      <div class="form-row"><div class="form-field"><label>Current Password</label><input type="password" id="currentPasswordInput" placeholder="••••••••"></div></div>
+      <div class="form-row"><div class="form-field"><label>New Password</label><input type="password" id="newPasswordInput" placeholder="At least 6 characters"></div></div>
+      <div class="form-row"><div class="form-field"><label>Confirm New Password</label><input type="password" id="confirmPasswordInput" placeholder="Re-enter new password"></div></div>
+      <button class="btn-primary-sm" id="changePasswordBtn">Change Password</button>
+      <div id="passwordChangeMsg" style="font-size:0.76rem;margin-top:10px;display:none;"></div>
     </div>
   </div>
 </div>
@@ -289,10 +317,12 @@
     }
 
     document.getElementById('profBusiness').value = currentSeller.business_name || '';
+    document.getElementById('profDescription').value = currentSeller.store_description || '';
     document.getElementById('profPhone').value = currentSeller.contact_phone || '';
     document.getElementById('profEmail').value = currentSeller.contact_email || '';
     document.getElementById('profCode').value = currentSeller.seller_code || '';
     document.getElementById('profCommission').value = (currentSeller.commission_rate ?? 5) + '%';
+    updateStorePhotoPreview(currentSeller.store_photo_url);
 
     await loadProducts();
     await loadOrderItems();
@@ -336,7 +366,7 @@
   }
 
   async function saveProduct(product){
-    const payload = { id: product.id, name: product.name, seller_id: currentUser.id, category: product.category, description: product.description, images: JSON.stringify(product.images), variants: JSON.stringify(product.variants), discount: product.discount||0, stock: product.stock||0, listing_status: product.listing_status||'active' };
+    const payload = { id: product.id, name: product.name, seller_id: currentUser.id, category: product.category, description: product.description, ingredients: product.ingredients||null, how_to_use: product.how_to_use||null, images: JSON.stringify(product.images), variants: JSON.stringify(product.variants), discount: product.discount||0, stock: product.stock||0, listing_status: product.listing_status||'active' };
     const { error } = await db.from('products').upsert([payload]);
     if(error) throw error;
   }
@@ -346,6 +376,7 @@
 
   document.getElementById('addProductBtn').addEventListener('click', async function(){
     const name=document.getElementById('prodName').value.trim(), cat=document.getElementById('prodCat').value, desc=document.getElementById('prodDesc').value.trim();
+    const ingredients=document.getElementById('prodIngredients').value.trim(), howToUse=document.getElementById('prodHowToUse').value.trim();
     const imgs=document.getElementById('prodImages').value.split(',').map(s=>s.trim()).filter(s=>s);
     const stock=parseInt(document.getElementById('prodStock').value)||0;
     if(!name){ showToast('Enter a product name'); return; }
@@ -353,12 +384,12 @@
     document.querySelectorAll('#variantsContainer .variant-row').forEach(row=>{ const size=row.querySelector('.variant-size').value.trim(), price=parseFloat(row.querySelector('.variant-price').value); if(size && price>0) variants.push({size,price}); });
     if(!variants.length){ showToast('Add at least one variant'); return; }
     const btn=this; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Adding...';
-    const newProduct = { id: Date.now(), name, category:cat, description: desc||'Genuine product', images: imgs.length?imgs:['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock, listing_status: currentSeller.status==='approved'?'active':'active' };
+    const newProduct = { id: Date.now(), name, category:cat, description: desc||'Genuine product', ingredients: ingredients||null, how_to_use: howToUse||null, images: imgs.length?imgs:['https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], variants, discount:0, stock, listing_status: currentSeller.status==='approved'?'active':'active' };
     try {
       await saveProduct(newProduct);
       myProducts.unshift(newProduct);
       renderProducts();
-      document.getElementById('prodName').value=''; document.getElementById('prodDesc').value=''; document.getElementById('prodImages').value=''; document.getElementById('prodStock').value='10';
+      document.getElementById('prodName').value=''; document.getElementById('prodDesc').value=''; document.getElementById('prodIngredients').value=''; document.getElementById('prodHowToUse').value=''; document.getElementById('prodImages').value=''; document.getElementById('prodStock').value='10';
       document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="variant-size" placeholder="Size (e.g. 100g)"><input type="number" class="variant-price" placeholder="Price (NPR)"><button type="button" class="btn-remove-sm" onclick="removeVariant(this)">✕</button></div>`;
       showToast('Product added!');
     } catch(e){ console.error(e); showToast('Could not add product. Please try again.'); }
@@ -538,12 +569,80 @@
   // ---------- PROFILE ----------
   document.getElementById('saveProfileBtn').addEventListener('click', async function(){
     const business = document.getElementById('profBusiness').value.trim();
+    const description = document.getElementById('profDescription').value.trim();
     const phone = document.getElementById('profPhone').value.trim();
     if(!business || !phone){ showToast('Business name and phone are required'); return; }
     try {
-      await db.from('sellers').update({ business_name: business, contact_phone: phone }).eq('id', currentUser.id);
+      await db.from('sellers').update({ business_name: business, store_description: description, contact_phone: phone }).eq('id', currentUser.id);
+      currentSeller.business_name = business; currentSeller.store_description = description; currentSeller.contact_phone = phone;
       showToast('Profile updated');
     } catch(e){ showToast('Could not save profile'); }
+  });
+
+  // ---------- STORE PHOTO ----------
+  const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+  const ALLOWED_PHOTO_TYPES = ['image/jpeg','image/png','image/webp'];
+
+  function updateStorePhotoPreview(url){
+    const img = document.getElementById('storePhotoPreview'), placeholder = document.getElementById('storePhotoPlaceholder');
+    if(url){ img.src = url; img.style.display = 'block'; placeholder.style.display = 'none'; }
+    else { img.style.display = 'none'; placeholder.style.display = 'flex'; }
+  }
+
+  document.getElementById('choosePhotoBtn').addEventListener('click', () => document.getElementById('storePhotoInput').click());
+
+  document.getElementById('storePhotoInput').addEventListener('change', async function(){
+    const file = this.files[0];
+    const msgEl = document.getElementById('photoUploadMsg');
+    if(!file) return;
+    if(!ALLOWED_PHOTO_TYPES.includes(file.type)){ msgEl.textContent='Only JPG, PNG, or WebP images are allowed.'; msgEl.style.color='#c0392b'; msgEl.style.display='block'; this.value=''; return; }
+    if(file.size > MAX_PHOTO_BYTES){ msgEl.textContent='File is too large — max 2MB.'; msgEl.style.color='#c0392b'; msgEl.style.display='block'; this.value=''; return; }
+    msgEl.textContent='Uploading...'; msgEl.style.color='var(--stone)'; msgEl.style.display='block';
+    try {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const path = `${currentUser.id}/store-photo-${Date.now()}.${ext}`;
+      const { error: uploadErr } = await db.storage.from('store-photos').upload(path, file, { upsert: true });
+      if(uploadErr) throw uploadErr;
+      const { data: urlData } = db.storage.from('store-photos').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+      await db.from('sellers').update({ store_photo_url: publicUrl }).eq('id', currentUser.id);
+      currentSeller.store_photo_url = publicUrl;
+      updateStorePhotoPreview(publicUrl);
+      msgEl.textContent='Store photo updated!'; msgEl.style.color='var(--olive)';
+      setTimeout(()=>{ msgEl.style.display='none'; }, 2500);
+    } catch(e){
+      console.error(e);
+      msgEl.textContent='Upload failed. Please try again.'; msgEl.style.color='#c0392b';
+    }
+    this.value = '';
+  });
+
+  // ---------- CHANGE PASSWORD ----------
+  document.getElementById('changePasswordBtn').addEventListener('click', async function(){
+    const current = document.getElementById('currentPasswordInput').value;
+    const next = document.getElementById('newPasswordInput').value;
+    const confirm = document.getElementById('confirmPasswordInput').value;
+    const msgEl = document.getElementById('passwordChangeMsg');
+    function showPwMsg(text, ok){ msgEl.textContent=text; msgEl.style.color = ok ? 'var(--olive)' : '#c0392b'; msgEl.style.display='block'; }
+    if(!current || !next || !confirm){ showPwMsg('Fill in all three fields.', false); return; }
+    if(next.length < 6){ showPwMsg('New password must be at least 6 characters.', false); return; }
+    if(next !== confirm){ showPwMsg('New passwords do not match.', false); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    try {
+      // Re-verify the current password before allowing a change — protects
+      // against someone with a still-open session on a shared device.
+      const { error: verifyErr } = await db.auth.signInWithPassword({ email: currentSeller.contact_email, password: current });
+      if(verifyErr) throw new Error('Current password is incorrect.');
+      const { error: updateErr } = await db.auth.updateUser({ password: next });
+      if(updateErr) throw updateErr;
+      showPwMsg('Password changed successfully.', true);
+      document.getElementById('currentPasswordInput').value='';
+      document.getElementById('newPasswordInput').value='';
+      document.getElementById('confirmPasswordInput').value='';
+    } catch(e){
+      showPwMsg(e.message || 'Could not change password.', false);
+    }
+    btn.disabled = false; btn.innerHTML = 'Change Password';
   });
 
   // ---------- NAV ----------
