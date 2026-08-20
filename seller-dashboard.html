@@ -97,7 +97,7 @@
     <div class="brand"><h1>DERMAHUB</h1><p>seller dashboard</p></div>
     <div class="header-actions">
       <span class="seller-badge" id="sellerCodeBadge">SLR-0000</span>
-      <a href="index.html" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
+      <a href="/" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
       <button class="btn-ghost" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
   </header>
@@ -288,7 +288,7 @@
   // ---------- AUTH GATE ----------
   async function init(){
     const { data:{ session } } = await db.auth.getSession();
-    if(!session){ window.location.href = 'seller-auth.html'; return; }
+    if(!session){ window.location.href = '/seller'; return; }
     currentUser = session.user;
 
     let { data: sellerRow, error: sellerErr } = await db.from('sellers').select('*').eq('id', currentUser.id).single();
@@ -303,7 +303,7 @@
       if(createErr || !createdRow){
         await showAlertPopup('Setup Needed','We could not set up your seller profile automatically. Please contact support.');
         await db.auth.signOut();
-        window.location.href = 'seller-auth.html';
+        window.location.href = '/seller';
         return;
       }
       sellerRow = createdRow;
@@ -655,7 +655,7 @@
 
   document.getElementById('logoutBtn').addEventListener('click', async function(){
     await db.auth.signOut();
-    window.location.href = 'seller-auth.html';
+    window.location.href = '/seller';
   });
 
   init();
