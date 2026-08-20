@@ -39,7 +39,7 @@
 </head>
 <body>
 <div class="wrap">
-  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a>
+  <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a>
   <div class="card">
     <h1>DERMAHUB</h1>
     <p class="subtitle">Seller Portal</p>
@@ -111,7 +111,7 @@
       const { error: sellerErr } = await db.from('sellers').insert([{ id: data.user.id, business_name: business, contact_email: email, contact_phone: phone }]);
       if(sellerErr) throw sellerErr;
       showMsg('signupMsg','Account created! Redirecting to your dashboard...','success');
-      setTimeout(() => window.location.href = 'seller-dashboard.html', 1200);
+      setTimeout(() => window.location.href = '/seller/dashboard', 1200);
     } catch(e) {
       showMsg('signupMsg', e.message || 'Something went wrong. Please try again.', 'error');
       btn.disabled = false; btn.innerHTML = 'Create Seller Account';
@@ -126,7 +126,7 @@
     try {
       const { error } = await db.auth.signInWithPassword({ email, password });
       if(error) throw error;
-      window.location.href = 'seller-dashboard.html';
+      window.location.href = '/seller/dashboard';
     } catch(e) {
       showMsg('loginMsg', e.message || 'Login failed. Check your details.', 'error');
       btn.disabled = false; btn.innerHTML = 'Log In to Dashboard';
@@ -147,7 +147,7 @@
     if(!email){ showMsg('forgotMsg','Enter your account email.','error'); return; }
     const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     try {
-      const redirectUrl = window.location.origin + window.location.pathname.replace('seller-auth.html','') + 'reset-password.html';
+      const redirectUrl = window.location.origin + '/reset-password';
       const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
       if(error) throw error;
       showMsg('forgotMsg','If that email has an account, a reset link is on its way. Check your inbox (and spam folder).','success');
@@ -159,7 +159,7 @@
 
   (async function checkSession(){
     const { data:{ session } } = await db.auth.getSession();
-    if(session) window.location.href = 'seller-dashboard.html';
+    if(session) window.location.href = '/seller/dashboard';
   })();
 })();
 </script>
