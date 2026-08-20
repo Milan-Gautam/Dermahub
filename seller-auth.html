@@ -126,7 +126,7 @@
     try {
       const { error } = await db.auth.signInWithPassword({ email, password });
       if(error) throw error;
-      window.location.href = '/seller/dashboard';
+      window.location.href = '/Dermahub/seller/dashboard';
     } catch(e) {
       showMsg('loginMsg', e.message || 'Login failed. Check your details.', 'error');
       btn.disabled = false; btn.innerHTML = 'Log In to Dashboard';
@@ -159,7 +159,7 @@
 
   (async function checkSession(){
     const { data:{ session } } = await db.auth.getSession();
-    if(session) window.location.href = '/seller/dashboard';
+    if(session) window.location.href = '/Dermahub/seller/dashboard';
   })();
 })();
 </script>
