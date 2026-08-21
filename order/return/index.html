@@ -44,7 +44,7 @@
 </style>
 </head>
 <body>
-  <div class="top-bar"><div class="container"><a href="index.html" class="logo-link">DERMAHUB</a><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a></div></div>
+  <div class="top-bar"><div class="container"><a href="/" class="logo-link">DERMAHUB</a><a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a></div></div>
 
   <div class="wrap">
 
@@ -91,7 +91,7 @@
       <div class="icon"><i class="fas fa-circle-check"></i></div>
       <h1>Request Submitted</h1>
       <p class="sub">The seller (or DERMAHUB, for official products) will review your request. You'll be contacted at the email you provided once there's an update.</p>
-      <a href="index.html" class="btn-main" style="text-decoration:none;display:inline-block;">Back to Store</a>
+      <a href="/" class="btn-main" style="text-decoration:none;display:inline-block;">Back to Store</a>
     </div>
 
   </div>
@@ -115,7 +115,8 @@
     if(!orderId || !email){ showMsg('lookupMsg','Enter your Order ID and email.','error'); return; }
     const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
     try {
-      const { data: order, error } = await db.from('orders').select('*').eq('orderId', orderId).eq('email', email).single();
+      const { data: orderResults, error } = await db.rpc('get_order_for_tracking', { p_order_id: orderId, p_email: email });
+      const order = orderResults && orderResults.length ? orderResults[0] : null;
       if(error || !order) throw new Error('No matching order found. Double-check your Order ID and email.');
 
       const daysSince = (Date.now() - new Date(order.date).getTime()) / (1000*60*60*24);
