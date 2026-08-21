@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
@@ -162,7 +163,7 @@
     <div class="admin-header">
       <div class="logo"><h1>DERMAHUB</h1><p>platform admin</p></div>
       <div class="header-actions">
-        <a href="index.html" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
+        <a href="/" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
         <button class="btn-ghost" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
         <button class="btn-ghost" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
       </div>
@@ -177,7 +178,8 @@
     </div>
 
     <div class="nav-tabs">
-      <button class="nav-tab active" data-panel="ordersPanel"><i class="fas fa-clipboard-list"></i> Orders</button>
+      <button class="nav-tab" data-panel="ordersPanel"><i class="fas fa-clipboard-list"></i> Orders</button>
+      <button class="nav-tab active" data-panel="analyticsPanel"><i class="fas fa-chart-pie"></i> Analytics</button>
       <button class="nav-tab" data-panel="sellersPanel"><i class="fas fa-store"></i> Sellers</button>
       <button class="nav-tab" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
       <button class="nav-tab" data-panel="cashflowPanel"><i class="fas fa-chart-line"></i> Cash Flow</button>
@@ -186,8 +188,61 @@
       <button class="nav-tab" data-panel="vouchersPanel"><i class="fas fa-ticket-alt"></i> Vouchers</button>
     </div>
 
+    <!-- ANALYTICS -->
+    <div class="panel active" id="analyticsPanel">
+      <div class="cashflow-grid">
+        <div class="cashflow-card"><h4>Gross Revenue</h4><div class="amount" id="anGross">NPR 0</div></div>
+        <div class="cashflow-card alt"><h4>Platform Commission</h4><div class="amount" id="anCommission">NPR 0</div></div>
+        <div class="cashflow-card neutral"><h4>Total Refunded</h4><div class="amount" id="anRefunded">NPR 0</div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3>Total Orders</h3><div class="stat-number" id="anOrders">0</div></div>
+        <div class="stat-card"><i class="fas fa-store"></i><h3>Sellers</h3><div class="stat-number" id="anSellers">0</div></div>
+        <div class="stat-card"><i class="fas fa-boxes"></i><h3>Products</h3><div class="stat-number" id="anProducts">0</div></div>
+        <div class="stat-card"><i class="fas fa-wallet"></i><h3>Owed to Sellers</h3><div class="stat-number" id="anOwed">NPR 0</div></div>
+        <div class="stat-card"><i class="fas fa-hand-holding-dollar"></i><h3>Pending Payouts</h3><div class="stat-number" id="anPendingPayouts">0</div></div>
+        <div class="stat-card"><i class="fas fa-rotate-left"></i><h3>Open Returns</h3><div class="stat-number" id="anOpenReturns">0</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div class="card-box">
+          <div class="section-heading"><i class="fas fa-chart-line"></i> Revenue — Last 14 Days</div>
+          <canvas id="revenueChart" height="180"></canvas>
+        </div>
+        <div class="card-box">
+          <div class="section-heading"><i class="fas fa-chart-pie"></i> Order Status Breakdown</div>
+          <canvas id="statusChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div class="card-box">
+          <div class="section-heading"><i class="fas fa-trophy"></i> Top Sellers</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Seller</th><th>Gross Sales</th><th>Items Sold</th></tr></thead>
+            <tbody id="topSellersBody"></tbody>
+          </table></div>
+        </div>
+        <div class="card-box">
+          <div class="section-heading"><i class="fas fa-fire"></i> Top Products</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+            <tbody id="topProductsBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-clock-rotate-left"></i> Recent Activity</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>When</th><th>Table</th><th>Change</th></tr></thead>
+          <tbody id="activityFeedBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
     <!-- ORDERS (RECEIVERS) -->
-    <div class="panel active" id="ordersPanel">
+    <div class="panel" id="ordersPanel">
       <div class="card-box">
         <div class="section-heading"><i class="fas fa-clipboard-list"></i> Customer Orders</div>
         <p style="font-size:0.76rem;color:var(--stone);margin-bottom:14px;">Status here updates automatically as sellers fulfil their items. The dropdown below is a manual override for exceptions — it will be recalculated the next time a seller updates their order.</p>
@@ -317,7 +372,8 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [];
+  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [], auditLog = [];
+  let revenueChartInstance = null, statusChartInstance = null;
 
   function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
   function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
@@ -369,7 +425,7 @@
     if(!email){ msgEl.textContent='Enter your admin email.'; msgEl.className='msg error'; return; }
     const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     try {
-      const redirectUrl = window.location.origin + window.location.pathname.replace('admin_007.html','') + 'reset-password.html';
+      const redirectUrl = window.location.origin + '/reset-password';
       const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
       if(error) throw error;
       msgEl.textContent = 'If that email has an account, a reset link is on its way. Check your inbox (and spam folder).';
@@ -446,9 +502,13 @@
     try { const { data, error } = await db.from('return_requests').select('*').order('requested_at',{ascending:false}); if(error) throw error; returnRequests = data || []; } catch(e){ console.error(e); returnRequests = []; }
   }
 
+  async function loadAuditLog(){
+    try { const { data, error } = await db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(15); if(error) throw error; auditLog = data || []; } catch(e){ console.error(e); auditLog = []; }
+  }
+
   async function refreshAll(){
-    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests()]);
-    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests();
+    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests(), loadAuditLog()]);
+    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests(); renderAnalytics();
     updateTopStats();
   }
 
@@ -460,6 +520,112 @@
     const commission = orderItems.reduce((s,i)=>s+parseFloat(i.commission_amount||0),0);
     document.getElementById('statGross').textContent = 'NPR ' + gross.toLocaleString();
     document.getElementById('statCommission').textContent = 'NPR ' + commission.toLocaleString();
+  }
+
+  // ---------------- ANALYTICS ----------------
+  function renderAnalytics(){
+    const gross = orderItems.reduce((s,i)=>s+parseFloat(i.line_total||0),0);
+    const commission = orderItems.reduce((s,i)=>s+parseFloat(i.commission_amount||0),0);
+    const sellerEarnings = orderItems.reduce((s,i)=>s+parseFloat(i.seller_earning||0),0);
+    const totalRefunded = returnRequests.filter(r=>r.status==='refunded').reduce((s,r)=>s+parseFloat(r.refund_amount||0),0);
+    const pendingPayouts = payoutRequests.filter(p=>p.status==='pending').length;
+    const openReturns = returnRequests.filter(r=>r.status==='requested'||r.status==='approved').length;
+
+    document.getElementById('anGross').textContent = 'NPR ' + gross.toLocaleString();
+    document.getElementById('anCommission').textContent = 'NPR ' + commission.toLocaleString();
+    document.getElementById('anRefunded').textContent = 'NPR ' + totalRefunded.toLocaleString();
+    document.getElementById('anOrders').textContent = orders.length;
+    document.getElementById('anSellers').textContent = sellers.length;
+    document.getElementById('anProducts').textContent = products.length;
+    document.getElementById('anOwed').textContent = 'NPR ' + sellerEarnings.toLocaleString();
+    document.getElementById('anPendingPayouts').textContent = pendingPayouts;
+    document.getElementById('anOpenReturns').textContent = openReturns;
+
+    renderRevenueChart();
+    renderStatusChart();
+    renderTopSellers();
+    renderTopProducts();
+    renderActivityFeed();
+  }
+
+  function renderRevenueChart(){
+    const days = [];
+    const totalsByDay = {};
+    for(let i=13;i>=0;i--){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const key = d.toISOString().slice(0,10);
+      days.push(key); totalsByDay[key] = 0;
+    }
+    orders.forEach(o => {
+      if(!o.date) return;
+      const key = new Date(o.date).toISOString().slice(0,10);
+      if(key in totalsByDay) totalsByDay[key] += parseFloat(o.total||0);
+    });
+    const labels = days.map(d => new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+    const data = days.map(d => totalsByDay[d]);
+
+    const ctx = document.getElementById('revenueChart');
+    if(revenueChartInstance) revenueChartInstance.destroy();
+    revenueChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Revenue (NPR)', data, borderColor: '#3a5a45', backgroundColor: 'rgba(58,90,69,0.1)', fill: true, tension: 0.3 }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  function renderStatusChart(){
+    const counts = { ordered:0, paid:0, processing:0, shipped:0, delivered:0 };
+    orders.forEach(o => { const s = (o.status||'ordered').toLowerCase(); if(s in counts) counts[s]++; });
+    const ctx = document.getElementById('statusChart');
+    if(statusChartInstance) statusChartInstance.destroy();
+    statusChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(counts).map(k=>k.charAt(0).toUpperCase()+k.slice(1)),
+        datasets: [{ data: Object.values(counts), backgroundColor: ['#e0d5f5','#cce5ff','#fff3cd','#b8daff','#d4edda'] }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } }
+    });
+  }
+
+  function renderTopSellers(){
+    const bySeller = {};
+    orderItems.forEach(item => {
+      const key = item.seller_id || 'official';
+      if(!bySeller[key]) bySeller[key] = { gross:0, items:0 };
+      bySeller[key].gross += parseFloat(item.line_total||0);
+      bySeller[key].items += item.quantity || 0;
+    });
+    const ranked = Object.entries(bySeller).sort((a,b)=>b[1].gross-a[1].gross).slice(0,5);
+    const tbody = document.getElementById('topSellersBody');
+    if(!ranked.length){ tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No sales yet</td></tr>'; return; }
+    tbody.innerHTML = ranked.map(([key,row]) => {
+      const label = key==='official' ? 'DERMAHUB (Official)' : sellerLabelFor(key);
+      return `<tr><td><strong>${esc(label)}</strong></td><td>NPR ${row.gross.toLocaleString()}</td><td>${row.items}</td></tr>`;
+    }).join('');
+  }
+
+  function renderTopProducts(){
+    const byProduct = {};
+    orderItems.forEach(item => {
+      const key = item.product_id;
+      if(!byProduct[key]) byProduct[key] = { name: item.product_name, units:0, revenue:0 };
+      byProduct[key].units += item.quantity || 0;
+      byProduct[key].revenue += parseFloat(item.line_total||0);
+    });
+    const ranked = Object.values(byProduct).sort((a,b)=>b.units-a.units).slice(0,5);
+    const tbody = document.getElementById('topProductsBody');
+    if(!ranked.length){ tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No sales yet</td></tr>'; return; }
+    tbody.innerHTML = ranked.map(row => `<tr><td><strong>${esc(row.name)}</strong></td><td>${row.units}</td><td>NPR ${row.revenue.toLocaleString()}</td></tr>`).join('');
+  }
+
+  function renderActivityFeed(){
+    const tbody = document.getElementById('activityFeedBody');
+    if(!auditLog.length){ tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No recent activity logged yet</td></tr>'; return; }
+    tbody.innerHTML = auditLog.map(entry => {
+      const when = entry.created_at ? new Date(entry.created_at).toLocaleString() : '';
+      return `<tr><td><small>${esc(when)}</small></td><td><small>${esc(entry.table_name)} #${esc(entry.record_id)}</small></td><td><small>${esc(entry.old_value)} → <strong>${esc(entry.new_value)}</strong></small></td></tr>`;
+    }).join('');
   }
 
   // ---------------- ORDERS (RECEIVERS) ----------------
