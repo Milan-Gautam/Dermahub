@@ -226,6 +226,14 @@
       <button class="btn-primary-sm" id="changePasswordBtn">Change Password</button>
       <div id="passwordChangeMsg" style="font-size:0.76rem;margin-top:10px;display:none;"></div>
     </div>
+
+    <div class="card-box" style="max-width:520px;margin-top:18px;border:1px solid #f3c9c2;">
+      <div class="section-heading" style="color:#c0392b;"><i class="fas fa-triangle-exclamation"></i> Danger Zone</div>
+      <p style="font-size:0.8rem;color:var(--stone);line-height:1.6;margin-bottom:14px;">Closing your account will hide all your product listings from the storefront immediately and lock you out of this dashboard. This cannot be undone by yourself — you'd need to contact DERMAHUB support to reopen it.</p>
+      <div class="form-row"><div class="form-field"><label>Type DELETE to confirm</label><input type="text" id="deleteConfirmInput" placeholder="DELETE"></div></div>
+      <button class="btn-primary-sm" id="deleteAccountBtn" style="background:#c0392b;" disabled>Close My Account</button>
+      <div id="deleteAccountMsg" style="font-size:0.76rem;margin-top:10px;display:none;"></div>
+    </div>
   </div>
 </div>
 
@@ -310,6 +318,12 @@
       showToast('Welcome! Your seller profile has been set up.');
     }
     currentSeller = sellerRow;
+    if(currentSeller.status === 'closed'){
+      await showAlertPopup('Account Closed','This account has been closed. Please contact DERMAHUB support if you would like to reopen it.');
+      await db.auth.signOut();
+      window.location.href = '/seller';
+      return;
+    }
     document.getElementById('sellerCodeBadge').textContent = currentSeller.seller_code;
     if(currentSeller.status === 'pending') document.getElementById('pendingBanner').style.display = 'flex';
     if(currentSeller.status === 'suspended'){
@@ -643,6 +657,40 @@
       showPwMsg(e.message || 'Could not change password.', false);
     }
     btn.disabled = false; btn.innerHTML = 'Change Password';
+  });
+
+  // ---------- DELETE ACCOUNT ----------
+  document.getElementById('deleteConfirmInput').addEventListener('input', function(){
+    document.getElementById('deleteAccountBtn').disabled = this.value.trim() !== 'DELETE';
+  });
+
+  document.getElementById('deleteAccountBtn').addEventListener('click', async function(){
+    const msgEl = document.getElementById('deleteAccountMsg');
+    function showDelMsg(text, ok){ msgEl.textContent=text; msgEl.style.color = ok ? 'var(--olive)' : '#c0392b'; msgEl.style.display='block'; }
+
+    const ok = await showConfirmPopup('Close Your Account?', 'This hides every product you have listed and locks you out of this dashboard immediately. You will need to contact DERMAHUB support to reopen it. This cannot be undone by yourself.', 'Close Account');
+    if(!ok) return;
+
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Closing account...';
+    try {
+      // Hide every listing first so nothing stays visible on the storefront.
+      const productIds = myProducts.map(p => p.id);
+      if(productIds.length){
+        await db.from('products').update({ listing_status: 'hidden' }).eq('seller_id', currentUser.id);
+      }
+      const { error } = await db.from('sellers').update({ status: 'closed', deleted_at: new Date().toISOString() }).eq('id', currentUser.id);
+      if(error) throw error;
+
+      showDelMsg('Your account has been closed. Signing you out...', true);
+      setTimeout(async () => {
+        await db.auth.signOut();
+        window.location.href = '/seller';
+      }, 1800);
+    } catch(e){
+      console.error(e);
+      showDelMsg('Could not close your account. Please try again or contact support.', false);
+      btn.disabled = false; btn.innerHTML = 'Close My Account';
+    }
   });
 
   // ---------- NAV ----------
