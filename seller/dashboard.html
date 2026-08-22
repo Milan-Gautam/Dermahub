@@ -65,11 +65,15 @@
   .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.7rem; cursor:pointer; font-family:inherit; background:white; }
   .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
   .badge-status.ordered, .badge-status.pending { background:#e8e0f7; color:#5b3a8c; }
-  .badge-status.paid, .badge-status.approved { background:#cce5ff; color:#004085; }
+  .badge-status.paid, .badge-status.confirmed, .badge-status.approved { background:#cce5ff; color:#004085; }
   .badge-status.processing { background:#fff3cd; color:#856404; }
+  .badge-status.packed { background:#ffe0b2; color:#a15c00; }
   .badge-status.shipped { background:#b8daff; color:#004085; }
+  .badge-status.out_for_delivery { background:#c9e3ff; color:#004085; }
   .badge-status.delivered { background:#d4edda; color:#155724; }
-  .badge-status.rejected { background:#fdecea; color:#c0392b; }
+  .badge-status.cancelled, .badge-status.failed, .badge-status.rejected { background:#fdecea; color:#c0392b; }
+  .badge-status.returned { background:#f0e6f6; color:#6a3d9a; }
+  .badge-status.refunded { background:#e0d5f5; color:#5b3a8c; }
   .empty-state { text-align:center; padding:44px; color:var(--stone); font-size:0.85rem; }
   .toast { position:fixed; bottom:20px; right:20px; background:var(--deep-olive); color:white; padding:12px 22px; border-radius:40px; z-index:1000; display:none; font-size:0.85rem; }
   .popup-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(44,43,40,0.45); z-index:5000; align-items:center; justify-content:center; padding:20px; }
@@ -465,11 +469,17 @@
         <td><small style="color:var(--stone);">NPR ${parseFloat(item.commission_amount||0).toLocaleString()}</small></td>
         <td><strong>NPR ${parseFloat(item.seller_earning||0).toLocaleString()}</strong></td>
         <td><select class="status-select" onchange="window._updateItemStatus(${item.id}, this.value)">
-          <option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option>
-          <option value="paid" ${status==='paid'?'selected':''}>Paid</option>
+          <option value="pending" ${status==='pending'?'selected':''}>Pending</option>
+          <option value="confirmed" ${status==='confirmed'?'selected':''}>Confirmed</option>
           <option value="processing" ${status==='processing'?'selected':''}>Processing</option>
+          <option value="packed" ${status==='packed'?'selected':''}>Packed</option>
           <option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option>
+          <option value="out_for_delivery" ${status==='out_for_delivery'?'selected':''}>Out for Delivery</option>
           <option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option>
+          <option value="cancelled" ${status==='cancelled'?'selected':''}>Cancelled</option>
+          <option value="returned" ${status==='returned'?'selected':''}>Returned</option>
+          <option value="refunded" ${status==='refunded'?'selected':''}>Refunded</option>
+          <option value="failed" ${status==='failed'?'selected':''}>Failed</option>
         </select></td>
       </tr>`;
     });
