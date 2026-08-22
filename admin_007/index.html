@@ -70,11 +70,15 @@
   .badge-location.outside { background:#fff3e0; color:#e67e22; }
   .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
   .badge-status.ordered, .badge-status.pending { background:#e8e0f7; color:#5b3a8c; }
-  .badge-status.paid, .badge-status.approved { background:#cce5ff; color:#004085; }
+  .badge-status.paid, .badge-status.confirmed, .badge-status.approved { background:#cce5ff; color:#004085; }
   .badge-status.processing { background:#fff3cd; color:#856404; }
+  .badge-status.packed { background:#ffe0b2; color:#a15c00; }
   .badge-status.shipped { background:#b8daff; color:#004085; }
+  .badge-status.out_for_delivery { background:#c9e3ff; color:#004085; }
   .badge-status.delivered { background:#d4edda; color:#155724; }
-  .badge-status.suspended, .badge-status.rejected { background:#fdecea; color:#c0392b; }
+  .badge-status.suspended, .badge-status.cancelled, .badge-status.failed, .badge-status.rejected { background:#fdecea; color:#c0392b; }
+  .badge-status.returned { background:#f0e6f6; color:#6a3d9a; }
+  .badge-status.refunded { background:#e0d5f5; color:#5b3a8c; }
   .badge-status.closed { background:#e8e6e3; color:#5a564f; }
 
   .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.7rem; cursor:pointer; font-family:inherit; background:white; }
@@ -575,15 +579,22 @@
   }
 
   function renderStatusChart(){
-    const counts = { ordered:0, paid:0, processing:0, shipped:0, delivered:0 };
-    orders.forEach(o => { const s = (o.status||'ordered').toLowerCase(); if(s in counts) counts[s]++; });
+    const allStages = ['pending','confirmed','processing','packed','shipped','out_for_delivery','delivered','cancelled','returned','refunded','failed'];
+    const stageColors = { pending:'#e0d5f5', confirmed:'#cce5ff', processing:'#fff3cd', packed:'#ffe0b2', shipped:'#b8daff', out_for_delivery:'#c9e3ff', delivered:'#d4edda', cancelled:'#fdecea', returned:'#f0e6f6', refunded:'#e0d5f5', failed:'#f8d7da' };
+    const counts = {};
+    allStages.forEach(s => counts[s] = 0);
+    orders.forEach(o => { const s = (o.status||'pending').toLowerCase(); if(s in counts) counts[s]++; });
+    const present = allStages.filter(s => counts[s] > 0);
+    const labels = present.length ? present : ['pending'];
+    const data = present.length ? present.map(s=>counts[s]) : [0];
+    const colors = labels.map(s => stageColors[s] || '#ccc');
     const ctx = document.getElementById('statusChart');
     if(statusChartInstance) statusChartInstance.destroy();
     statusChartInstance = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: Object.keys(counts).map(k=>k.charAt(0).toUpperCase()+k.slice(1)),
-        datasets: [{ data: Object.values(counts), backgroundColor: ['#e0d5f5','#cce5ff','#fff3cd','#b8daff','#d4edda'] }]
+        labels: labels.map(k=>k.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')),
+        datasets: [{ data, backgroundColor: colors }]
       },
       options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } }
     });
@@ -646,11 +657,17 @@
         <td><small>${o.date?new Date(o.date).toLocaleDateString():''}</small></td>
         <td><span class="badge-status ${status}">${status}</span></td>
         <td><select class="status-select" onchange="window._updateOrderStatus('${o.orderId}', this.value)">
-          <option value="ordered" ${status==='ordered'?'selected':''}>Ordered</option>
-          <option value="paid" ${status==='paid'?'selected':''}>Paid</option>
+          <option value="pending" ${status==='pending'?'selected':''}>Pending</option>
+          <option value="confirmed" ${status==='confirmed'?'selected':''}>Confirmed</option>
           <option value="processing" ${status==='processing'?'selected':''}>Processing</option>
+          <option value="packed" ${status==='packed'?'selected':''}>Packed</option>
           <option value="shipped" ${status==='shipped'?'selected':''}>Shipped</option>
+          <option value="out_for_delivery" ${status==='out_for_delivery'?'selected':''}>Out for Delivery</option>
           <option value="delivered" ${status==='delivered'?'selected':''}>Delivered</option>
+          <option value="cancelled" ${status==='cancelled'?'selected':''}>Cancelled</option>
+          <option value="returned" ${status==='returned'?'selected':''}>Returned</option>
+          <option value="refunded" ${status==='refunded'?'selected':''}>Refunded</option>
+          <option value="failed" ${status==='failed'?'selected':''}>Failed</option>
         </select> <button class="delete-btn" onclick="window._delOrder('${o.orderId}')"><i class="fas fa-trash-alt"></i></button></td>
       </tr>`;
     });
