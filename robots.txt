@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /seller
+Disallow: /admin_007
+Disallow: /reset-password
+
+Sitemap: https://dermahub-iota.vercel.app/sitemap.xml
