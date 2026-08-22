@@ -32,6 +32,10 @@
   .state { display:none; }
   .state.active { display:block; }
 
+  .exception-banner { border-radius:14px; padding:14px 18px; margin:20px 0; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:10px; }
+  .exception-banner.cancelled, .exception-banner.failed { background:#fdecea; color:#c0392b; }
+  .exception-banner.returned { background:#f0e6f6; color:#6a3d9a; }
+  .exception-banner.refunded { background:#e0d5f5; color:#5b3a8c; }
   .status-track { display:flex; justify-content:space-between; margin:24px 0 28px; position:relative; }
   .status-track::before { content:''; position:absolute; top:14px; left:0; right:0; height:3px; background:var(--border-light); z-index:0; }
   .status-track .fill { position:absolute; top:14px; left:0; height:3px; background:var(--olive); z-index:1; transition:width 0.4s; }
@@ -48,11 +52,16 @@
   .item-row .iname { font-weight:600; font-size:0.85rem; }
   .item-row .imeta { font-size:0.72rem; color:var(--stone); }
   .item-row .badge { padding:3px 10px; border-radius:20px; font-size:0.62rem; font-weight:700; text-transform:capitalize; white-space:nowrap; }
-  .badge.ordered { background:#e8e0f7; color:#5b3a8c; }
-  .badge.paid { background:#cce5ff; color:#004085; }
+  .badge.ordered, .badge.pending { background:#e8e0f7; color:#5b3a8c; }
+  .badge.paid, .badge.confirmed { background:#cce5ff; color:#004085; }
   .badge.processing { background:#fff3cd; color:#856404; }
+  .badge.packed { background:#ffe0b2; color:#a15c00; }
   .badge.shipped { background:#b8daff; color:#004085; }
+  .badge.out_for_delivery { background:#c9e3ff; color:#004085; }
   .badge.delivered { background:#d4edda; color:#155724; }
+  .badge.cancelled, .badge.failed { background:#fdecea; color:#c0392b; }
+  .badge.returned { background:#f0e6f6; color:#6a3d9a; }
+  .badge.refunded { background:#e0d5f5; color:#5b3a8c; }
   .actions-row { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
   .btn-secondary-link { flex:1; text-align:center; background:none; border:1px solid var(--border-light); border-radius:50px; padding:11px; font-size:0.82rem; font-weight:600; color:var(--deep-olive); text-decoration:none; min-width:140px; }
   .btn-secondary-link:hover { border-color:var(--warm-brown); color:var(--warm-brown); }
@@ -79,13 +88,17 @@
       <h1 id="orderTitle">Order Status</h1>
       <p class="sub" id="orderSubDate"></p>
 
+      <div class="exception-banner" id="exceptionBanner" style="display:none;"></div>
+
       <div class="status-track" id="statusTrack">
         <div class="fill" id="statusFill" style="width:0%;"></div>
-        <div class="status-step" data-stage="0"><div class="dot"><i class="fas fa-receipt"></i></div><div class="label">Ordered</div></div>
-        <div class="status-step" data-stage="1"><div class="dot"><i class="fas fa-money-bill-wave"></i></div><div class="label">Paid</div></div>
+        <div class="status-step" data-stage="0"><div class="dot"><i class="fas fa-receipt"></i></div><div class="label">Pending</div></div>
+        <div class="status-step" data-stage="1"><div class="dot"><i class="fas fa-check"></i></div><div class="label">Confirmed</div></div>
         <div class="status-step" data-stage="2"><div class="dot"><i class="fas fa-box-open"></i></div><div class="label">Processing</div></div>
-        <div class="status-step" data-stage="3"><div class="dot"><i class="fas fa-truck"></i></div><div class="label">Shipped</div></div>
-        <div class="status-step" data-stage="4"><div class="dot"><i class="fas fa-circle-check"></i></div><div class="label">Delivered</div></div>
+        <div class="status-step" data-stage="3"><div class="dot"><i class="fas fa-box"></i></div><div class="label">Packed</div></div>
+        <div class="status-step" data-stage="4"><div class="dot"><i class="fas fa-truck"></i></div><div class="label">Shipped</div></div>
+        <div class="status-step" data-stage="5"><div class="dot"><i class="fas fa-truck-fast"></i></div><div class="label">Out for Delivery</div></div>
+        <div class="status-step" data-stage="6"><div class="dot"><i class="fas fa-circle-check"></i></div><div class="label">Delivered</div></div>
       </div>
 
       <div class="order-meta" id="orderMeta"></div>
@@ -106,7 +119,8 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const STAGES = ['ordered','paid','processing','shipped','delivered'];
+  const STAGES = ['pending','confirmed','processing','packed','shipped','out_for_delivery','delivered'];
+  const EXCEPTION_STAGES = { cancelled: {icon:'fa-ban', text:'This order was cancelled.'}, failed: {icon:'fa-triangle-exclamation', text:'This order could not be completed.'}, returned: {icon:'fa-rotate-left', text:'This order was returned.'}, refunded: {icon:'fa-circle-dollar-to-slot', text:'This order was refunded.'} };
 
   function showState(id){ document.querySelectorAll('.state').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
   function showMsg(id, text){ const el=document.getElementById(id); el.textContent=text; el.className='msg error'; }
@@ -149,13 +163,25 @@
     document.getElementById('orderTitle').textContent = `Order #${(order.orderId||'').slice(-8)}`;
     document.getElementById('orderSubDate').textContent = order.date ? `Placed on ${new Date(order.date).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}` : '';
 
-    const status = (order.status || 'ordered').toLowerCase();
-    const stageIndex = Math.max(0, STAGES.indexOf(status));
-    document.getElementById('statusFill').style.width = (stageIndex / (STAGES.length-1) * 100) + '%';
-    document.querySelectorAll('.status-step').forEach(step => {
-      const idx = parseInt(step.dataset.stage);
-      step.classList.toggle('done', idx <= stageIndex);
-    });
+    const status = (order.status || 'pending').toLowerCase();
+    const banner = document.getElementById('exceptionBanner');
+    const track = document.getElementById('statusTrack');
+    if(status in EXCEPTION_STAGES){
+      const ex = EXCEPTION_STAGES[status];
+      banner.className = 'exception-banner ' + status;
+      banner.innerHTML = `<i class="fas ${ex.icon}"></i> ${ex.text}`;
+      banner.style.display = 'flex';
+      track.style.display = 'none';
+    } else {
+      banner.style.display = 'none';
+      track.style.display = 'flex';
+      const stageIndex = Math.max(0, STAGES.indexOf(status));
+      document.getElementById('statusFill').style.width = (stageIndex / (STAGES.length-1) * 100) + '%';
+      document.querySelectorAll('.status-step').forEach(step => {
+        const idx = parseInt(step.dataset.stage);
+        step.classList.toggle('done', idx <= stageIndex);
+      });
+    }
 
     document.getElementById('orderMeta').innerHTML = `
       <div><strong>Receiver:</strong> ${esc(order.customerName)}</div>
@@ -168,10 +194,11 @@
     if(items && items.length){
       let html = '';
       items.forEach(item => {
-        const itemStatus = (item.fulfillment_status || 'ordered').toLowerCase();
+        const itemStatus = (item.fulfillment_status || 'pending').toLowerCase();
+        const itemStatusLabel = itemStatus.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
         html += `<div class="item-row">
           <div><div class="iname">${esc(item.product_name)}${item.variant_label?` <small style="color:var(--stone);">(${esc(item.variant_label)})</small>`:''}</div><div class="imeta">Qty: ${item.quantity} · NPR ${parseFloat(item.line_total||0).toLocaleString()}</div></div>
-          <span class="badge ${itemStatus}">${itemStatus}</span>
+          <span class="badge ${itemStatus}">${itemStatusLabel}</span>
         </div>`;
       });
       listEl.innerHTML = html;
