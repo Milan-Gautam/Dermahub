@@ -78,7 +78,13 @@
         .section-subtitle { color: var(--stone); font-size: 0.85rem; margin-bottom: 24px; }
         .category-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
         @media (max-width: 560px) { .category-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; margin-left: -12px; margin-right: -12px; padding-left: 12px; padding-right: 12px; scrollbar-width: none; } .category-tabs::-webkit-scrollbar { display: none; } .cat-btn { flex-shrink: 0; } }
-        .search-icon-btn { background: none; border: 1px solid var(--border-light); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--charcoal); font-size: 0.95rem; }
+        .search-icon-btn { background: none; border: 1px solid var(--border-light); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--charcoal); font-size: 0.95rem; position: relative; }
+        .wishlist-count-badge { position: absolute; top: -4px; right: -4px; background: var(--warm-brown); color: white; font-size: 0.6rem; font-weight: 700; min-width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+        #wishlistToggleBtn i { color: var(--stone); }
+        #wishlistToggleBtn.has-items i { color: #c0392b; }
+        .wishlist-heart-btn { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--stone); font-size: 0.85rem; z-index: 2; }
+        .wishlist-heart-btn.active { color: #c0392b; }
+        .wishlist-heart-btn:hover { color: #c0392b; }
         .search-icon-btn:hover { border-color: var(--warm-brown); color: var(--warm-brown); }
         .search-panel { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .search-panel.open { max-height: 400px; }
@@ -207,6 +213,24 @@
         .pay-badge { background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 5px 12px; font-size: 0.7rem; font-weight: 600; color: var(--charcoal); }
         .copyright { border-top: 1px solid var(--border-light); padding-top: 16px; font-size: 0.65rem; color: var(--stone); text-align: center; line-height: 1.6; }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "DERMAHUB",
+      "url": "https://akraft.vercel.app",
+      "description": "Nepal's marketplace for skin, hair, and body care products from trusted independent sellers.",
+      "areaServed": "NP"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "DERMAHUB",
+      "url": "https://akraft.vercel.app"
+    }
+    </script>
 </head>
 <body>
 
@@ -222,7 +246,7 @@
             <a id="navContact">Contact</a>
             <a href="/seller" style="color:var(--warm-brown);font-weight:700;">Sell on DERMAHUB</a>
         </nav>
-        <div class="header-actions"><button class="search-icon-btn" id="searchToggleBtn" title="Search"><i class="fas fa-magnifying-glass"></i></button><button class="cart-icon" id="cartBtn"><i class="fas fa-shopping-bag"></i> Cart <span class="cart-count" id="cartCount">0</span></button></div>
+        <div class="header-actions"><button class="search-icon-btn" id="searchToggleBtn" title="Search"><i class="fas fa-magnifying-glass"></i></button><button class="search-icon-btn" id="wishlistToggleBtn" title="Wishlist"><i class="fas fa-heart"></i><span class="wishlist-count-badge" id="wishlistCountBadge" style="display:none;">0</span></button><button class="cart-icon" id="cartBtn"><i class="fas fa-shopping-bag"></i> Cart <span class="cart-count" id="cartCount">0</span></button></div>
     </div>
 </header>
 
@@ -240,13 +264,18 @@
     <button class="checkout-btn" id="checkoutSideBtn">Proceed to Checkout</button>
 </div>
 
+<div class="cart-sidebar" id="wishlistSidebar" style="right:-100%;">
+    <div class="cart-header"><h3>Your Wishlist</h3><button class="close-cart" id="closeWishlistBtn">&times;</button></div>
+    <ul class="cart-items-list" id="wishlistList"><li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your wishlist is empty</li></ul>
+</div>
+
 <div class="modal" id="checkoutModal"><div class="modal-card"><h3>Complete Your Order</h3><div class="input-group"><label>Full Name</label><input type="text" id="custName" placeholder="Enter your full name"></div><div class="input-group"><label>Email</label><input type="email" id="custEmail" placeholder="hello@example.com"></div><div class="input-group"><label>Phone</label><input type="tel" id="custPhone" placeholder="+977 98..."></div><div class="input-group"><label>Delivery Location</label><div class="radio-group"><div class="radio-option selected" onclick="selectLocation('inside', this)"><i class="fas fa-building"></i> Inside Kathmandu<br><small>NPR 100</small></div><div class="radio-option" onclick="selectLocation('outside', this)"><i class="fas fa-mountain"></i> Outside Kathmandu<br><small>NPR 200</small></div></div></div><div class="input-group"><label>Shipping Address</label><input type="text" id="custAddress" placeholder="Street, city, postal code"></div><div style="background:#fefaf5;padding:12px;border-radius:12px;margin:12px 0;text-align:left;font-size:0.85rem;"><strong>Order Summary:</strong><br><span id="checkoutSubtotal">Subtotal: NPR 0</span><br><span id="checkoutDiscount">Discount: NPR 0</span><br><span id="checkoutDelivery">Delivery: NPR 0</span><br><strong id="checkoutTotal">Total: NPR 0</strong></div><button class="btn-primary" id="submitOrderBtn">Place Order</button><button class="btn-secondary" onclick="document.getElementById('checkoutModal').classList.remove('open')">Cancel</button></div></div>
 
 <div class="modal" id="successModal"><div class="modal-card"><i class="fas fa-check-circle" style="font-size:3.5rem;color:var(--olive);margin-bottom:12px;"></i><h3>Order Received</h3><p id="successMsg">Thank you for supporting clean beauty.</p><button class="btn-primary" id="trackOrderBtn">Track Your Order</button><button class="btn-secondary" onclick="document.getElementById('successModal').classList.remove('open')">Continue Shopping</button></div></div>
 
 <div class="modal" id="infoModal"><div class="modal-card"><i class="fas fa-info-circle" style="font-size:2.5rem;color:var(--warm-brown);"></i><h3 id="infoTitle">Message</h3><p id="infoText" style="margin:16px 0;line-height:1.6;"></p><button class="btn-primary" id="closeInfoBtn">OK</button></div></div>
 
-<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><div class="modal-media-col"><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><div class="modal-disclaimer"><i class="fas fa-info-circle"></i><p>Images are for reference only and packaging may vary. Please check the expiry date and seal before use.</p></div></div><div class="modal-info-col"><h3 id="modalProdName"></h3><p id="modalProdSeller" style="color:var(--olive);font-size:0.72rem;font-weight:600;margin-bottom:6px;"></p><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div id="modalProdIngredients" style="display:none;margin-bottom:12px;"><div class="related-title">Key Ingredients</div><p style="color:var(--stone);font-size:0.82rem;line-height:1.6;"></p></div><div id="modalProdHowToUse" style="display:none;margin-bottom:12px;"><div class="related-title">How to Use</div><p style="color:var(--stone);font-size:0.82rem;line-height:1.6;"></p></div><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button></div><div class="related-section" id="relatedSection" style="display:none;"><div class="related-title">You Might Also Like</div><div class="related-grid" id="relatedGrid"></div></div></div></div></div>
+<div class="product-modal" id="productModal"><div class="product-modal-content"><button class="modal-close" onclick="closeProductModal()">&times;</button><div class="modal-media-col"><img class="modal-img-main" id="modalMainImg" src=""><div class="modal-img-thumbs" id="modalThumbs"></div><div class="modal-disclaimer"><i class="fas fa-info-circle"></i><p>Images are for reference only and packaging may vary. Please check the expiry date and seal before use.</p></div></div><div class="modal-info-col"><h3 id="modalProdName"></h3><p id="modalProdSeller" style="color:var(--olive);font-size:0.72rem;font-weight:600;margin-bottom:6px;"></p><p id="modalProdDesc" style="color:var(--stone);font-size:0.85rem;line-height:1.6;margin-bottom:12px;"></p><div id="modalProdIngredients" style="display:none;margin-bottom:12px;"><div class="related-title">Key Ingredients</div><p style="color:var(--stone);font-size:0.82rem;line-height:1.6;"></p></div><div id="modalProdHowToUse" style="display:none;margin-bottom:12px;"><div class="related-title">How to Use</div><p style="color:var(--stone);font-size:0.82rem;line-height:1.6;"></p></div><div class="modal-stock-info" id="modalStockInfo"></div><div class="variant-group" id="modalVariants"></div><div class="price-cart"><span class="price" id="modalPrice"></span><button class="add-to-cart" id="modalAddBtn"><i class="fas fa-plus"></i> Add</button><button class="search-icon-btn" id="modalWishlistBtn" style="width:38px;height:38px;"><i class="far fa-heart"></i></button></div><div class="related-section" id="relatedSection" style="display:none;"><div class="related-title">You Might Also Like</div><div class="related-grid" id="relatedGrid"></div></div></div></div></div>
 
 <div id="hiddenAdminLink" style="position:fixed;bottom:20px;right:20px;z-index:99;display:none;"><a href="/admin_007" target="_blank" style="background:var(--deep-olive);color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);font-size:1rem;opacity:0.7;" title="Admin Panel"><i class="fas fa-lock"></i></a></div>
 
@@ -333,9 +362,9 @@
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     emailjs.init("2X9gef2Tudenoiugp");
 
-    const STORAGE_PRODUCTS = "dermahub_products_v3", STORAGE_CART = "dermahub_cart";
+    const STORAGE_PRODUCTS = "dermahub_products_v3", STORAGE_CART = "dermahub_cart", STORAGE_WISHLIST = "dermahub_wishlist";
 
-    let products = [], sellerMap = {}, sellerPhotoMap = {}, salesMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), currentFilter = "new", selectedLocation = "inside", baseDeliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
+    let products = [], sellerMap = {}, sellerPhotoMap = {}, salesMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), wishlist = loadWishlist(), currentFilter = "new", selectedLocation = "inside", baseDeliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
     let searchQuery = "", sortBy = "relevance", filterSeller = "", filterMinPrice = null, filterMaxPrice = null, filterInStock = false, visibleCount = 12;
     const PAGE_SIZE = 12, FREE_SHIPPING_THRESHOLD = 2000;
 
@@ -344,6 +373,8 @@
     function getKey(pid,v){ return `${pid}-${v}`; }
     function getDiscountedPrice(price,discount){ return discount>0?Math.round(price*(1-discount/100)):price; }
     function loadCart(){ const s=localStorage.getItem(STORAGE_CART); return s?JSON.parse(s):[]; }
+    function loadWishlist(){ const s=localStorage.getItem(STORAGE_WISHLIST); return s?JSON.parse(s):[]; }
+    function saveWishlist(){ localStorage.setItem(STORAGE_WISHLIST,JSON.stringify(wishlist)); }
     function saveCart(){ localStorage.setItem(STORAGE_CART,JSON.stringify(cart)); }
 
     async function loadSellerMap(){
@@ -445,9 +476,11 @@
         f.forEach(prod=>{
             const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0, discount=prod.discount||0;
             const sellerName = sellerMap[prod.seller_id];
+            const inWishlist = wishlist.includes(prod.id);
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            c.innerHTML=`<div class="product-img-wrap"><img src="${esc(imgs[0])}" class="product-img" loading="lazy" alt="${esc(prod.name)}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}</div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${esc(sellerName)}</div>`:''}<div class="product-title">${esc(prod.name)}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
+            c.innerHTML=`<div class="product-img-wrap"><img src="${esc(imgs[0])}" class="product-img" loading="lazy" alt="${esc(prod.name)}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}<button class="wishlist-heart-btn${inWishlist?' active':''}" data-wish-id="${prod.id}"><i class="${inWishlist?'fas':'far'} fa-heart"></i></button></div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${esc(sellerName)}</div>`:''}<div class="product-title">${esc(prod.name)}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
             c.addEventListener('click',function(){ openProductModal(prod); });
+            c.querySelector('.wishlist-heart-btn').addEventListener('click', function(e){ e.stopPropagation(); toggleWishlist(prod.id); });
             g.appendChild(c);
         });
     }
@@ -469,6 +502,60 @@
     }
     function modQty(i,d){cart[i].quantity+=d;if(cart[i].quantity<=0)removeItem(i);else{saveCart();updateCartUI();}}
     function removeItem(i){addedKeys.delete(cart[i].uniqueKey);cart.splice(i,1);saveCart();updateCartUI();}
+
+    // ---------- WISHLIST ----------
+    function toggleWishlist(productId){
+        const idx = wishlist.indexOf(productId);
+        if(idx>=0){ wishlist.splice(idx,1); toast('Removed from wishlist'); }
+        else { wishlist.push(productId); toast('Added to wishlist'); }
+        saveWishlist();
+        renderProducts();
+        renderWishlist();
+        updateWishlistBadge();
+    }
+
+    function updateWishlistBadge(){
+        const badge = document.getElementById('wishlistCountBadge'), btn = document.getElementById('wishlistToggleBtn');
+        if(wishlist.length>0){ badge.textContent = wishlist.length; badge.style.display='flex'; btn.classList.add('has-items'); }
+        else { badge.style.display='none'; btn.classList.remove('has-items'); }
+    }
+
+    function addProductToCartDefault(prod){
+        const stock = prod.stock||0;
+        if(stock===0){ toast('This item is sold out'); return; }
+        const dv = prod.variants[0], discount = prod.discount||0, price = getDiscountedPrice(dv.price, discount);
+        const key = getKey(prod.id, dv.size);
+        const imgs = prod.images || [prod.img || 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
+        if(addedKeys.has(key)){ toast('Already in cart'); return; }
+        cart.push({uniqueKey:key, productId:prod.id, variantLabel:dv.size, price, name:`${prod.name} (${dv.size})`, img:imgs[0], quantity:1, sellerId:prod.seller_id||null});
+        addedKeys.add(key);
+        saveCart(); updateCartUI(); updateCartButtonsForProduct(prod.id);
+        toast('Added to cart');
+    }
+
+    function updateCartButtonsForProduct(){ /* card re-render on next renderProducts() call keeps buttons in sync; no-op placeholder for future per-card sync */ }
+
+    function renderWishlist(){
+        const c = document.getElementById('wishlistList');
+        const items = wishlist.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+        if(!items.length){ c.innerHTML = '<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your wishlist is empty</li>'; return; }
+        let h='';
+        items.forEach(prod => {
+            const imgs = prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'];
+            const dv = prod.variants[0], disPrice = getDiscountedPrice(dv.price, prod.discount||0), stock = prod.stock||0;
+            h += `<li class="cart-item"><img src="${esc(imgs[0])}" class="cart-img"><div style="flex:1;"><div class="cart-item-name">${esc(prod.name)}</div><div class="cart-item-price">NPR ${disPrice}</div><div class="cart-qty">
+              <button class="wish-add-cart-btn" data-id="${prod.id}" ${stock===0?'disabled':''} style="background:var(--deep-olive);color:white;border:none;padding:5px 10px;border-radius:20px;font-size:0.65rem;cursor:pointer;">${stock===0?'Sold out':'Add to Cart'}</button>
+              <button class="remove-item wish-remove-btn" data-id="${prod.id}">remove</button>
+            </div></div></li>`;
+        });
+        c.innerHTML = h;
+        c.querySelectorAll('.wish-add-cart-btn').forEach(b=>b.addEventListener('click', function(){
+            if(this.disabled) return;
+            const prod = products.find(p=>p.id===parseInt(this.dataset.id));
+            if(prod) addProductToCartDefault(prod);
+        }));
+        c.querySelectorAll('.wish-remove-btn').forEach(b=>b.addEventListener('click', function(){ toggleWishlist(parseInt(this.dataset.id)); }));
+    }
 
     function getEffectiveDelivery(subtotal){ return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : baseDeliveryCharge; }
 
@@ -508,6 +595,10 @@
         document.querySelectorAll('#modalVariants .variant').forEach(v=>v.addEventListener('click',function(){document.querySelectorAll('#modalVariants .variant').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');const price=parseFloat(this.dataset.price),disPrice=getDiscountedPrice(price,discount);document.getElementById('modalPrice').innerHTML=`${discount>0?`<span class="original">NPR ${price}</span> `:''}NPR ${disPrice}`;refreshModalAddButton(prod);}));
         refreshModalAddButton(prod);
         renderRelatedProducts(prod);
+        const wishBtn = document.getElementById('modalWishlistBtn');
+        const inWishlist = wishlist.includes(prod.id);
+        wishBtn.innerHTML = `<i class="${inWishlist?'fas':'far'} fa-heart" style="color:${inWishlist?'#c0392b':'inherit'};"></i>`;
+        wishBtn.onclick = function(){ toggleWishlist(prod.id); const nowIn = wishlist.includes(prod.id); wishBtn.innerHTML = `<i class="${nowIn?'fas':'far'} fa-heart" style="color:${nowIn?'#c0392b':'inherit'};"></i>`; };
         document.getElementById('productModal').classList.add('open');
     }
 
@@ -559,8 +650,9 @@
         const submitBtn = document.getElementById('submitOrderBtn');
         submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
         const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0), discountAmount = voucherDiscount?Math.round(subtotal*(voucherDiscount/100)):0, deliveryCharge = getEffectiveDelivery(subtotal), total = subtotal - discountAmount + deliveryCharge;
-        const itemsStr = cart.map(i=>`${i.quantity}x ${i.name}`).join(', '), orderId = 'ORD-'+Date.now(), orderDate = new Date().toISOString(), location = selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', trackingUrl = window.location.origin + '/order/track?orderId='+encodeURIComponent(orderId)+'&email='+encodeURIComponent(email);
-        const orderData = {orderId, customerName:name, email, phone, address:addr, location, deliveryCharge, items:itemsStr, subtotal, discount:discountAmount, total, date:orderDate, status:'ordered'};
+        function generateOrderId(){ return 'ORD-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase(); }
+        const itemsStr = cart.map(i=>`${i.quantity}x ${i.name}`).join(', '), orderId = generateOrderId(), orderDate = new Date().toISOString(), location = selectedLocation==='inside'?'Inside Kathmandu Valley':'Outside Kathmandu Valley', trackingUrl = window.location.origin + '/order/track?orderId='+encodeURIComponent(orderId)+'&email='+encodeURIComponent(email);
+        const orderData = {orderId, customerName:name, email, phone, address:addr, location, deliveryCharge, items:itemsStr, subtotal, discount:discountAmount, total, date:orderDate, status:'pending'};
         try {
             const {error} = await db.from('orders').insert([orderData]);
             if(error) throw error;
@@ -576,7 +668,7 @@
             const orderItemsPayload = cart.map(item => {
                 const lineTotal = item.price * item.quantity;
                 const commissionAmount = Math.round(lineTotal * commissionRate / 100);
-                return { order_id: orderId, product_id: item.productId, seller_id: item.sellerId || null, product_name: item.name, variant_label: item.variantLabel, quantity: item.quantity, unit_price: item.price, line_total: lineTotal, commission_rate: commissionRate, commission_amount: commissionAmount, seller_earning: lineTotal - commissionAmount, fulfillment_status: 'ordered' };
+                return { order_id: orderId, product_id: item.productId, seller_id: item.sellerId || null, product_name: item.name, variant_label: item.variantLabel, quantity: item.quantity, unit_price: item.price, line_total: lineTotal, commission_rate: commissionRate, commission_amount: commissionAmount, seller_earning: lineTotal - commissionAmount, fulfillment_status: 'pending' };
             });
             if(orderItemsPayload.length){ const { error: itemsErr } = await db.from('order_items').insert(orderItemsPayload); if(itemsErr) console.error('order_items insert failed (seller sales tracking may be affected):', itemsErr); }
         } catch(e) { console.error('Order failed', e); toast('Order could not be saved. Please try again.'); resetSubmitOrderBtn(); return; }
@@ -599,7 +691,9 @@
     let logoClicks=0;document.getElementById('logoClick').addEventListener('click',function(){logoClicks++;if(logoClicks>=10){document.getElementById('hiddenAdminLink').style.display='block';setTimeout(()=>logoClicks=0,30000);}});
     document.getElementById('cartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.add('open');document.getElementById('cartOverlay').style.display='block';});
     document.getElementById('closeCartBtn').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
-    document.getElementById('cartOverlay').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
+    document.getElementById('cartOverlay').addEventListener('click',()=>{document.getElementById('cartSidebar').classList.remove('open');document.getElementById('wishlistSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
+    document.getElementById('wishlistToggleBtn').addEventListener('click',()=>{document.getElementById('wishlistSidebar').classList.add('open');document.getElementById('cartOverlay').style.display='block';});
+    document.getElementById('closeWishlistBtn').addEventListener('click',()=>{document.getElementById('wishlistSidebar').classList.remove('open');document.getElementById('cartOverlay').style.display='none';});
     document.getElementById('checkoutSideBtn').addEventListener('click',handleCheckout);
     document.getElementById('submitOrderBtn').addEventListener('click',submitOrder);
     document.getElementById('closeInfoBtn').addEventListener('click',()=>document.getElementById('infoModal').classList.remove('open'));
@@ -706,7 +800,7 @@
     ];
     let hi=0,he=document.getElementById('heroImage');function rh(){he.style.backgroundImage=`url('${heroImages[hi]}')`;hi=(hi+1)%heroImages.length;}rh();setInterval(rh,4500);
 
-    Promise.all([loadProducts(), loadSellerMap(), loadSalesMap()]).then(([prodData, sellers, sales])=>{products=prodData;sellerMap=sellers;salesMap=sales;populateSellerFilterOptions();renderProducts();updateCartUI();});
+    Promise.all([loadProducts(), loadSellerMap(), loadSalesMap()]).then(([prodData, sellers, sales])=>{products=prodData;sellerMap=sellers;salesMap=sales;populateSellerFilterOptions();renderProducts();updateCartUI();renderWishlist();updateWishlistBadge();});
     window.addEventListener('storage',(e)=>{if(e.key===STORAGE_PRODUCTS){products=JSON.parse(e.newValue||'[]');renderProducts();updateCartUI();}});
 })();
 </script>
