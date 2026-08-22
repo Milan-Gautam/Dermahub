@@ -82,7 +82,7 @@
         .wishlist-count-badge { position: absolute; top: -4px; right: -4px; background: var(--warm-brown); color: white; font-size: 0.6rem; font-weight: 700; min-width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
         #wishlistToggleBtn i { color: var(--stone); }
         #wishlistToggleBtn.has-items i { color: #c0392b; }
-        .wishlist-heart-btn { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--stone); font-size: 0.85rem; z-index: 2; }
+        .wishlist-heart-btn { position: absolute; bottom: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--stone); font-size: 0.85rem; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
         .wishlist-heart-btn.active { color: #c0392b; }
         .wishlist-heart-btn:hover { color: #c0392b; }
         .search-icon-btn:hover { border-color: var(--warm-brown); color: var(--warm-brown); }
@@ -476,7 +476,7 @@
         f.forEach(prod=>{
             const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], dv=prod.variants[0], origPrice=dv.price, disPrice=getDiscountedPrice(dv.price,prod.discount||0), stock=prod.stock||0, discount=prod.discount||0;
             const sellerName = sellerMap[prod.seller_id];
-            const inWishlist = wishlist.includes(prod.id);
+            const inWishlist = wishlist.some(id => String(id) === String(prod.id));
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
             c.innerHTML=`<div class="product-img-wrap"><img src="${esc(imgs[0])}" class="product-img" loading="lazy" alt="${esc(prod.name)}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}<button class="wishlist-heart-btn${inWishlist?' active':''}" data-wish-id="${prod.id}"><i class="${inWishlist?'fas':'far'} fa-heart"></i></button></div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${esc(sellerName)}</div>`:''}<div class="product-title">${esc(prod.name)}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
             c.addEventListener('click',function(){ openProductModal(prod); });
@@ -505,9 +505,10 @@
 
     // ---------- WISHLIST ----------
     function toggleWishlist(productId){
-        const idx = wishlist.indexOf(productId);
+        const idStr = String(productId);
+        const idx = wishlist.findIndex(id => String(id) === idStr);
         if(idx>=0){ wishlist.splice(idx,1); toast('Removed from wishlist'); }
-        else { wishlist.push(productId); toast('Added to wishlist'); }
+        else { wishlist.push(idStr); toast('Added to wishlist'); }
         saveWishlist();
         renderProducts();
         renderWishlist();
@@ -537,7 +538,7 @@
 
     function renderWishlist(){
         const c = document.getElementById('wishlistList');
-        const items = wishlist.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+        const items = wishlist.map(id=>products.find(p=>String(p.id)===String(id))).filter(Boolean);
         if(!items.length){ c.innerHTML = '<li style="text-align:center;padding:40px 0;color:#8b7b6e;">Your wishlist is empty</li>'; return; }
         let h='';
         items.forEach(prod => {
@@ -551,10 +552,10 @@
         c.innerHTML = h;
         c.querySelectorAll('.wish-add-cart-btn').forEach(b=>b.addEventListener('click', function(){
             if(this.disabled) return;
-            const prod = products.find(p=>p.id===parseInt(this.dataset.id));
+            const prod = products.find(p=>String(p.id)===String(this.dataset.id));
             if(prod) addProductToCartDefault(prod);
         }));
-        c.querySelectorAll('.wish-remove-btn').forEach(b=>b.addEventListener('click', function(){ toggleWishlist(parseInt(this.dataset.id)); }));
+        c.querySelectorAll('.wish-remove-btn').forEach(b=>b.addEventListener('click', function(){ toggleWishlist(this.dataset.id); }));
     }
 
     function getEffectiveDelivery(subtotal){ return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : baseDeliveryCharge; }
@@ -596,9 +597,9 @@
         refreshModalAddButton(prod);
         renderRelatedProducts(prod);
         const wishBtn = document.getElementById('modalWishlistBtn');
-        const inWishlist = wishlist.includes(prod.id);
+        const inWishlist = wishlist.some(id => String(id) === String(prod.id));
         wishBtn.innerHTML = `<i class="${inWishlist?'fas':'far'} fa-heart" style="color:${inWishlist?'#c0392b':'inherit'};"></i>`;
-        wishBtn.onclick = function(){ toggleWishlist(prod.id); const nowIn = wishlist.includes(prod.id); wishBtn.innerHTML = `<i class="${nowIn?'fas':'far'} fa-heart" style="color:${nowIn?'#c0392b':'inherit'};"></i>`; };
+        wishBtn.onclick = function(){ toggleWishlist(prod.id); const nowIn = wishlist.some(id => String(id) === String(prod.id)); wishBtn.innerHTML = `<i class="${nowIn?'fas':'far'} fa-heart" style="color:${nowIn?'#c0392b':'inherit'};"></i>`; };
         document.getElementById('productModal').classList.add('open');
     }
 
