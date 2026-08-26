@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Customer Care | DERMAHUB</title>
+<meta name="description" content="Get help with your DERMAHUB order — browse FAQs, message our support team, or track an existing support ticket.">
+<meta name="robots" content="index, follow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:#f5f0eb; min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .top-bar { background:white; border-bottom:1px solid var(--border-light); padding:16px 0; }
+  .top-bar .container { max-width:900px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; }
+  .logo-link { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--warm-brown); text-decoration:none; font-weight:600; }
+  .back-link { font-size:0.8rem; color:var(--stone); text-decoration:none; }
+  .wrap { max-width:900px; margin:0 auto; padding:36px 20px 60px; }
+
+  .hero { text-align:center; margin-bottom:32px; }
+  .hero h1 { font-family:'Playfair Display',serif; font-size:2rem; color:var(--deep-olive); margin-bottom:8px; }
+  .hero p { color:var(--stone); font-size:0.9rem; max-width:480px; margin:0 auto; line-height:1.6; }
+
+  .quick-links { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:36px; }
+  .quick-link { background:white; border:1px solid var(--border-light); border-radius:16px; padding:18px 12px; text-align:center; text-decoration:none; color:var(--charcoal); transition:border-color 0.2s; }
+  .quick-link:hover { border-color:var(--warm-brown); }
+  .quick-link i { font-size:1.4rem; color:var(--olive); margin-bottom:8px; display:block; }
+  .quick-link span { font-size:0.75rem; font-weight:600; }
+
+  .tabs { display:flex; background:var(--sand); border-radius:40px; padding:4px; margin-bottom:24px; max-width:480px; margin-left:auto; margin-right:auto; }
+  .tab-btn { flex:1; border:none; background:none; padding:10px; border-radius:40px; font-family:inherit; font-size:0.8rem; font-weight:600; color:var(--stone); cursor:pointer; }
+  .tab-btn.active { background:var(--deep-olive); color:white; }
+
+  .section-panel { display:none; }
+  .section-panel.active { display:block; }
+
+  .card { background:white; border-radius:24px; padding:26px 24px; box-shadow:0 4px 20px rgba(0,0,0,0.04); border:1px solid var(--border-light); margin-bottom:20px; }
+  .card h2 { font-family:'Playfair Display',serif; font-size:1.2rem; color:var(--deep-olive); margin-bottom:14px; }
+
+  .faq-item { border-bottom:1px solid var(--border-light); }
+  .faq-item:last-child { border-bottom:none; }
+  .faq-question { padding:14px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:0.88rem; gap:10px; }
+  .faq-question i { color:var(--stone); transition:transform 0.2s; flex-shrink:0; }
+  .faq-item.open .faq-question i { transform:rotate(180deg); }
+  .faq-answer { max-height:0; overflow:hidden; transition:max-height 0.3s ease; color:var(--stone); font-size:0.85rem; line-height:1.7; }
+  .faq-item.open .faq-answer { max-height:300px; padding-bottom:14px; }
+
+  .field { margin-bottom:14px; text-align:left; }
+  .field label { display:block; font-size:0.68rem; font-weight:600; color:var(--charcoal); text-transform:uppercase; margin-bottom:5px; }
+  .field input, .field select, .field textarea { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:10px; font-size:0.88rem; font-family:inherit; }
+  .field textarea { resize:vertical; min-height:100px; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--olive); }
+  .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  .btn-main { background:var(--deep-olive); color:white; border:none; border-radius:50px; padding:13px 24px; font-weight:600; font-size:0.9rem; cursor:pointer; min-height:46px; width:100%; }
+  .btn-main:hover { background:var(--warm-brown); }
+  .btn-main:disabled { background:#cbbcac; cursor:not-allowed; }
+
+  .msg { font-size:0.78rem; margin-top:14px; padding:10px 14px; border-radius:10px; display:none; line-height:1.5; }
+  .msg.error { background:#fdecea; color:#c0392b; display:block; }
+  .msg.success { background:#e8f5e9; color:#2a4235; display:block; }
+
+  .ticket-code-display { text-align:center; padding:20px; }
+  .ticket-code-display .code { font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--deep-olive); font-weight:600; margin:10px 0; letter-spacing:1px; }
+
+  .thread { max-height:400px; overflow-y:auto; margin-bottom:16px; display:flex; flex-direction:column; gap:10px; padding:4px; }
+  .thread-msg { max-width:80%; padding:10px 14px; border-radius:14px; font-size:0.85rem; line-height:1.5; }
+  .thread-msg.customer { align-self:flex-end; background:var(--deep-olive); color:white; border-bottom-right-radius:4px; }
+  .thread-msg.admin { align-self:flex-start; background:var(--sand); color:var(--charcoal); border-bottom-left-radius:4px; }
+  .thread-msg .meta { font-size:0.62rem; opacity:0.7; margin-top:4px; }
+
+  .badge-status { padding:3px 10px; border-radius:20px; font-size:0.65rem; font-weight:700; text-transform:capitalize; display:inline-block; }
+  .badge-status.open { background:#e8e0f7; color:#5b3a8c; }
+  .badge-status.in_progress { background:#fff3cd; color:#856404; }
+  .badge-status.resolved { background:#d4edda; color:#155724; }
+  .badge-status.closed { background:#e8e6e3; color:#5a564f; }
+
+  .contact-info { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .contact-info div { display:flex; align-items:center; gap:10px; font-size:0.85rem; }
+  .contact-info i { color:var(--olive); width:18px; }
+
+  @media (max-width:640px) {
+    .quick-links { grid-template-columns:1fr 1fr; }
+    .form-row-2 { grid-template-columns:1fr; }
+    .contact-info { grid-template-columns:1fr; }
+    .hero h1 { font-size:1.6rem; }
+    .card { padding:20px 16px; border-radius:18px; }
+    .wrap { padding:24px 14px 50px; }
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"><div class="container"><a href="/" class="logo-link">DERMAHUB</a><a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a></div></div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1>Customer Care</h1>
+      <p>Answers to common questions, or message our team directly — we're here to help.</p>
+    </div>
+
+    <div class="quick-links">
+      <a href="/order/track" class="quick-link"><i class="fas fa-truck"></i><span>Track Order</span></a>
+      <a href="/order/return" class="quick-link"><i class="fas fa-rotate-left"></i><span>Start a Return</span></a>
+      <a href="/seller" class="quick-link"><i class="fas fa-store"></i><span>Sell on DERMAHUB</span></a>
+      <a href="mailto:hello@dermahub.com" class="quick-link"><i class="fas fa-envelope"></i><span>Email Us</span></a>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-panel="faqPanel">FAQs</button>
+      <button class="tab-btn" data-panel="newTicketPanel">Message Us</button>
+      <button class="tab-btn" data-panel="myTicketPanel">My Ticket</button>
+    </div>
+
+    <!-- FAQ -->
+    <div class="section-panel active" id="faqPanel">
+      <div class="card">
+        <h2>Frequently Asked Questions</h2>
+        <div id="faqList"></div>
+      </div>
+      <div class="card">
+        <h2>Still need us?</h2>
+        <div class="contact-info">
+          <div><i class="fas fa-envelope"></i> hello@dermahub.com</div>
+          <div><i class="fas fa-phone"></i> +977 9812345678</div>
+          <div><i class="fas fa-location-dot"></i> Kathmandu, Nepal</div>
+          <div><i class="fas fa-clock"></i> Sun–Fri, 10am–6pm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW TICKET -->
+    <div class="section-panel" id="newTicketPanel">
+      <div class="card" id="newTicketForm">
+        <h2>Send Us a Message</h2>
+        <div class="form-row-2">
+          <div class="field"><label>Your Name</label><input type="text" id="ticketName" placeholder="Full name"></div>
+          <div class="field"><label>Email</label><input type="email" id="ticketEmail" placeholder="you@example.com"></div>
+        </div>
+        <div class="form-row-2">
+          <div class="field"><label>Category</label>
+            <select id="ticketCategory">
+              <option value="order">Order Issue</option>
+              <option value="return">Return / Refund</option>
+              <option value="payment">Payment Issue</option>
+              <option value="seller">Seller Issue</option>
+              <option value="product">Product Question</option>
+              <option value="other">Something Else</option>
+            </select>
+          </div>
+          <div class="field"><label>Order ID <small style="text-transform:none;color:var(--stone);">(if related)</small></label><input type="text" id="ticketOrderId" placeholder="ORD-... (optional)"></div>
+        </div>
+        <div class="field"><label>Subject</label><input type="text" id="ticketSubject" placeholder="Short summary"></div>
+        <div class="field"><label>Message</label><textarea id="ticketMessage" placeholder="Tell us what's going on..."></textarea></div>
+        <button class="btn-main" id="submitTicketBtn">Send Message</button>
+        <div class="msg" id="newTicketMsg"></div>
+      </div>
+
+      <div class="card" id="ticketCreatedCard" style="display:none;">
+        <div class="ticket-code-display">
+          <i class="fas fa-circle-check" style="font-size:2.2rem;color:var(--olive);"></i>
+          <p style="color:var(--stone);margin-top:10px;">Your ticket has been created. Save this code to check for replies:</p>
+          <div class="code" id="createdTicketCode"></div>
+          <p style="color:var(--stone);font-size:0.8rem;">We'll also have it on file under your email.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY TICKET -->
+    <div class="section-panel" id="myTicketPanel">
+      <div class="card" id="ticketLookupCard">
+        <h2>Check Your Ticket</h2>
+        <div class="form-row-2">
+          <div class="field"><label>Ticket Code</label><input type="text" id="lookupTicketCode" placeholder="TCK-00001"></div>
+          <div class="field"><label>Email</label><input type="email" id="lookupTicketEmail" placeholder="you@example.com"></div>
+        </div>
+        <button class="btn-main" id="lookupTicketBtn">Find My Ticket</button>
+        <div class="msg" id="lookupTicketMsg"></div>
+      </div>
+
+      <div class="card" id="ticketThreadCard" style="display:none;">
+        <h2 id="ticketThreadSubject">Subject</h2>
+        <p style="font-size:0.78rem;color:var(--stone);margin-bottom:14px;">Status: <span class="badge-status" id="ticketThreadStatus"></span></p>
+        <div class="thread" id="ticketThread"></div>
+        <div class="field"><label>Reply</label><textarea id="replyMessage" placeholder="Add a follow-up..."></textarea></div>
+        <button class="btn-main" id="sendReplyBtn">Send Reply</button>
+        <div class="msg" id="replyMsg"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function esc(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+
+  const FAQS = [
+    { q: "How do I track my order?", a: "Use the Order ID and email from your confirmation email on the Track Order page. You'll see live status for every item in your order." },
+    { q: "How do returns work?", a: "Go to Start a Return, enter your Order ID and email, pick the item, and tell us why. The seller (or DERMAHUB for official products) reviews it from there. We offer a 30-day window from your order date." },
+    { q: "What payment methods do you accept?", a: "eSewa and Khalti. After checkout, you'll get payment instructions by email — your order is confirmed once payment is verified." },
+    { q: "How much is delivery?", a: "NPR 100 inside Kathmandu Valley, NPR 200 outside. Orders over NPR 2,000 ship free." },
+    { q: "Can I sell on DERMAHUB?", a: "Yes — anyone can apply as a seller. DERMAHUB takes a flat 5% commission per sale; you keep 95%. Sign up from the Sell on DERMAHUB link." },
+    { q: "Are the products genuine?", a: "Every seller is checked before their listings go live, and we ask all sellers to source only from authorized suppliers. Product images are for reference — always check the expiry date and seal before use." },
+    { q: "How do I request a refund?", a: "Refunds start as a return request. Once a seller (or DERMAHUB) approves it, the refund is processed and reflected in your ticket or return status." }
+  ];
+
+  function renderFaqs(){
+    const list = document.getElementById('faqList');
+    list.innerHTML = FAQS.map((f,i) => `
+      <div class="faq-item" data-idx="${i}">
+        <div class="faq-question">${esc(f.q)} <i class="fas fa-chevron-down"></i></div>
+        <div class="faq-answer">${esc(f.a)}</div>
+      </div>
+    `).join('');
+    list.querySelectorAll('.faq-item').forEach(item => {
+      item.querySelector('.faq-question').addEventListener('click', () => item.classList.toggle('open'));
+    });
+  }
+  renderFaqs();
+
+  // ---------- TABS ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById(this.dataset.panel).classList.add('active');
+  }));
+
+  // ---------- NEW TICKET ----------
+  document.getElementById('submitTicketBtn').addEventListener('click', async function(){
+    const name = document.getElementById('ticketName').value.trim();
+    const email = document.getElementById('ticketEmail').value.trim();
+    const category = document.getElementById('ticketCategory').value;
+    const orderId = document.getElementById('ticketOrderId').value.trim();
+    const subject = document.getElementById('ticketSubject').value.trim();
+    const message = document.getElementById('ticketMessage').value.trim();
+    const msgEl = document.getElementById('newTicketMsg');
+    if(!name || !email || !subject || !message){ msgEl.textContent='Please fill in name, email, subject, and message.'; msgEl.className='msg error'; return; }
+
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      const { data, error } = await db.rpc('create_support_ticket', {
+        p_customer_name: name, p_customer_email: email, p_subject: subject,
+        p_category: category, p_message: message, p_related_order_id: orderId || null
+      });
+      if(error) throw error;
+      document.getElementById('newTicketForm').style.display = 'none';
+      document.getElementById('createdTicketCode').textContent = data;
+      document.getElementById('ticketCreatedCard').style.display = 'block';
+    } catch(e){
+      msgEl.textContent = e.message || 'Could not send your message. Please try again.';
+      msgEl.className = 'msg error';
+      btn.disabled = false; btn.innerHTML = 'Send Message';
+    }
+  });
+
+  // ---------- MY TICKET LOOKUP ----------
+  let currentTicketCode = null, currentTicketEmail = null;
+
+  async function loadAndRenderThread(code, email){
+    const { data: tickets, error } = await db.rpc('get_support_ticket', { p_ticket_code: code, p_email: email });
+    const ticket = tickets && tickets.length ? tickets[0] : null;
+    if(error || !ticket) throw new Error('No matching ticket found. Double-check your code and email.');
+
+    const { data: messages } = await db.rpc('get_support_messages', { p_ticket_code: code, p_email: email });
+
+    currentTicketCode = code; currentTicketEmail = email;
+    document.getElementById('ticketThreadSubject').textContent = ticket.subject;
+    const statusEl = document.getElementById('ticketThreadStatus');
+    statusEl.textContent = ticket.status.replace('_',' ');
+    statusEl.className = 'badge-status ' + ticket.status;
+
+    const threadEl = document.getElementById('ticketThread');
+    threadEl.innerHTML = (messages||[]).map(m => `
+      <div class="thread-msg ${m.sender_type}">
+        <div>${esc(m.message)}</div>
+        <div class="meta">${m.sender_type==='admin'?'DERMAHUB Support':'You'} · ${new Date(m.created_at).toLocaleString()}</div>
+      </div>
+    `).join('');
+    threadEl.scrollTop = threadEl.scrollHeight;
+  }
+
+  document.getElementById('lookupTicketBtn').addEventListener('click', async function(){
+    const code = document.getElementById('lookupTicketCode').value.trim().toUpperCase();
+    const email = document.getElementById('lookupTicketEmail').value.trim();
+    const msgEl = document.getElementById('lookupTicketMsg');
+    if(!code || !email){ msgEl.textContent='Enter your ticket code and email.'; msgEl.className='msg error'; return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+    try {
+      await loadAndRenderThread(code, email);
+      document.getElementById('ticketLookupCard').style.display = 'none';
+      document.getElementById('ticketThreadCard').style.display = 'block';
+    } catch(e){
+      msgEl.textContent = e.message || 'Could not find that ticket.';
+      msgEl.className = 'msg error';
+    }
+    btn.disabled = false; btn.innerHTML = 'Find My Ticket';
+  });
+
+  document.getElementById('sendReplyBtn').addEventListener('click', async function(){
+    const reply = document.getElementById('replyMessage').value.trim();
+    const msgEl = document.getElementById('replyMsg');
+    if(!reply){ msgEl.textContent='Type a message first.'; msgEl.className='msg error'; return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      const { error } = await db.rpc('post_support_message', { p_ticket_code: currentTicketCode, p_email: currentTicketEmail, p_message: reply });
+      if(error) throw error;
+      document.getElementById('replyMessage').value = '';
+      await loadAndRenderThread(currentTicketCode, currentTicketEmail);
+    } catch(e){
+      msgEl.textContent = e.message || 'Could not send your reply.';
+      msgEl.className = 'msg error';
+    }
+    btn.disabled = false; btn.innerHTML = 'Send Reply';
+  });
+
+  // Pre-fill lookup fields if arriving via a link with query params
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('ticket')) document.getElementById('lookupTicketCode').value = params.get('ticket');
+  if(params.get('email')) document.getElementById('lookupTicketEmail').value = params.get('email');
+})();
+</script>
+</body>
+</html>
