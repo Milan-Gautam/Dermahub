@@ -63,19 +63,32 @@
   th { text-align:left; padding:12px 10px; background:var(--sand); font-weight:600; color:var(--deep-olive); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.4px; }
   td { padding:11px 10px; border-bottom:1px solid var(--border-light); vertical-align:top; }
   .empty-state { text-align:center; padding:44px; color:var(--stone); font-size:0.85rem; }
+  .thread-msg { max-width:85%; padding:10px 14px; border-radius:14px; font-size:0.83rem; line-height:1.5; }
+  .thread-msg.customer { align-self:flex-start; background:var(--sand); color:var(--charcoal); border-bottom-left-radius:4px; }
+  .thread-msg.admin { align-self:flex-end; background:var(--deep-olive); color:white; border-bottom-right-radius:4px; margin-left:auto; }
+  .thread-msg .meta { font-size:0.6rem; opacity:0.7; margin-top:4px; }
+  .ticket-list-item { padding:12px 14px; border-radius:12px; cursor:pointer; margin-bottom:8px; border:1px solid var(--border-light); }
+  .ticket-list-item:hover { border-color:var(--warm-brown); }
+  .ticket-list-item.selected { border-color:var(--olive); background:var(--cream); }
+  .ticket-list-item .tsubject { font-weight:600; font-size:0.82rem; margin-bottom:4px; }
+  .ticket-list-item .tmeta { font-size:0.68rem; color:var(--stone); display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  @media (max-width:900px) { #supportGrid { grid-template-columns:1fr !important; } }
+  .analytics-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:900px) { .analytics-2col { grid-template-columns:1fr; } }
+  @media (max-width:900px) { canvas#revenueChart, canvas#statusChart { max-height:220px; } }
 
   .badge-order { background:var(--olive); color:white; padding:4px 10px; border-radius:20px; font-size:0.63rem; display:inline-block; }
   .badge-location { padding:3px 8px; border-radius:12px; font-size:0.6rem; font-weight:600; }
   .badge-location.inside { background:#e8f5e9; color:var(--deep-olive); }
   .badge-location.outside { background:#fff3e0; color:#e67e22; }
   .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
-  .badge-status.ordered, .badge-status.pending { background:#e8e0f7; color:#5b3a8c; }
+  .badge-status.ordered, .badge-status.pending, .badge-status.open { background:#e8e0f7; color:#5b3a8c; }
   .badge-status.paid, .badge-status.confirmed, .badge-status.approved { background:#cce5ff; color:#004085; }
-  .badge-status.processing { background:#fff3cd; color:#856404; }
+  .badge-status.processing, .badge-status.in_progress { background:#fff3cd; color:#856404; }
   .badge-status.packed { background:#ffe0b2; color:#a15c00; }
   .badge-status.shipped { background:#b8daff; color:#004085; }
   .badge-status.out_for_delivery { background:#c9e3ff; color:#004085; }
-  .badge-status.delivered { background:#d4edda; color:#155724; }
+  .badge-status.delivered, .badge-status.resolved { background:#d4edda; color:#155724; }
   .badge-status.suspended, .badge-status.cancelled, .badge-status.failed, .badge-status.rejected { background:#fdecea; color:#c0392b; }
   .badge-status.returned { background:#f0e6f6; color:#6a3d9a; }
   .badge-status.refunded { background:#e0d5f5; color:#5b3a8c; }
@@ -190,6 +203,7 @@
       <button class="nav-tab" data-panel="cashflowPanel"><i class="fas fa-chart-line"></i> Cash Flow</button>
       <button class="nav-tab" data-panel="payoutsPanel"><i class="fas fa-hand-holding-dollar"></i> Payouts</button>
       <button class="nav-tab" data-panel="returnsPanel"><i class="fas fa-rotate-left"></i> Returns</button>
+      <button class="nav-tab" data-panel="supportPanel"><i class="fas fa-headset"></i> Support</button>
       <button class="nav-tab" data-panel="vouchersPanel"><i class="fas fa-ticket-alt"></i> Vouchers</button>
     </div>
 
@@ -209,7 +223,7 @@
         <div class="stat-card"><i class="fas fa-rotate-left"></i><h3>Open Returns</h3><div class="stat-number" id="anOpenReturns">0</div></div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div class="analytics-2col" style="margin-bottom:20px;">
         <div class="card-box">
           <div class="section-heading"><i class="fas fa-chart-line"></i> Revenue — Last 14 Days</div>
           <canvas id="revenueChart" height="180"></canvas>
@@ -220,7 +234,7 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div class="analytics-2col" style="margin-bottom:20px;">
         <div class="card-box">
           <div class="section-heading"><i class="fas fa-trophy"></i> Top Sellers</div>
           <div class="table-wrap"><table>
@@ -342,6 +356,49 @@
       </div>
     </div>
 
+    <!-- SUPPORT -->
+    <div class="panel" id="supportPanel">
+      <div class="stats-grid">
+        <div class="stat-card"><i class="fas fa-envelope-open-text"></i><h3>Open Tickets</h3><div class="stat-number" id="supOpenCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-hourglass-half"></i><h3>In Progress</h3><div class="stat-number" id="supProgressCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-circle-check"></i><h3>Resolved</h3><div class="stat-number" id="supResolvedCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-ticket"></i><h3>Total Tickets</h3><div class="stat-number" id="supTotalCount">0</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;" id="supportGrid">
+        <div class="card-box">
+          <div class="section-heading"><i class="fas fa-list"></i> Tickets</div>
+          <select class="status-select" id="supportFilterSelect" style="width:100%;margin-bottom:12px;">
+            <option value="all">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+          <div id="ticketListContainer" style="max-height:520px;overflow-y:auto;"></div>
+        </div>
+        <div class="card-box">
+          <div id="ticketDetailEmpty" class="empty-state">Select a ticket to view the conversation</div>
+          <div id="ticketDetailView" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;">
+              <div>
+                <div class="section-heading" style="margin-bottom:2px;" id="ticketDetailSubject">Subject</div>
+                <small style="color:var(--stone);" id="ticketDetailMeta"></small>
+              </div>
+              <select class="status-select" id="ticketDetailStatusSelect">
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div class="thread-scroll" id="adminThread" style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0;padding:4px;"></div>
+            <div class="form-row"><div class="form-field"><label>Reply</label><input type="text" id="adminReplyInput" placeholder="Type a reply..."></div></div>
+            <button class="btn-primary-sm" id="adminSendReplyBtn"><i class="fas fa-paper-plane"></i> Send Reply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- VOUCHERS -->
     <div class="panel" id="vouchersPanel">
       <div class="card-box">
@@ -377,7 +434,8 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [], auditLog = [];
+  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [], auditLog = [], supportTickets = [];
+  let selectedTicketId = null, supportFilter = 'all';
   let revenueChartInstance = null, statusChartInstance = null;
 
   function esc(s){ if(!s) return ''; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
@@ -511,9 +569,13 @@
     try { const { data, error } = await db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(15); if(error) throw error; auditLog = data || []; } catch(e){ console.error(e); auditLog = []; }
   }
 
+  async function loadSupportTickets(){
+    try { const { data, error } = await db.from('support_tickets').select('*').order('updated_at',{ascending:false}); if(error) throw error; supportTickets = data || []; } catch(e){ console.error(e); supportTickets = []; }
+  }
+
   async function refreshAll(){
-    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests(), loadAuditLog()]);
-    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests(); renderAnalytics();
+    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests(), loadAuditLog(), loadSupportTickets()]);
+    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests(); renderAnalytics(); renderTicketList();
     updateTopStats();
   }
 
@@ -891,6 +953,85 @@
       showToast(`Return ${status}`);
     } catch(e){ showToast('Could not update return request'); }
   };
+
+  // ---------------- SUPPORT ----------------
+  function renderTicketList(){
+    document.getElementById('supOpenCount').textContent = supportTickets.filter(t=>t.status==='open').length;
+    document.getElementById('supProgressCount').textContent = supportTickets.filter(t=>t.status==='in_progress').length;
+    document.getElementById('supResolvedCount').textContent = supportTickets.filter(t=>t.status==='resolved').length;
+    document.getElementById('supTotalCount').textContent = supportTickets.length;
+
+    const list = supportFilter === 'all' ? supportTickets : supportTickets.filter(t=>t.status===supportFilter);
+    const c = document.getElementById('ticketListContainer');
+    if(!list.length){ c.innerHTML = '<div class="empty-state">No tickets here</div>'; return; }
+    c.innerHTML = list.map(t => `
+      <div class="ticket-list-item${t.id===selectedTicketId?' selected':''}" data-id="${t.id}">
+        <div class="tsubject">${esc(t.subject)}</div>
+        <div class="tmeta"><span>${esc(t.customer_name)} · ${esc(t.ticket_code)}</span><span class="badge-status ${t.status}">${t.status.replace('_',' ')}</span></div>
+      </div>
+    `).join('');
+    c.querySelectorAll('.ticket-list-item').forEach(el => el.addEventListener('click', function(){ openTicketDetail(parseInt(this.dataset.id)); }));
+  }
+
+  document.getElementById('supportFilterSelect').addEventListener('change', function(){ supportFilter = this.value; renderTicketList(); });
+
+  async function openTicketDetail(ticketId){
+    selectedTicketId = ticketId;
+    renderTicketList();
+    const ticket = supportTickets.find(t=>t.id===ticketId);
+    if(!ticket) return;
+
+    document.getElementById('ticketDetailEmpty').style.display = 'none';
+    document.getElementById('ticketDetailView').style.display = 'block';
+    document.getElementById('ticketDetailSubject').textContent = ticket.subject;
+    document.getElementById('ticketDetailMeta').textContent = `${ticket.customer_name} (${ticket.customer_email}) · ${ticket.ticket_code}${ticket.related_order_id ? ' · Order: '+ticket.related_order_id : ''}`;
+    document.getElementById('ticketDetailStatusSelect').value = ticket.status;
+
+    try {
+      const { data: messages, error } = await db.from('support_messages').select('*').eq('ticket_id', ticketId).order('created_at',{ascending:true});
+      if(error) throw error;
+      const threadEl = document.getElementById('adminThread');
+      threadEl.innerHTML = (messages||[]).map(m => `
+        <div class="thread-msg ${m.sender_type}">
+          <div>${esc(m.message)}</div>
+          <div class="meta">${m.sender_type==='admin'?'You':esc(ticket.customer_name)} · ${new Date(m.created_at).toLocaleString()}</div>
+        </div>
+      `).join('');
+      threadEl.scrollTop = threadEl.scrollHeight;
+    } catch(e){ console.error(e); }
+  }
+
+  document.getElementById('ticketDetailStatusSelect').addEventListener('change', async function(){
+    if(!selectedTicketId) return;
+    const newStatus = this.value;
+    try {
+      await db.from('support_tickets').update({ status: newStatus }).eq('id', selectedTicketId);
+      const t = supportTickets.find(x=>x.id===selectedTicketId); if(t) t.status = newStatus;
+      renderTicketList();
+      showToast('Ticket status updated');
+    } catch(e){ showToast('Could not update status'); }
+  });
+
+  document.getElementById('adminSendReplyBtn').addEventListener('click', async function(){
+    const input = document.getElementById('adminReplyInput');
+    const message = input.value.trim();
+    if(!message || !selectedTicketId) return;
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      await db.from('support_messages').insert([{ ticket_id: selectedTicketId, sender_type: 'admin', message }]);
+      const ticket = supportTickets.find(t=>t.id===selectedTicketId);
+      if(ticket && ticket.status === 'open'){
+        await db.from('support_tickets').update({ status: 'in_progress' }).eq('id', selectedTicketId);
+        ticket.status = 'in_progress';
+        document.getElementById('ticketDetailStatusSelect').value = 'in_progress';
+        renderTicketList();
+      }
+      input.value = '';
+      await openTicketDetail(selectedTicketId);
+      showToast('Reply sent');
+    } catch(e){ showToast('Could not send reply'); }
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reply';
+  });
 
   // ---------------- VOUCHERS ----------------
   function renderVouchers(){
