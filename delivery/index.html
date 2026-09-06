@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Deliver for DERMAHUB | Rider Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#fefaf5 0%,#f3ede7 100%); min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:440px; margin:0 auto; padding:40px 20px; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  .back-link { font-size:0.78rem; color:var(--stone); text-decoration:none; margin-bottom:20px; display:inline-flex; align-items:center; gap:6px; }
+  .card { background:white; border-radius:28px; padding:36px 30px; box-shadow:0 20px 50px rgba(0,0,0,0.08); border:1px solid var(--border-light); }
+  .card h1 { font-family:'Playfair Display',serif; color:var(--warm-brown); font-size:1.7rem; margin-bottom:4px; }
+  .card .subtitle { color:var(--stone); font-size:0.82rem; margin-bottom:26px; }
+  .tabs { display:flex; background:var(--sand); border-radius:40px; padding:4px; margin-bottom:24px; }
+  .tab-btn { flex:1; border:none; background:none; padding:9px; border-radius:40px; font-family:inherit; font-size:0.8rem; font-weight:600; color:var(--stone); cursor:pointer; }
+  .tab-btn.active { background:var(--deep-olive); color:white; }
+  .field { margin-bottom:14px; text-align:left; }
+  .field label { display:block; font-size:0.68rem; font-weight:600; color:var(--charcoal); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:5px; }
+  .field input, .field select { width:100%; padding:11px 14px; border:1px solid var(--border-light); border-radius:10px; font-size:0.88rem; font-family:inherit; }
+  .field input:focus, .field select:focus { outline:none; border-color:var(--olive); }
+  .btn-main { width:100%; background:var(--deep-olive); color:white; border:none; border-radius:50px; padding:13px; font-weight:600; font-size:0.9rem; cursor:pointer; margin-top:6px; min-height:46px; }
+  .btn-main:hover { background:var(--warm-brown); }
+  .btn-main:disabled { background:#cbbcac; cursor:not-allowed; }
+  .msg { font-size:0.78rem; margin-top:14px; padding:10px 14px; border-radius:10px; display:none; line-height:1.5; }
+  .msg.error { background:#fdecea; color:#c0392b; display:block; }
+  .msg.success { background:#e8f5e9; color:#2a4235; display:block; }
+  .form-panel { display:none; }
+  .form-panel.active { display:block; }
+  .verify-note { background:var(--sand); border-radius:12px; padding:12px 14px; font-size:0.72rem; color:var(--stone); line-height:1.6; margin-bottom:18px; display:flex; gap:8px; align-items:flex-start; }
+  .verify-note i { color:var(--warm-brown); margin-top:2px; }
+  @media (max-width:480px) { .card { padding:28px 20px; border-radius:22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to store</a>
+  <div class="card">
+    <h1>DERMAHUB</h1>
+    <p class="subtitle">Delivery Rider Portal</p>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabLogin">Log In</button>
+      <button class="tab-btn" id="tabSignup">Sign Up</button>
+    </div>
+
+    <div class="form-panel active" id="loginPanel">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <button class="btn-main" id="loginBtn">Log In to Dashboard</button>
+      <div style="text-align:right;margin-top:10px;"><a href="#" id="forgotPasswordLink" style="font-size:0.76rem;color:var(--stone);text-decoration:none;">Forgot password?</a></div>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+
+    <div class="form-panel" id="forgotPanel">
+      <p style="font-size:0.8rem;color:var(--stone);margin-bottom:16px;text-align:left;">Enter your account email and we'll send you a link to reset your password.</p>
+      <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@example.com"></div>
+      <button class="btn-main" id="sendResetBtn">Send Reset Link</button>
+      <div style="text-align:right;margin-top:10px;"><a href="#" id="backToLoginLink" style="font-size:0.76rem;color:var(--stone);text-decoration:none;">Back to login</a></div>
+      <div class="msg" id="forgotMsg"></div>
+    </div>
+
+    <div class="form-panel" id="signupPanel">
+      <div class="verify-note"><i class="fas fa-shield-halved"></i><span>Every rider account is reviewed before you can see or claim deliveries. You'll be notified once approved.</span></div>
+      <div class="field"><label>Full Name</label><input type="text" id="suName" placeholder="Your full name"></div>
+      <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="suPhone" placeholder="+977 98..."></div>
+      <div class="field"><label>Vehicle Type</label>
+        <select id="suVehicle">
+          <option value="Bicycle">Bicycle</option>
+          <option value="Scooter">Scooter</option>
+          <option value="Motorbike">Motorbike</option>
+          <option value="On Foot">On Foot</option>
+        </select>
+      </div>
+      <div class="field"><label>Coverage Area</label><input type="text" id="suArea" placeholder="e.g. Thamel, Kathmandu"></div>
+      <div class="field"><label>Password</label><input type="password" id="suPassword" placeholder="At least 6 characters"></div>
+      <button class="btn-main" id="signupBtn">Apply to Deliver</button>
+      <div class="msg" id="signupMsg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const tabLogin = document.getElementById('tabLogin'), tabSignup = document.getElementById('tabSignup');
+  const loginPanel = document.getElementById('loginPanel'), signupPanel = document.getElementById('signupPanel');
+
+  function forgotPanelRef(){ return document.getElementById('forgotPanel'); }
+  tabLogin.addEventListener('click', () => { tabLogin.classList.add('active'); tabSignup.classList.remove('active'); loginPanel.classList.add('active'); signupPanel.classList.remove('active'); forgotPanelRef().classList.remove('active'); });
+  tabSignup.addEventListener('click', () => { tabSignup.classList.add('active'); tabLogin.classList.remove('active'); signupPanel.classList.add('active'); loginPanel.classList.remove('active'); forgotPanelRef().classList.remove('active'); });
+
+  function showMsg(id, text, type){ const el=document.getElementById(id); el.textContent=text; el.className='msg '+type; }
+
+  document.getElementById('signupBtn').addEventListener('click', async function(){
+    const full_name = document.getElementById('suName').value.trim();
+    const email = document.getElementById('suEmail').value.trim();
+    const phone = document.getElementById('suPhone').value.trim();
+    const vehicle_type = document.getElementById('suVehicle').value;
+    const coverage_area = document.getElementById('suArea').value.trim();
+    const password = document.getElementById('suPassword').value;
+    if(!full_name || !email || !phone || !coverage_area || !password){ showMsg('signupMsg','Please fill in every field.','error'); return; }
+    if(password.length < 6){ showMsg('signupMsg','Password must be at least 6 characters.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    try {
+      const redirectUrl = window.location.origin + window.location.pathname;
+      const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl, data: { full_name, contact_phone: phone, vehicle_type, coverage_area } } });
+      if(error) throw error;
+      if(!data.session){
+        showMsg('signupMsg','Application submitted! Check your email to confirm, then log in — your details are saved and will finish setting up automatically.','success');
+        btn.disabled = false; btn.innerHTML = 'Apply to Deliver';
+        return;
+      }
+      const { error: riderErr } = await db.from('delivery_riders').insert([{ id: data.user.id, full_name, contact_email: email, contact_phone: phone, vehicle_type, coverage_area }]);
+      if(riderErr) throw riderErr;
+      showMsg('signupMsg','Application submitted! Redirecting to your dashboard...','success');
+      setTimeout(() => window.location.href = '/delivery/dashboard', 1200);
+    } catch(e) {
+      showMsg('signupMsg', e.message || 'Something went wrong. Please try again.', 'error');
+      btn.disabled = false; btn.innerHTML = 'Apply to Deliver';
+    }
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', async function(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if(!email || !password){ showMsg('loginMsg','Enter your email and password.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+    try {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      window.location.href = '/delivery/dashboard';
+    } catch(e) {
+      showMsg('loginMsg', e.message || 'Login failed. Check your details.', 'error');
+      btn.disabled = false; btn.innerHTML = 'Log In to Dashboard';
+    }
+  });
+
+  document.getElementById('forgotPasswordLink').addEventListener('click', function(e){
+    e.preventDefault();
+    loginPanel.classList.remove('active'); signupPanel.classList.remove('active'); forgotPanelRef().classList.add('active');
+  });
+  document.getElementById('backToLoginLink').addEventListener('click', function(e){
+    e.preventDefault();
+    forgotPanelRef().classList.remove('active'); loginPanel.classList.add('active');
+  });
+  document.getElementById('sendResetBtn').addEventListener('click', async function(){
+    const email = document.getElementById('forgotEmail').value.trim();
+    if(!email){ showMsg('forgotMsg','Enter your account email.','error'); return; }
+    const btn = this; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    try {
+      const redirectUrl = window.location.origin + '/reset-password';
+      const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+      if(error) throw error;
+      showMsg('forgotMsg','If that email has an account, a reset link is on its way. Check your inbox (and spam folder).','success');
+    } catch(e) {
+      showMsg('forgotMsg', e.message || 'Something went wrong. Please try again.', 'error');
+    }
+    btn.disabled = false; btn.innerHTML = 'Send Reset Link';
+  });
+
+  (async function checkSession(){
+    const { data:{ session } } = await db.auth.getSession();
+    if(session) window.location.href = '/delivery/dashboard';
+  })();
+})();
+</script>
+</body>
+</html>
