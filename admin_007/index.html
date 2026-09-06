@@ -203,6 +203,7 @@
       <button class="nav-tab" data-panel="cashflowPanel"><i class="fas fa-chart-line"></i> Cash Flow</button>
       <button class="nav-tab" data-panel="payoutsPanel"><i class="fas fa-hand-holding-dollar"></i> Payouts</button>
       <button class="nav-tab" data-panel="returnsPanel"><i class="fas fa-rotate-left"></i> Returns</button>
+      <button class="nav-tab" data-panel="deliveryPanel"><i class="fas fa-motorcycle"></i> Delivery</button>
       <button class="nav-tab" data-panel="supportPanel"><i class="fas fa-headset"></i> Support</button>
       <button class="nav-tab" data-panel="vouchersPanel"><i class="fas fa-ticket-alt"></i> Vouchers</button>
     </div>
@@ -356,6 +357,21 @@
       </div>
     </div>
 
+    <!-- DELIVERY -->
+    <div class="panel" id="deliveryPanel">
+      <div class="card-box" style="margin-bottom:18px;">
+        <div class="section-heading"><i class="fas fa-motorcycle"></i> Delivery Riders</div>
+        <div id="riderListContainer"></div>
+      </div>
+      <div class="card-box">
+        <div class="section-heading"><i class="fas fa-hand-holding-dollar"></i> Rider Payout Requests</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Rider</th><th>Amount</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="riderPayoutsBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
     <!-- SUPPORT -->
     <div class="panel" id="supportPanel">
       <div class="stats-grid">
@@ -434,7 +450,7 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [], auditLog = [], supportTickets = [];
+  let orders = [], sellers = [], products = [], orderItems = [], vouchers = [], payoutRequests = [], returnRequests = [], auditLog = [], supportTickets = [], deliveryRiders = [], riderPayoutRequests = [];
   let selectedTicketId = null, supportFilter = 'all';
   let revenueChartInstance = null, statusChartInstance = null;
 
@@ -573,9 +589,17 @@
     try { const { data, error } = await db.from('support_tickets').select('*').order('updated_at',{ascending:false}); if(error) throw error; supportTickets = data || []; } catch(e){ console.error(e); supportTickets = []; }
   }
 
+  async function loadDeliveryRiders(){
+    try { const { data, error } = await db.from('delivery_riders').select('*').order('created_at',{ascending:false}); if(error) throw error; deliveryRiders = data || []; } catch(e){ console.error(e); deliveryRiders = []; }
+  }
+
+  async function loadRiderPayouts(){
+    try { const { data, error } = await db.from('delivery_payout_requests').select('*').order('requested_at',{ascending:false}); if(error) throw error; riderPayoutRequests = data || []; } catch(e){ console.error(e); riderPayoutRequests = []; }
+  }
+
   async function refreshAll(){
-    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests(), loadAuditLog(), loadSupportTickets()]);
-    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests(); renderAnalytics(); renderTicketList();
+    await Promise.all([loadOrders(), loadSellers(), loadProducts(), loadOrderItems(), loadVouchers(), loadPayoutRequests(), loadReturnRequests(), loadAuditLog(), loadSupportTickets(), loadDeliveryRiders(), loadRiderPayouts()]);
+    renderOrders(); renderSellers(); renderProducts(); renderCashflow(); renderVouchers(); renderPayoutRequests(); renderReturnRequests(); renderAnalytics(); renderTicketList(); renderRiders(); renderRiderPayouts();
     updateTopStats();
   }
 
@@ -757,10 +781,11 @@
       html += `<div class="seller-row">
         <div class="seller-info">
           <span class="seller-code-tag">${esc(s.seller_code)}</span><strong>${esc(s.business_name)}</strong>
-          <span class="badge-status ${status}">${status}</span><br>
+          <span class="badge-status ${status}">${status}</span>${s.verified?' <i class="fas fa-circle-check" style="color:#3a5a45;" title="Verified"></i>':''}<br>
           <small style="color:var(--stone);">${esc(s.contact_email)} • ${esc(s.contact_phone)} • ${prodCount} product${prodCount===1?'':'s'} • ${s.commission_rate??5}% commission</small>
         </div>
         <div class="prod-actions">
+          <button class="btn-tiny ${s.verified?'warn':'ok'}" onclick="window._setSellerVerified('${s.id}', ${!s.verified})">${s.verified?'Unverify':'Verify'}</button>
           ${status!=='approved'?`<button class="btn-tiny ok" onclick="window._setSellerStatus('${s.id}','approved')">Approve</button>`:''}
           ${status!=='suspended'?`<button class="btn-tiny warn" onclick="window._setSellerStatus('${s.id}','suspended')">Suspend</button>`:`<button class="btn-tiny ok" onclick="window._setSellerStatus('${s.id}','approved')">Reactivate</button>`}
         </div></div>`;
@@ -770,6 +795,62 @@
   window._setSellerStatus = async function(id, status){
     try { await db.from('sellers').update({status}).eq('id',id); const s=sellers.find(x=>x.id===id); if(s) s.status=status; renderSellers(); showToast(`Seller ${status}`); }
     catch(e){ showToast('Could not update seller status'); }
+  };
+  window._setSellerVerified = async function(id, verified){
+    try { await db.from('sellers').update({verified}).eq('id',id); const s=sellers.find(x=>x.id===id); if(s) s.verified=verified; renderSellers(); showToast(verified?'Seller verified':'Verification removed'); }
+    catch(e){ showToast('Could not update verification'); }
+  };
+
+  // ---------------- DELIVERY ----------------
+  function renderRiders(){
+    const c = document.getElementById('riderListContainer');
+    if(!deliveryRiders.length){ c.innerHTML = '<div class="empty-state">No riders have signed up yet.</div>'; return; }
+    let html = '';
+    deliveryRiders.forEach(r => {
+      const status = r.status || 'pending';
+      html += `<div class="seller-row">
+        <div class="seller-info">
+          <span class="seller-code-tag">${esc(r.rider_code)}</span><strong>${esc(r.full_name)}</strong>
+          <span class="badge-status ${status}">${status}</span><br>
+          <small style="color:var(--stone);">${esc(r.contact_email)} • ${esc(r.contact_phone)} • ${esc(r.vehicle_type||'')} • ${esc(r.coverage_area||'')} • NPR ${r.fee_per_delivery??30}/delivery</small>
+        </div>
+        <div class="prod-actions">
+          ${status!=='approved'?`<button class="btn-tiny ok" onclick="window._setRiderStatus('${r.id}','approved')">Approve</button>`:''}
+          ${status!=='suspended'?`<button class="btn-tiny warn" onclick="window._setRiderStatus('${r.id}','suspended')">Suspend</button>`:`<button class="btn-tiny ok" onclick="window._setRiderStatus('${r.id}','approved')">Reactivate</button>`}
+        </div></div>`;
+    });
+    c.innerHTML = html;
+  }
+  window._setRiderStatus = async function(id, status){
+    try { await db.from('delivery_riders').update({status}).eq('id',id); const r=deliveryRiders.find(x=>x.id===id); if(r) r.status=status; renderRiders(); showToast(`Rider ${status}`); }
+    catch(e){ showToast('Could not update rider status'); }
+  };
+
+  function renderRiderPayouts(){
+    const tbody = document.getElementById('riderPayoutsBody');
+    if(!riderPayoutRequests.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No rider payout requests yet</td></tr>'; return; }
+    tbody.innerHTML = riderPayoutRequests.map(p => {
+      const rider = deliveryRiders.find(r=>r.id===p.rider_id);
+      const status = p.status || 'pending';
+      return `<tr>
+        <td><strong>${esc(rider?rider.full_name:'Unknown Rider')}</strong></td>
+        <td>NPR ${parseFloat(p.amount||0).toLocaleString()}</td>
+        <td><small>${p.requested_at?new Date(p.requested_at).toLocaleDateString():''}</small></td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          ${status==='pending'?`<button class="btn-tiny ok" onclick="window._setRiderPayoutStatus(${p.id},'approved')">Approve</button> <button class="btn-tiny warn" onclick="window._setRiderPayoutStatus(${p.id},'rejected')">Reject</button>`:''}
+          ${status==='approved'?`<button class="btn-tiny ok" onclick="window._setRiderPayoutStatus(${p.id},'paid')">Mark Paid</button>`:''}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  window._setRiderPayoutStatus = async function(id, status){
+    try {
+      await db.from('delivery_payout_requests').update({ status, processed_at: new Date().toISOString() }).eq('id', id);
+      const p = riderPayoutRequests.find(x=>x.id===id); if(p) p.status = status;
+      renderRiderPayouts();
+      showToast(`Payout ${status}`);
+    } catch(e){ showToast('Could not update payout request'); }
   };
 
   // ---------------- PRODUCTS ----------------
