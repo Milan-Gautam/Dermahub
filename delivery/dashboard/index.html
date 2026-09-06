@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Rider Dashboard | DERMAHUB</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --cream:#fefaf5; --sand:#f3ede7; --olive:#3a5a45; --deep-olive:#2a4235; --warm-brown:#9c6e4b; --charcoal:#2c2b28; --stone:#8b7b6e; --border-light:#ece2d9; }
+  body { font-family:'Inter',sans-serif; background:#f5f0eb; min-height:100vh; color:var(--charcoal); -webkit-font-smoothing:antialiased; }
+  .loading-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; flex-direction:column; gap:12px; color:var(--stone); }
+  .loading-screen i { font-size:1.6rem; color:var(--olive); }
+  .container { max-width:1200px; margin:0 auto; padding:24px; display:none; }
+  @media (max-width:768px) { .container { padding:16px; } }
+  header { background:white; border-radius:22px; padding:20px 26px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+  @media (max-width:576px) { header { padding:16px 18px; flex-direction:column; text-align:center; } }
+  .brand h1 { font-family:'Playfair Display',serif; color:var(--warm-brown); font-size:1.5rem; }
+  .brand p { font-size:0.7rem; color:var(--stone); }
+  .rider-badge { background:var(--sand); color:var(--deep-olive); padding:5px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; letter-spacing:0.4px; }
+  .header-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn-ghost { background:none; border:1px solid var(--border-light); padding:8px 18px; border-radius:40px; cursor:pointer; color:var(--stone); font-family:inherit; font-size:0.82rem; }
+  .btn-ghost:hover { border-color:var(--warm-brown); color:var(--warm-brown); }
+  .pending-banner { background:#fff3cd; color:#856404; padding:14px 20px; border-radius:16px; font-size:0.82rem; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:24px; }
+  @media (max-width:576px) { .stats-grid { grid-template-columns:1fr 1fr; gap:10px; } }
+  .stat-card { background:white; border-radius:18px; padding:18px 14px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .stat-card i { font-size:1.3rem; color:var(--olive); margin-bottom:6px; }
+  .stat-card h3 { font-size:0.62rem; text-transform:uppercase; color:var(--stone); letter-spacing:0.6px; margin-bottom:2px; }
+  .stat-number { font-size:1.25rem; font-weight:700; color:var(--deep-olive); }
+  .nav-tabs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
+  .nav-tab { background:none; border:none; padding:9px 18px; border-radius:40px; cursor:pointer; font-weight:600; color:var(--stone); font-family:inherit; font-size:0.85rem; }
+  .nav-tab.active { background:var(--olive); color:white; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+  .card-box { background:white; border-radius:20px; padding:22px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .section-heading { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--deep-olive); margin-bottom:16px; }
+  .delivery-item { background:var(--cream); border-radius:16px; padding:16px; margin-bottom:12px; }
+  .delivery-item .dtop { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .delivery-item .dname { font-weight:700; font-size:0.9rem; color:var(--deep-olive); }
+  .delivery-item .dmeta { font-size:0.78rem; color:var(--stone); line-height:1.7; }
+  .delivery-item .dmeta i { width:16px; color:var(--olive); }
+  .zone-badge { padding:3px 10px; border-radius:20px; font-size:0.65rem; font-weight:700; background:var(--sand); color:var(--deep-olive); white-space:nowrap; }
+  .btn-tiny { padding:8px 16px; border-radius:20px; border:none; cursor:pointer; font-family:inherit; font-size:0.75rem; font-weight:600; background:var(--deep-olive); color:white; margin-top:8px; }
+  .btn-tiny.warn { background:#c27c6e; }
+  .status-select { padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:0.72rem; cursor:pointer; font-family:inherit; background:white; margin-top:8px; }
+  .empty-state { text-align:center; padding:44px; color:var(--stone); font-size:0.85rem; }
+  .form-row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+  .form-field { flex:1; min-width:150px; }
+  .form-field label { display:block; font-size:0.68rem; font-weight:600; margin-bottom:4px; color:var(--stone); text-transform:uppercase; }
+  .form-field input, .form-field select { width:100%; padding:10px 12px; border:1px solid var(--border-light); border-radius:8px; font-family:inherit; font-size:0.85rem; }
+  .btn-primary-sm { background:var(--deep-olive); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:0.85rem; font-weight:600; width:100%; margin-top:6px; min-height:44px; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:0.8rem; min-width:600px; }
+  th { text-align:left; padding:12px 10px; background:var(--sand); font-weight:600; color:var(--deep-olive); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.4px; }
+  td { padding:11px 10px; border-bottom:1px solid var(--border-light); }
+  .badge-status { padding:3px 9px; border-radius:12px; font-size:0.62rem; font-weight:700; display:inline-block; text-transform:capitalize; }
+  .badge-status.pending { background:#e8e0f7; color:#5b3a8c; }
+  .badge-status.approved, .badge-status.paid { background:#cce5ff; color:#004085; }
+  .badge-status.rejected { background:#fdecea; color:#c0392b; }
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--deep-olive); color:white; padding:12px 24px; border-radius:40px; z-index:1000; display:none; font-size:0.85rem; }
+  .popup-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(44,43,40,0.45); z-index:5000; align-items:center; justify-content:center; padding:20px; }
+  .popup-overlay.open { display:flex; }
+  .popup-card { background:white; border-radius:22px; max-width:360px; width:100%; padding:26px 24px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.15); }
+  .popup-icon { font-size:2.3rem; margin-bottom:10px; color:#c27c6e; }
+  .popup-title { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--deep-olive); margin-bottom:8px; font-weight:600; }
+  .popup-message { font-size:0.85rem; color:var(--stone); line-height:1.6; margin-bottom:20px; }
+  .popup-actions { display:flex; gap:10px; }
+  .popup-btn { flex:1; padding:11px; border-radius:40px; border:none; font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; min-height:42px; }
+  .popup-btn-confirm { background:var(--deep-olive); color:white; }
+  .popup-btn-cancel { background:var(--sand); color:var(--deep-olive); }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen"><i class="fas fa-spinner fa-spin"></i><span>Loading your dashboard...</span></div>
+
+<div class="container" id="dashboardContainer">
+  <header>
+    <div class="brand"><h1>DERMAHUB</h1><p>rider dashboard</p></div>
+    <div class="header-actions">
+      <span class="rider-badge" id="riderCodeBadge">RDR-0000</span>
+      <a href="/" target="_blank" class="btn-ghost"><i class="fas fa-store"></i> View Store</a>
+      <button class="btn-ghost" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </header>
+
+  <div class="pending-banner" id="pendingBanner" style="display:none;"><i class="fas fa-clock"></i> Your rider application is pending review. You'll be able to see and claim deliveries once approved.</div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><i class="fas fa-box-open"></i><h3>Available Nearby</h3><div class="stat-number" id="statAvailable">0</div></div>
+    <div class="stat-card"><i class="fas fa-motorcycle"></i><h3>Active Deliveries</h3><div class="stat-number" id="statActive">0</div></div>
+    <div class="stat-card"><i class="fas fa-circle-check"></i><h3>Completed</h3><div class="stat-number" id="statCompleted">0</div></div>
+    <div class="stat-card"><i class="fas fa-wallet"></i><h3>Total Earned</h3><div class="stat-number" id="statEarned">NPR 0</div></div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-panel="availablePanel">Available Deliveries</button>
+    <button class="nav-tab" data-panel="myDeliveriesPanel">My Deliveries</button>
+    <button class="nav-tab" data-panel="earningsPanel">Earnings</button>
+    <button class="nav-tab" data-panel="profilePanel">Profile</button>
+  </div>
+
+  <div class="panel active" id="availablePanel">
+    <div class="card-box">
+      <div class="section-heading">Ready for Pickup</div>
+      <div id="availableList"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="myDeliveriesPanel">
+    <div class="card-box">
+      <div class="section-heading">My Active & Completed Deliveries</div>
+      <div id="myDeliveriesList"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="earningsPanel">
+    <div class="card-box" style="margin-bottom:18px;max-width:420px;">
+      <div class="section-heading">Request a Payout</div>
+      <div class="stats-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><i class="fas fa-wallet"></i><h3>Available</h3><div class="stat-number" id="earnAvailable">NPR 0</div></div>
+        <div class="stat-card"><i class="fas fa-hourglass-half"></i><h3>Pending</h3><div class="stat-number" id="earnPending">NPR 0</div></div>
+      </div>
+      <div class="form-row"><div class="form-field"><label>Amount (NPR)</label><input type="number" id="payoutAmount" placeholder="0" min="1"></div></div>
+      <button class="btn-primary-sm" id="requestPayoutBtn"><i class="fas fa-paper-plane"></i> Request Payout</button>
+    </div>
+    <div class="card-box">
+      <div class="section-heading">Payout History</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody id="payoutHistoryBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="panel" id="profilePanel">
+    <div class="card-box" style="max-width:480px;">
+      <div class="section-heading">Rider Profile</div>
+      <div class="form-row"><div class="form-field"><label>Full Name</label><input type="text" id="profName"></div></div>
+      <div class="form-row"><div class="form-field"><label>Phone</label><input type="text" id="profPhone"></div></div>
+      <div class="form-row"><div class="form-field"><label>Vehicle Type</label>
+        <select id="profVehicle"><option value="Bicycle">Bicycle</option><option value="Scooter">Scooter</option><option value="Motorbike">Motorbike</option><option value="On Foot">On Foot</option></select>
+      </div></div>
+      <div class="form-row"><div class="form-field"><label>Coverage Area</label><input type="text" id="profArea"></div></div>
+      <div class="form-row"><div class="form-field"><label>Email</label><input type="text" id="profEmail" disabled style="background:#f5f0eb;"></div></div>
+      <div class="form-row"><div class="form-field"><label>Rider ID</label><input type="text" id="profCode" disabled style="background:#f5f0eb;"></div></div>
+      <div class="form-row"><div class="form-field"><label>Fee Per Delivery</label><input type="text" id="profFee" disabled style="background:#f5f0eb;"></div></div>
+      <button class="btn-primary-sm" id="saveProfileBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup-card">
+    <div class="popup-icon"><i class="fas fa-question-circle"></i></div>
+    <div class="popup-title" id="popupTitle">Are you sure?</div>
+    <div class="popup-message" id="popupMessage"></div>
+    <div class="popup-actions">
+      <button class="popup-btn popup-btn-cancel" id="popupCancelBtn">Cancel</button>
+      <button class="popup-btn popup-btn-confirm" id="popupConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastMsg" class="toast"></div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://hduvbdexggqjweebjjbh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkdXZiZGV4Z2dxandlZWJqamJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzc1ODcsImV4cCI6MjA5NzgxMzU4N30.Q86M_6eFdrsVQK8f4SD3oLL5h8Tba6aIyJqSfQZBUFc";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null, currentRider = null, availableItems = [], myItems = [], sellerMap = {}, payoutRequests = [];
+
+  function esc(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+  function showToast(m){ const t=document.getElementById('toastMsg'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
+
+  function showConfirmPopup(title, message){
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('popupOverlay');
+      document.getElementById('popupTitle').textContent = title;
+      document.getElementById('popupMessage').textContent = message;
+      overlay.classList.add('open');
+      const cancelBtn = document.getElementById('popupCancelBtn'), confirmBtn = document.getElementById('popupConfirmBtn');
+      function cleanup(r){ overlay.classList.remove('open'); cancelBtn.removeEventListener('click',onCancel); confirmBtn.removeEventListener('click',onConfirm); resolve(r); }
+      function onCancel(){ cleanup(false); } function onConfirm(){ cleanup(true); }
+      cancelBtn.addEventListener('click', onCancel); confirmBtn.addEventListener('click', onConfirm);
+    });
+  }
+
+  async function init(){
+    const { data:{ session } } = await db.auth.getSession();
+    if(!session){ window.location.href = '/delivery'; return; }
+    currentUser = session.user;
+
+    let { data: riderRow, error: riderErr } = await db.from('delivery_riders').select('*').eq('id', currentUser.id).single();
+    if(riderErr || !riderRow){
+      const meta = currentUser.user_metadata || {};
+      const { data: created, error: createErr } = await db.from('delivery_riders')
+        .insert([{ id: currentUser.id, full_name: meta.full_name || currentUser.email.split('@')[0], contact_email: currentUser.email, contact_phone: meta.contact_phone || '', vehicle_type: meta.vehicle_type || 'Scooter', coverage_area: meta.coverage_area || '' }])
+        .select().single();
+      if(createErr || !created){
+        await db.auth.signOut();
+        window.location.href = '/delivery';
+        return;
+      }
+      riderRow = created;
+    }
+    currentRider = riderRow;
+
+    if(currentRider.status === 'suspended'){
+      await showConfirmPopup('Account Suspended','Your rider account has been suspended. Contact DERMAHUB support.');
+      await db.auth.signOut();
+      window.location.href = '/delivery';
+      return;
+    }
+
+    document.getElementById('riderCodeBadge').textContent = currentRider.rider_code;
+    if(currentRider.status === 'pending') document.getElementById('pendingBanner').style.display = 'flex';
+
+    document.getElementById('profName').value = currentRider.full_name || '';
+    document.getElementById('profPhone').value = currentRider.contact_phone || '';
+    document.getElementById('profVehicle').value = currentRider.vehicle_type || 'Scooter';
+    document.getElementById('profArea').value = currentRider.coverage_area || '';
+    document.getElementById('profEmail').value = currentRider.contact_email || '';
+    document.getElementById('profCode').value = currentRider.rider_code || '';
+    document.getElementById('profFee').value = 'NPR ' + (currentRider.fee_per_delivery ?? 30) + ' per delivery';
+
+    if(currentRider.status === 'approved'){
+      await loadSellerMap();
+      await loadAvailable();
+      await loadMyDeliveries();
+      await loadPayouts();
+    }
+
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'block';
+  }
+
+  async function loadSellerMap(){
+    try {
+      const { data, error } = await db.from('rider_visible_sellers').select('*');
+      if(error) throw error;
+      const map = {}; (data||[]).forEach(s => map[s.id] = s);
+      sellerMap = map;
+    } catch(e){ console.error(e); sellerMap = {}; }
+  }
+
+  // ---------------- AVAILABLE ----------------
+  async function loadAvailable(){
+    try {
+      const { data, error } = await db.from('order_items').select('*').is('assigned_rider_id', null).in('fulfillment_status', ['packed','shipped']);
+      if(error) throw error;
+      availableItems = data || [];
+    } catch(e){ console.error(e); availableItems = []; }
+    await renderAvailable();
+    document.getElementById('statAvailable').textContent = availableItems.length;
+  }
+
+  async function getOrderZone(orderId){
+    try {
+      const { data } = await db.from('orders').select('location').eq('orderId', orderId).single();
+      return data ? data.location : '';
+    } catch(e){ return ''; }
+  }
+
+  async function renderAvailable(){
+    const c = document.getElementById('availableList');
+    if(!availableItems.length){ c.innerHTML = '<div class="empty-state">No deliveries ready for pickup right now — check back soon.</div>'; return; }
+    let html = '';
+    for(const item of availableItems){
+      const seller = sellerMap[item.seller_id];
+      const zone = await getOrderZone(item.order_id);
+      html += `<div class="delivery-item" data-id="${item.id}">
+        <div class="dtop"><div class="dname">${esc(item.product_name)}${item.variant_label?` (${esc(item.variant_label)})`:''}</div>${zone?`<span class="zone-badge">${esc(zone)}</span>`:''}</div>
+        <div class="dmeta">
+          <div><i class="fas fa-store"></i> ${esc(seller?seller.business_name:'DERMAHUB Official')}</div>
+          ${seller && seller.pickup_address ? `<div><i class="fas fa-location-dot"></i> ${esc(seller.pickup_address)}</div>` : ''}
+          ${seller && seller.contact_phone ? `<div><i class="fas fa-phone"></i> ${esc(seller.contact_phone)}</div>` : ''}
+          <div><i class="fas fa-box"></i> Qty: ${item.quantity} · Status: ${esc(item.fulfillment_status)}</div>
+        </div>
+        <button class="btn-tiny claim-btn" data-id="${item.id}">Claim This Delivery</button>
+      </div>`;
+    }
+    c.innerHTML = html;
+    c.querySelectorAll('.claim-btn').forEach(b => b.addEventListener('click', function(){ claimDelivery(parseInt(this.dataset.id)); }));
+  }
+
+  async function claimDelivery(itemId){
+    try {
+      const { error } = await db.from('order_items').update({ assigned_rider_id: currentUser.id, fulfillment_status: 'out_for_delivery' }).eq('id', itemId);
+      if(error) throw error;
+      showToast('Delivery claimed! Contact the seller to arrange pickup.');
+      await loadAvailable();
+      await loadMyDeliveries();
+    } catch(e){ showToast('Could not claim — someone may have already taken it'); await loadAvailable(); }
+  }
+
+  // ---------------- MY DELIVERIES ----------------
+  async function loadMyDeliveries(){
+    try {
+      const { data, error } = await db.from('order_items').select('*').eq('assigned_rider_id', currentUser.id).order('id',{ascending:false});
+      if(error) throw error;
+      myItems = data || [];
+    } catch(e){ console.error(e); myItems = []; }
+    await renderMyDeliveries();
+    document.getElementById('statActive').textContent = myItems.filter(i=>i.fulfillment_status!=='delivered').length;
+    document.getElementById('statCompleted').textContent = myItems.filter(i=>i.fulfillment_status==='delivered').length;
+  }
+
+  async function renderMyDeliveries(){
+    const c = document.getElementById('myDeliveriesList');
+    if(!myItems.length){ c.innerHTML = '<div class="empty-state">No deliveries claimed yet.</div>'; return; }
+    let html = '';
+    for(const item of myItems){
+      const seller = sellerMap[item.seller_id];
+      let orderInfo = null;
+      try { const { data } = await db.from('orders').select('customerName,address,phone,location').eq('orderId', item.order_id).single(); orderInfo = data; } catch(e){}
+      const done = item.fulfillment_status === 'delivered';
+      html += `<div class="delivery-item" data-id="${item.id}">
+        <div class="dtop"><div class="dname">${esc(item.product_name)}${item.variant_label?` (${esc(item.variant_label)})`:''}</div><span class="zone-badge">${esc(item.fulfillment_status)}</span></div>
+        <div class="dmeta">
+          <div><i class="fas fa-store"></i> Pickup: ${esc(seller?seller.business_name:'DERMAHUB Official')}${seller&&seller.pickup_address?' — '+esc(seller.pickup_address):''}</div>
+          ${orderInfo ? `<div><i class="fas fa-user"></i> Deliver to: ${esc(orderInfo.customerName)}</div><div><i class="fas fa-location-dot"></i> ${esc(orderInfo.address)} (${esc(orderInfo.location)})</div><div><i class="fas fa-phone"></i> ${esc(orderInfo.phone)}</div>` : ''}
+        </div>
+        ${!done ? `<select class="status-select" data-id="${item.id}">
+          <option value="out_for_delivery" ${item.fulfillment_status==='out_for_delivery'?'selected':''}>Out for Delivery</option>
+          <option value="delivered" ${item.fulfillment_status==='delivered'?'selected':''}>Delivered</option>
+        </select>` : `<span class="badge-status paid">Completed</span>`}
+      </div>`;
+    }
+    c.innerHTML = html;
+    c.querySelectorAll('.status-select').forEach(sel => sel.addEventListener('change', async function(){
+      const itemId = parseInt(this.dataset.id);
+      try {
+        await db.from('order_items').update({ fulfillment_status: this.value }).eq('id', itemId);
+        showToast(this.value === 'delivered' ? 'Marked delivered — nice work!' : 'Status updated');
+        await loadMyDeliveries();
+        await loadPayouts();
+      } catch(e){ showToast('Could not update status'); }
+    }));
+  }
+
+  // ---------------- EARNINGS / PAYOUTS ----------------
+  async function loadPayouts(){
+    try { const { data, error } = await db.from('delivery_payout_requests').select('*').eq('rider_id', currentUser.id).order('requested_at',{ascending:false}); if(error) throw error; payoutRequests = data || []; }
+    catch(e){ console.error(e); payoutRequests = []; }
+
+    let totalEarned = 0;
+    try {
+      const { data } = await db.from('delivery_earnings').select('amount').eq('rider_id', currentUser.id);
+      totalEarned = (data||[]).reduce((s,r)=>s+parseFloat(r.amount||0),0);
+    } catch(e){}
+
+    const spokenFor = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved'||p.status==='paid').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const pendingOnly = payoutRequests.filter(p=>p.status==='pending'||p.status==='approved').reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const available = Math.max(0, totalEarned - spokenFor);
+
+    document.getElementById('statEarned').textContent = 'NPR ' + totalEarned.toLocaleString();
+    document.getElementById('earnAvailable').textContent = 'NPR ' + available.toLocaleString();
+    document.getElementById('earnPending').textContent = 'NPR ' + pendingOnly.toLocaleString();
+
+    const tbody = document.getElementById('payoutHistoryBody');
+    if(!payoutRequests.length){ tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No payout requests yet</td></tr>'; return; }
+    tbody.innerHTML = payoutRequests.map(p => `<tr><td>${p.requested_at?new Date(p.requested_at).toLocaleDateString():''}</td><td>NPR ${parseFloat(p.amount||0).toLocaleString()}</td><td><span class="badge-status ${p.status}">${p.status}</span></td></tr>`).join('');
+  }
+
+  document.getElementById('requestPayoutBtn').addEventListener('click', async function(){
+    const availableText = document.getElementById('earnAvailable').textContent.replace(/[^0-9]/g,'');
+    const available = parseFloat(availableText)||0;
+    const amount = parseFloat(document.getElementById('payoutAmount').value);
+    if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
+    if(amount > available){ showToast(`You can request up to NPR ${available.toLocaleString()}`); return; }
+    try {
+      await db.from('delivery_payout_requests').insert([{ rider_id: currentUser.id, amount, status:'pending' }]);
+      document.getElementById('payoutAmount').value = '';
+      await loadPayouts();
+      showToast('Payout requested');
+    } catch(e){ showToast('Could not submit request'); }
+  });
+
+  // ---------------- PROFILE ----------------
+  document.getElementById('saveProfileBtn').addEventListener('click', async function(){
+    const full_name = document.getElementById('profName').value.trim();
+    const contact_phone = document.getElementById('profPhone').value.trim();
+    const vehicle_type = document.getElementById('profVehicle').value;
+    const coverage_area = document.getElementById('profArea').value.trim();
+    if(!full_name || !contact_phone){ showToast('Name and phone are required'); return; }
+    try {
+      await db.from('delivery_riders').update({ full_name, contact_phone, vehicle_type, coverage_area }).eq('id', currentUser.id);
+      showToast('Profile updated');
+    } catch(e){ showToast('Could not save profile'); }
+  });
+
+  // ---------------- NAV ----------------
+  document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', function(){
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById(this.dataset.panel).classList.add('active');
+  }));
+
+  document.getElementById('logoutBtn').addEventListener('click', async function(){
+    await db.auth.signOut();
+    window.location.href = '/delivery';
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
