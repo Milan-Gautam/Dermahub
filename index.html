@@ -350,7 +350,7 @@
 
 <footer><div class="container">
     <div class="footer-brand"><h3>DERMAHUB</h3><p>Nepal's marketplace for everything skin-related — skincare, haircare, body care, and bath essentials from independent sellers, checked before they go live. Our own in-house DERMAHUB line is launching soon.</p></div>
-    <div class="footer-grid"><div class="footer-col"><h4>DERMAHUB Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Quality Promise</a></li><li><a id="footerNepal">Based in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a href="/support">Customer Care</a></li><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a href="/order/return">Start a Return</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div><div class="footer-col"><h4>Sell With Us</h4><ul><li><a href="/seller">Become a Seller</a></li><li><a href="/seller">Seller Login</a></li></ul></div><div class="footer-col"><h4>Legal</h4><ul><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms &amp; Conditions</a></li></ul></div></div>
+    <div class="footer-grid"><div class="footer-col"><h4>DERMAHUB Nepal</h4><ul><li><a id="footerStory">Our Story</a></li><li><a id="footerScience">Quality Promise</a></li><li><a id="footerNepal">Based in Nepal</a></li></ul></div><div class="footer-col"><h4>Customer Support</h4><ul><li><a href="/support">Customer Care</a></li><li><a id="footerShipping">Shipping Info</a></li><li><a id="footerReturns">Returns Policy</a></li><li><a href="/order/return">Start a Return</a></li></ul></div><div class="footer-col"><h4>Shop Categories</h4><ul><li><a class="footerCatLink" data-cat="soap">Soap Bars</a></li><li><a class="footerCatLink" data-cat="handwash">Hand Wash</a></li><li><a class="footerCatLink" data-cat="facewash">Face Wash</a></li></ul></div><div class="footer-col"><h4>Sell With Us</h4><ul><li><a href="/seller">Become a Seller</a></li><li><a href="/seller">Seller Login</a></li><li><a href="/delivery">Deliver for DERMAHUB</a></li></ul></div><div class="footer-col"><h4>Legal</h4><ul><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms &amp; Conditions</a></li></ul></div></div>
     <div class="payment-strip"><span class="label">We accept</span><span class="pay-badge">eSewa</span><span class="pay-badge">Khalti</span></div>
     <div class="copyright">2025 DERMAHUB | Skin, Hair & Body Care Marketplace | Kathmandu, Nepal | 100% Authentic Products | <a href="/privacy" style="color:var(--stone);">Privacy</a> · <a href="/terms" style="color:var(--stone);">Terms</a></div>
 </div></footer>
@@ -364,7 +364,7 @@
 
     const STORAGE_PRODUCTS = "dermahub_products_v3", STORAGE_CART = "dermahub_cart", STORAGE_WISHLIST = "dermahub_wishlist";
 
-    let products = [], sellerMap = {}, sellerPhotoMap = {}, salesMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), wishlist = loadWishlist(), currentFilter = "new", selectedLocation = "inside", baseDeliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
+    let products = [], sellerMap = {}, sellerPhotoMap = {}, sellerVerifiedMap = {}, salesMap = {}, cart = loadCart(), addedKeys = new Set(cart.map(i=>i.uniqueKey)), wishlist = loadWishlist(), currentFilter = "new", selectedLocation = "inside", baseDeliveryCharge = 100, voucherDiscount = 0, appliedVoucher = null;
     let searchQuery = "", sortBy = "relevance", filterSeller = "", filterMinPrice = null, filterMaxPrice = null, filterInStock = false, visibleCount = 12;
     const PAGE_SIZE = 12, FREE_SHIPPING_THRESHOLD = 2000;
 
@@ -378,7 +378,7 @@
     function saveCart(){ localStorage.setItem(STORAGE_CART,JSON.stringify(cart)); }
 
     async function loadSellerMap(){
-        try { const {data,error} = await db.from('public_sellers').select('id,business_name,store_photo_url'); if(error) throw error; const map={}; const photoMap={}; (data||[]).forEach(s=>{map[s.id]=s.business_name; if(s.store_photo_url) photoMap[s.id]=s.store_photo_url;}); sellerPhotoMap = photoMap; return map; }
+        try { const {data,error} = await db.from('public_sellers').select('id,business_name,store_photo_url,verified'); if(error) throw error; const map={}; const photoMap={}; const verifiedMap={}; (data||[]).forEach(s=>{map[s.id]=s.business_name; if(s.store_photo_url) photoMap[s.id]=s.store_photo_url; if(s.verified) verifiedMap[s.id]=true;}); sellerPhotoMap = photoMap; sellerVerifiedMap = verifiedMap; return map; }
         catch(e){ console.log('Seller list load failed (marketplace tables may not exist yet)', e); return {}; }
     }
 
@@ -478,7 +478,7 @@
             const sellerName = sellerMap[prod.seller_id];
             const inWishlist = wishlist.some(id => String(id) === String(prod.id));
             const c=document.createElement('div'); c.className='product-card'; c.dataset.id=prod.id;
-            c.innerHTML=`<div class="product-img-wrap"><img src="${esc(imgs[0])}" class="product-img" loading="lazy" alt="${esc(prod.name)}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}<button class="wishlist-heart-btn${inWishlist?' active':''}" data-wish-id="${prod.id}"><i class="${inWishlist?'fas':'far'} fa-heart"></i></button></div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${esc(sellerName)}</div>`:''}<div class="product-title">${esc(prod.name)}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
+            c.innerHTML=`<div class="product-img-wrap"><img src="${esc(imgs[0])}" class="product-img" loading="lazy" alt="${esc(prod.name)}">${stock===0?'<span class="sold-out-tag">Sold Out</span>':''}${discount>0&&stock>0?`<span class="discount-tag">-${discount}%</span>`:''}<button class="wishlist-heart-btn${inWishlist?' active':''}" data-wish-id="${prod.id}"><i class="${inWishlist?'fas':'far'} fa-heart"></i></button></div>${sellerName?`<div class="product-seller"><i class="fas fa-store"></i>${esc(sellerName)}${sellerVerifiedMap[prod.seller_id]?' <i class="fas fa-circle-check" style="color:#3a5a45;" title="Verified Seller"></i>':''}</div>`:''}<div class="product-title">${esc(prod.name)}</div><div class="price">${discount>0?`<span class="original">NPR ${origPrice}</span> `:''}NPR ${disPrice}</div>`;
             c.addEventListener('click',function(){ openProductModal(prod); });
             c.querySelector('.wishlist-heart-btn').addEventListener('click', function(e){ e.stopPropagation(); toggleWishlist(prod.id); });
             g.appendChild(c);
@@ -573,7 +573,7 @@
         const imgs=prod.images||[prod.img||'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400'], stock=prod.stock||0;
         document.getElementById('modalMainImg').src=imgs[0]; document.getElementById('modalProdName').textContent=prod.name;
         const sellerPhoto = sellerPhotoMap[prod.seller_id];
-        document.getElementById('modalProdSeller').innerHTML = sellerMap[prod.seller_id] ? `${sellerPhoto?`<img src="${esc(sellerPhoto)}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">`:'<i class="fas fa-store"></i> '}Sold by ${esc(sellerMap[prod.seller_id])}` : '';
+        document.getElementById('modalProdSeller').innerHTML = sellerMap[prod.seller_id] ? `${sellerPhoto?`<img src="${esc(sellerPhoto)}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">`:'<i class="fas fa-store"></i> '}Sold by ${esc(sellerMap[prod.seller_id])}${sellerVerifiedMap[prod.seller_id]?' <i class="fas fa-circle-check" style="color:#3a5a45;" title="Verified Seller"></i>':''}` : '';
         document.getElementById('modalProdDesc').textContent=prod.description||'';
         const ingEl = document.getElementById('modalProdIngredients'), howEl = document.getElementById('modalProdHowToUse');
         if(prod.ingredients){ ingEl.querySelector('p').textContent = prod.ingredients; ingEl.style.display='block'; } else { ingEl.style.display='none'; }
